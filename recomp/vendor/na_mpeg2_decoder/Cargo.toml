@@ -1,0 +1,21 @@
+# WP-P3: vendored na_mpeg2_decoder 0.1.0 (MPL-2.0, https://github.com/xmoezzz/siglus_rs), library only.
+# Local fix: src/video/motion.rs field-based motion compensation used the frame height as the edge
+# (bottom-field MVs near the frame bottom indexed past the plane: panic in videodsp.rs on WBPH.PSS).
+[package]
+edition = "2024"
+name = "na_mpeg2_decoder"
+version = "0.1.0"
+license = "MPL-2.0"
+description = "Rust MPEG-1/2 video decoder (vendored, patched)"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+bytemuck = "1"
+byteorder = "1"
+log = "0.4"
+oxideav-ac3 = "0.0.10"
+oxideav-core = "=0.1.29"
+symphonia = { version = "0.5.5", default-features = false, features = ["mpa"] }
+thiserror = "1"

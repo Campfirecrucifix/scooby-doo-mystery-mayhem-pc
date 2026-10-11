@@ -1,0 +1,80 @@
+[package]
+name = "scooby_recomp"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy_ecs = "0.19.1"
+bevy_app = { version = "0.19.1", default-features = false }
+bevy_time = { version = "0.19.1", default-features = false }
+log = "0.4"
+sha1_smol = "1.0.1"
+# WP-P3: pure-Rust MPEG-2 video decoder for the MOVIES*.PSS FMVs (no system ffmpeg)
+na_mpeg2_decoder = { path = "vendor/na_mpeg2_decoder" }
+
+[features]
+viewer = ["bevy_render", "dep:bevy"]
+# WP-J5: playable build (src/bin/game.rs)
+game = ["viewer", "bevy_audio"]
+bevy_audio = ["dep:bevy_audio", "dep:bevy_asset"]
+# WP-G1: optional `--rt` lighting path (Solari not applicable, see GFX_G1.md); default build unchanged
+rt = ["game"]
+# WP-C2: Bevy render adapter (gfx::bevy_adapter): RW meshes/textures -> Bevy Mesh/Image/StandardMaterial
+bevy_render = ["dep:bevy_camera", "dep:bevy_asset", "dep:bevy_mesh", "dep:bevy_image", "dep:bevy_pbr", "dep:bevy_transform", "dep:bevy_color", "dep:bevy_math", "dep:bevy_material", "dep:wgpu-types"]
+
+[dependencies.bevy_asset]
+version = "0.19.1"
+optional = true
+default-features = false
+[dependencies.bevy_mesh]
+version = "0.19.1"
+optional = true
+[dependencies.bevy_image]
+version = "0.19.1"
+optional = true
+default-features = false
+[dependencies.bevy_pbr]
+version = "0.19.1"
+optional = true
+default-features = false
+[dependencies.bevy_transform]
+version = "0.19.1"
+optional = true
+[dependencies.bevy_color]
+version = "0.19.1"
+optional = true
+[dependencies.bevy_math]
+version = "0.19.1"
+optional = true
+[dependencies.bevy_material]
+version = "0.19.1"
+optional = true
+[dependencies.wgpu-types]
+version = "29.0.3"
+optional = true
+default-features = false
+[dependencies.bevy_audio]
+version = "0.19.1"
+optional = true
+default-features = false
+features = ["wav"]
+
+[dependencies.bevy_camera]
+version = "0.19.1"
+optional = true
+
+[dependencies.bevy]
+version = "0.19.1"
+optional = true
+default-features = false
+features = ["default_app", "bevy_gilrs", "3d_bevy_render", "bevy_winit", "bevy_window", "std", "multi_threaded", "png", "tonemapping_luts", "zstd_rust"]
+
+[[bin]]
+name = "viewer"
+path = "src/bin/viewer.rs"
+required-features = ["viewer"]
+
+[[bin]]
+name = "game"
+path = "src/bin/game.rs"
+required-features = ["game"]

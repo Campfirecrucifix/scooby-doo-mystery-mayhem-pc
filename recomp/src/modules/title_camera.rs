@@ -1,0 +1,674 @@
+//! `title_camera`: the TITLE/GAMEART/INTRO camera object (title_camera -> MTitle_camera -> Camera_Base).
+//! Port of `Game Logic Modules/Globals/camera/title_camera__{22333f77,42815106}/{Title_camera,
+//! mtitle_camera,camera_base,CameraFree,FloorEvent,FloorEventSystem}.c`.
+//!
+//! FULL PORT, derived from the l03_camera port (same Camera_Base family, same static layout up to
+//! 0x103d0). Differences from l03: no Ep1 layer (MTitle: FIRSTMOVE sets input state 0x6000070e and
+//! state 2); CheckCameraMode never calls GetCameraMode; SetCameraBattle has no GetID assert; panel
+//! 0x2a100007; SetClipPlane room table 1:20 2/5:60 3/4:40 6:30 7:45 8:25; InitCamera flex params
+//! 0.25/0.25/0.1 and 0.25/1.0; Events = {ManageEventDefault} (size 1); ray/target/tour globals at
+//! 0x10420... The two builds differ only in object ids / CB_INIT (see [`BUILDS`]).
+//! Sub-files: title_camera/{base_cb,base_fn,base_user,msg,free,free2}.rs.
+#![allow(non_snake_case, non_upper_case_globals, unused_variables)]
+
+use crate::engine::*;
+use crate::logic::{ExtFn, LResult, ModuleDef};
+
+mod base_cb;
+mod base_fn;
+mod base_user;
+mod free;
+mod free2;
+mod msg;
+pub use base_cb::*;
+pub use base_fn::*;
+pub use base_user::*;
+pub use free::*;
+pub use free2::*;
+pub use msg::*;
+
+/// module address of ManageEventDefault / ManageEvent001: the two words of the `Events` table
+/// (relocated code pointers in the image; the port dispatches on these values, see CallFloorEvent)
+const EV_DEFAULT: u32 = 0x175f0;
+
+pub static MODULE: ModuleDef = DEF;
+const DEF: ModuleDef = ModuleDef {
+    name: "title_camera",
+    // module image (statics up to 0x10660), same extent as l03
+    data_size: 0x1b78,
+    ctor: title_cameraConstructor,
+    dtor: title_cameraDestructor,
+    register: None,
+    init: &[
+        // CameraFlags.. fSpeedFactor
+        (0x10168, &[0, 0, 0x3f99_999a, 0x7fff_ffff, 0x3f40_0000, 0]),
+        // fCameraCurve[6][2] + the 3 CheckWall ray dirs
+        (
+            0x10180,
+            &[
+                0, 0x4026_6666, 0x3f80_0000, 0x4000_0000, 0x4000_0000, 0x3fd9_999a, //
+                0x4040_0000, 0x4019_999a, 0x4080_0000, 0x4040_0000, 0x40a0_0000, 0x409c_cccd, //
+                0, 0, 0x3f80_0000, 0, 0x3f5d_b22d, 0, 0xbf00_0000, 0, 0xbf5d_b22d, 0, 0xbf00_0000, 0,
+            ],
+        ),
+        // Events[1]; pEventBuffer (0x101f4) is set by build_init; i32EventBufferSize = 1
+        (0x101f0, &[EV_DEFAULT]),
+        (0x101f8, &[1]),
+        // szFileName = "ScoobyScreenShot00.bmp"
+        (0x10200, &[0x6f6f_6353, 0x6353_7962, 0x6e65_6572, 0x746f_6853, 0x622e_3030, 0x0000_706d]),
+    ],
+    build_init: Some(title_camera_build_init),
+};
+
+/// per-build constants (the two builds differ only in these)
+pub(crate) struct Build {
+    /// leader of goHeroesData row 2 (id 0xb); rows 0/1 are {1, lead, follow, 2, 0} / {2, follow, lead, 1, 0}
+    hero_b: u32,
+    /// CameraST_FIRSTMOVE: L+0x24, L+8, L+0x2c (0 = untouched), L+0x4c
+    first: [u32; 4],
+    /// CB_CUT_SCENE 0x5e target
+    pub cut_obj: u32,
+    /// SetCameraTarget default / InitCamera target
+    pub target: u32,
+    /// InitCamera + CameraFree follow object
+    pub follow_obj: u32,
+    pub init_mode: u32,
+    pub death_obj: u32,
+    pub def_lead: u32,
+    pub def_follow: u32,
+    /// CB_INIT calls ManageEventDefault(1) (true) or InitCamera (false)
+    init_event: bool,
+    /// panel object (0x1e / 0x1f show/hide)
+    pub panel: u32,
+}
+pub(crate) static BUILDS: [Build; 3] = [
+    // 22333f77 (24 GAMEART levels)
+    Build {
+        hero_b: 0x2a00_009c,
+        first: [0x2a00_0005, 2, 0, 0x8000_2102],
+        cut_obj: 0x2a00_000d,
+        target: 0x2a00_0009,
+        follow_obj: 0x2a00_0004,
+        init_mode: 2,
+        death_obj: 0x2a00_00ad,
+        def_lead: 0x2a00_000a,
+        def_follow: 0x2a00_0009,
+        init_event: true,
+        panel: 0x2a10_0007,
+    },
+    // 42815106 (INTRO)
+    Build {
+        hero_b: 0x2a00_00b1,
+        first: [0x2a00_0006, 4, 0x2a00_0008, 0x8000_210a],
+        cut_obj: 0x2a00_000f,
+        target: 0x2a00_0008,
+        follow_obj: 0x2a00_0005,
+        init_mode: 4,
+        death_obj: 0x2a00_0012,
+        def_lead: 0x2a00_000c,
+        def_follow: 0x2a00_000b,
+        init_event: false,
+        panel: 0x2a10_0007,
+    },
+    // overall_camera e8f6fb31 (own top layer, see OVERALL)
+    Build {
+        hero_b: 0x2a00_00b0,
+        first: [0; 4],
+        cut_obj: 0x2a00_000f,
+        target: 0x2a00_0006,
+        follow_obj: 0x2a00_0005,
+        init_mode: 2,
+        death_obj: 0x2a00_0012,
+        def_lead: 0x2a00_000c,
+        def_follow: 0x2a00_000b,
+        init_event: true,
+        panel: 0x2a10_000c,
+    },
+];
+
+/// `overall_camera` (Overall_camera.c on the same MTitle/Camera_Base sources): build 2 of [`BUILDS`]
+pub static OVERALL: ModuleDef = ModuleDef { name: "overall_camera", ..DEF };
+
+pub fn overall_build_index(key: &str) -> Option<usize> {
+    (key == "e8f6fb31").then_some(2)
+}
+
+fn is_overall(e: &Engine) -> bool {
+    e.rt.cur_build() == 2
+}
+#[inline]
+pub(crate) fn K(e: &Engine) -> &'static Build {
+    &BUILDS[e.rt.cur_build()]
+}
+
+pub fn build_index(key: &str) -> Option<usize> {
+    ["22333f77", "42815106"].iter().position(|k| *k == key)
+}
+
+/// relocated pointer of the image (pEventBuffer = &Events) + the per-build goHeroesData rows
+fn title_camera_build_init(m: &mut Mem, data: Ptr, build: usize) {
+    m.w32(data + (pEventBuffer - 0x10000), data + (Events - 0x10000));
+    let k = &BUILDS[build];
+    let (a, b) = (k.def_lead, k.def_follow);
+    let rows = [1, a, b, 2, 0, 2, b, a, 1, 0, 0xb, k.hero_b, a, 0x2b, 2];
+    for (i, v) in rows.iter().enumerate() {
+        m.w32(data + i as u32 * 4, *v);
+    }
+}
+
+// ---- module globals (_globals.h / module symtab) ----
+pub const goHeroesData: u32 = 0x10000;
+pub const CameraFlags: u32 = 0x10168;
+pub const ui32Substate: u32 = 0x1016c;
+pub const fHauterCameraFocus: u32 = 0x10170;
+pub const ui32FollowJoint: u32 = 0x10174;
+pub const fOuvertureCaptureActuel: u32 = 0x10178;
+pub const fSpeedFactor: u32 = 0x1017c;
+/// fCameraCurve[6][2] {hauteur, distance}
+pub const fCameraCurve: u32 = 0x10180;
+pub const Events: u32 = 0x101f0;
+pub const pEventBuffer: u32 = 0x101f4;
+pub const i32EventBufferSize: u32 = 0x101f8;
+/// szFileName.176 (snapshot name, debug R3 only)
+pub const szFileName: u32 = 0x10200;
+pub const uiNbPics: u32 = 0x10218;
+/// pFloorAttribs.205
+pub const pFloorAttribs: u32 = 0x10220;
+pub const pAnim: u32 = 0x10240;
+pub const pStdlib: u32 = 0x10244;
+pub const pExtra: u32 = 0x10248;
+pub const pGame: u32 = 0x1024c;
+pub const pCamera: u32 = 0x10250;
+pub const pGameObj: u32 = 0x10254;
+pub const pInput: u32 = 0x10258;
+pub const pPhysic: u32 = 0x1025c;
+pub const pConsole: u32 = 0x10260;
+pub const pHud: u32 = 0x10264;
+pub const pMath: u32 = 0x10268;
+pub const pSound: u32 = 0x1026c;
+pub const pDebug: u32 = 0x10270;
+pub const pMiscFunc: u32 = 0x10274;
+pub const pApiCFunc: u32 = 0x10278;
+pub const pText: u32 = 0x1027c;
+pub const pLocalDataCameraBase: u32 = 0x10280;
+pub const pGlobalDataCameraBase: u32 = 0x10284;
+pub const oAttractorParam: u32 = 0x10288;
+pub const cvCamImpulse: u32 = 0x102c8;
+pub const cvCamImpulseWall: u32 = 0x102d8;
+pub const cvLastFollowY: u32 = 0x102e8;
+pub const cvTrackEnAvant: u32 = 0x102f8;
+pub const fHauteurCameraFollow: u32 = 0x10304;
+pub const fHauteurCameraFollowTarget: u32 = 0x10308;
+pub const fDistanceCameraFollow: u32 = 0x1030c;
+pub const fDistanceCameraFollowCollision: u32 = 0x10310;
+pub const fDistanceCameraFollowTarget: u32 = 0x10314;
+pub const fTargetCameraFollow: u32 = 0x10318;
+pub const fTargetCameraFollowWork: u32 = 0x1031c;
+pub const fOuvertureCaptureTarget: u32 = 0x10320;
+pub const cvCamWallCheck: u32 = 0x10328;
+pub const oEnvCollParams: u32 = 0x10338;
+pub const i32ActualFloorEvent: u32 = 0x10370;
+pub const i32FloorEventBufferSize: u32 = 0x10374;
+pub const pEventCall: u32 = 0x10378;
+pub const pLocalDataCameraEp1: u32 = 0x1037c;
+pub const pGlobalDataCameraEp1: u32 = 0x10380;
+pub const pLocalDataCamera: u32 = 0x10384;
+pub const pGlobalDataCamera: u32 = 0x10388;
+/// BaseCamNewLibrary moCameraParams.102 (+0x24/+0x3c/+0x40/+0x44 = DAT_000103f4/0c/10/14)
+pub const moCameraParams_102: u32 = 0x103d0;
+pub const oRayIntersectIn: u32 = 0x10420;
+pub const oRayIntersectOut: u32 = 0x10450;
+pub const ui32ActualTargetID: u32 = 0x1048c;
+pub const cvCameraTourCenter: u32 = 0x10490;
+pub const fCameraTourTimeIn: u32 = 0x1049c;
+
+#[inline]
+pub(crate) fn G(e: &Engine, a: u32) -> Ptr {
+    e.rt.cur_data() + (a - 0x10000)
+}
+/// `pLocalDataCameraBase`
+#[inline]
+pub(crate) fn LB(e: &Engine) -> Ptr {
+    e.r32(G(e, pLocalDataCameraBase))
+}
+/// `pGlobalDataCameraBase` (int*: [0] GB0, [1] GB1, [2] GB3, [3] GB2, [4] GB4, [5] GB6)
+#[inline]
+pub(crate) fn GDB(e: &Engine) -> Ptr {
+    e.r32(G(e, pGlobalDataCameraBase))
+}
+/// `*pGlobalDataCameraBase`: game buffer 0
+#[inline]
+pub(crate) fn GB0(e: &Engine) -> Ptr {
+    e.r32(GDB(e))
+}
+
+pub(crate) const SELF_CAM: u32 = 0x2a00_0000;
+
+/// 0x00018468 callback 0xf (notify 0x14 = first EFGameLogicMgr::Update): camera init, team set-up
+pub fn Camera_BaseCB_INIT(e: &mut Engine, _: u32) -> LResult<u64> {
+    let piVar2 = GDB(e);
+    let iVar1 = LB(e);
+    let gb0 = e.r32(piVar2);
+    e.w32(gb0 + 0x30, 0);
+    e.w32(gb0 + 0x24, 1);
+    e.w32(iVar1 + 0x144, 0xffff_ffff);
+    e.w32(iVar1 + 0x108, 0);
+    e.w32(iVar1 + 0x158, 0);
+    e.w32(iVar1 + 0x100, 2);
+    for o in [0xb8, 0xbc, 0xc0, 0xc4] {
+        e.w32(iVar1 + o, 0);
+    }
+    if e.r32(gb0 + 4) != 0xd {
+        let v = e.r32(gb0 + 0x34) & 0xffff_fffe;
+        e.w32(gb0 + 0x34, v);
+        e.w32(gb0 + 0x34, v | 0x10);
+    }
+    if e.r32(gb0 + 8) == 0 {
+        Camera_BaseFUNC_MessageHandler(e, 0x47, 2, NULL)?;
+    } else {
+        match e.r32(gb0 + 4) {
+            3 | 5 | 7 | 9 | 0xe | 0x10 => e.w32(gb0 + 4, 1),
+            4 | 6 | 8 | 10 | 0xb | 0xf | 0x11 => e.w32(gb0 + 4, 2),
+            0xc | 0xd => e.w32(gb0 + 4, 2),
+            _ => {}
+        }
+        let p2 = e.r32(gb0 + 4);
+        Camera_BaseFUNC_MessageHandler(e, 0x47, p2, NULL)?;
+    }
+    if K(e).init_event {
+        ManageEventDefault(e, 1)?;
+    } else {
+        Camera_BaseFUNC_InitCamera(e);
+    }
+    APIgameobj::RegisterNotify(e, SELF_CAM, 0xffff_ffff, 0x16, 0x10);
+    APIgameobj::SetNextState(e, SELF_CAM, 1);
+    Ok(1)
+}
+
+/// 0x00017ed8 BaseCamNewLibrary ManageEventDefault (floor event 0): follow camera on the leader
+pub fn ManageEventDefault(e: &mut Engine, param_1: i32) -> LResult<()> {
+    if param_1 == 1 {
+        let m = G(e, moCameraParams_102);
+        e.w32(m, 2);
+        let t = e.r32(GB0(e) + 8);
+        e.w32(m + 0x24, t);
+        e.w32(m + 0x3c, 0);
+        e.w32(m + 0x40, 0);
+        e.w32(m + 0x44, 0xc000_0000);
+        Camera_BaseFUNC_SetCameraUser(e, m)?;
+    }
+    Ok(())
+}
+
+/// MTitle_cameraST_FIRSTMOVE
+pub fn MTitle_cameraST_FIRSTMOVE(e: &mut Engine) -> LResult<u64> {
+    APIinput::InputConfigSetState(e, 4, 0x6000_070e);
+    APIgameobj::SetNextState(e, SELF_CAM, 2);
+    Ok(0)
+}
+
+/// state 1: render flags, then the user camera with the per-build ids
+pub fn CameraST_FIRSTMOVE(e: &mut Engine, _: u32) -> LResult<u64> {
+    MTitle_cameraST_FIRSTMOVE(e)?;
+    if is_overall(e) {
+        CameraFUNC_MessageHandler(e, 0x98, 1, NULL)?;
+        return Ok(0);
+    }
+    let l = LB(e);
+    let c = e.r32(l + 200);
+    APIcamera::SetRenderFlag(e, c, 0xffff_ffef);
+    let [a, m, t, f] = K(e).first;
+    e.w32(l + 0x24, a);
+    e.w32(l + 8, m);
+    if t != 0 {
+        e.w32(l + 0x2c, t);
+    }
+    e.w32(l + 0x4c, f);
+    Camera_BaseFUNC_SetCameraUser(e, l + 8)?;
+    Ok(0)
+}
+
+/// CameraFUNC_MessageHandler -> MTitle_cameraFUNC_MessageHandler -> Camera_Base
+/// (overall_camera: 0x98 jump-to sets up the user camera, 0xde fades, then forwards)
+pub fn CameraFUNC_MessageHandler(e: &mut Engine, param_1: u32, param_2: u32, param_3: Ptr) -> LResult<u64> {
+    if is_overall(e) {
+        let l = LB(e);
+        if param_1 == 0x98 {
+            e.w32(l + 0x144, param_2);
+            let lead = e.r32(GB0(e) + 8);
+            e.w32(l + 0x2c, lead);
+            e.w32(l + 0x44, 0);
+            e.w32(l + 0x48, 3);
+            if param_2 != 1 {
+                return Ok(0);
+            }
+            let c = e.r32(l + 200);
+            APIcamera::SetRenderFlag(e, c, 0xffff_ffef);
+            APIcamera::SetNearClipPlane(e, c, 0.02);
+            APIcamera::SetFarClipPlane(e, c, 20.0);
+            for (o, v) in [(0x140, 1), (8, 4), (0x24, 0x2a00_0006), (0x2c, 0x2a00_0008), (0x4c, 0xa000_2106)] {
+                e.w32(l + o, v);
+            }
+            Camera_BaseFUNC_FadeInOut(e, 0.0, 0);
+            CameraFUNC_MessageHandler(e, 0x54, 0, l + 8)?;
+        } else if param_1 == 0xde {
+            match param_2 {
+                0 => Camera_BaseFUNC_FadeInOut(e, 1.0, 0),
+                1 => Camera_BaseFUNC_FadeInOut(e, 1.0, 1),
+                _ => {}
+            }
+        }
+    }
+    Camera_BaseFUNC_MessageHandler(e, param_1, param_2, param_3)
+}
+
+/// 0x0001a200
+pub fn Camera_BaseFUNC_Create_Input(e: &mut Engine) {
+    let p = |e: &Engine| e.ri32(GB0(e) + 0x4c);
+    APIinput::InputConfigAdd(e, 4);
+    APIinput::InputActionAdd(e, 4, 0x33, 0);
+    let d = p(e);
+    APIinput::InputDeviceAdd(e, 4, 0x33, 0x2f, d, 0, 2, 0, 10);
+    APIinput::InputContextAdd(e, SELF_CAM, 0x11, 4, 0x33, 0x19, 8);
+    APIinput::InputContextSetState(e, 4, 0x33, 0x19, 0x200);
+    APIinput::InputActionAdd(e, 4, 0x37, 0);
+    let d = p(e);
+    for (a, b, c, f, g, h) in [(3, d, 0, 0, 0, 0x8000), (4, d, 0, 1, 0, 0x8001), (0xb, d, 1, 0, -100, 0xe), (0xc, d, 1, 0, 100, 0xf), (0xd, d, 1, 1, -100, 0xd), (0xe, d, 1, 1, 100, 0xc), (0xb, 1, 2, 0, -100, 0xcb), (0xc, 1, 2, 0, 100, 0xcd), (0xd, 1, 2, 1, -100, 200), (0xe, 1, 2, 1, 100, 0xd0)] {
+        APIinput::InputDeviceAdd(e, 4, 0x37, a, b, c, f, g, h);
+    }
+    APIinput::InputContextSetState(e, 4, 0x37, 2, 0);
+    APIinput::InputActionAdd(e, 4, 0x38, 0);
+    for (a, b, c, f, g, h) in [(6, d, 0, 0, 0, 0x8003), (6, d, 0, 1, 0, 0x8004), (0x19, 1, 1, 0, -100, 0x24), (0x1b, 1, 1, 0, 100, 0x25), (0x1a, 1, 1, 1, -100, 0x17), (0x1c, 1, 1, 1, 100, 0x32)] {
+        APIinput::InputDeviceAdd(e, 4, 0x38, a, b, c, f, g, h);
+    }
+    APIinput::InputContextSetState(e, 4, 0x38, 3, 0);
+    // (action, device, button code, joy code, context cb, context id, state)
+    for (act, dev, b0, b1, cb, ctx, st) in [(0x39, 0x3d, 0, 0x32, 0x17, 0x1e, 0x80), (0x3a, 0x3e, 2, 0x24, 0x18, 0x20, 0x40), (0x3b, 0x3f, 1, 0x25, 0x19, 0x22, 0x10), (0x3c, 0x40, 3, 0x17, 0x1a, 0x24, 0x20)] {
+        APIinput::InputActionAdd(e, 4, act, 0);
+        let d = p(e);
+        APIinput::InputDeviceAdd(e, 4, act, dev, d, 0, 2, 0, b0);
+        APIinput::InputDeviceAdd(e, 4, act, dev, 1, 1, 2, 0, b1);
+        APIinput::InputContextAdd(e, SELF_CAM, cb, 4, act, ctx, 8);
+        APIinput::InputContextSetState(e, 4, act, ctx, st);
+    }
+    APIinput::InputActionAdd(e, 4, 0x34, 0);
+    let d = p(e);
+    APIinput::InputDeviceAdd(e, 4, 0x34, 0x32, d, 0, 2, 0, 0xb);
+    APIinput::InputDeviceAdd(e, 4, 0x34, 0x33, 1, 1, 2, 0, 1);
+    APIinput::InputContextAdd(e, SELF_CAM, 0x12, 4, 0x34, 0x1c, 8);
+    APIinput::InputContextSetState(e, 4, 0x34, 0x1c, 0x100);
+    APIinput::InputConfigSetState(e, 4, 0x200);
+    APIinput::InputConfigActivate(e, 4, 1);
+}
+
+/// 0x0001abf8 camera physic: sphere 0.3, three CameraFlex (0x12) DMs (context 1/2/4), EnvColl (0x22)
+pub fn Camera_BaseFUNC_Create_Physic(e: &mut Engine) {
+    let iVar1 = LB(e);
+    let auStack_40 = e.alloca(0x40);
+    APIphysic::CreatePhysic(e, SELF_CAM, 1);
+    APIphysic::SetFlags(e, SELF_CAM, 6);
+    APIphysic::SetSpherePrimaryVolume(e, SELF_CAM, 0.3, 0.0, 0.0, 0.0);
+    APIphysic::PrimSetIntAttribBits(e, SELF_CAM, 0, 0, 5);
+    APIphysic::PrimSetIntAttribBits(e, SELF_CAM, 0, 1, 8);
+    APIphysic::PrimSetIntAttribBits(e, SELF_CAM, 0, 2, 0x8000_0008);
+    APIphysic::PrimSetIntAttribBits(e, SELF_CAM, 0, 5, 4);
+    for (off, mask) in [(0xd0, 1), (0xd4, 2), (0xd8, 4)] {
+        let dm = APIphysic::DMAdd(e, SELF_CAM, 0x12);
+        e.w32(iVar1 + off, dm);
+        APIphysic::DMSetContextMask(e, dm, mask);
+    }
+    let dm = APIphysic::DMAdd(e, SELF_CAM, 0x22);
+    e.w32(iVar1 + 0x16c, dm);
+    APIphysic::DMGetParams(e, dm, auStack_40);
+    e.w32(auStack_40 + 0x10, 0x4080_0000); // uStack_30
+    e.w32(auStack_40 + 0x1c, 4); // uStack_24
+    e.w32(auStack_40, 0);
+    APIphysic::DMSetParams(e, dm, auStack_40);
+    APIphysic::DMSetContextMask(e, dm, 8);
+    APIphysic::DMSetStateChangeNotifyBits(e, dm, 3);
+    APIphysic::DMResetStateBits(e, dm, 3);
+    APIgameobj::RegisterNotify(e, SELF_CAM, 0xffff_ffff, 6, 4);
+    APIgameobj::RegisterNotify(e, SELF_CAM, 0xffff_ffff, 3, 5);
+    APIgameobj::SetContextFlag(e, SELF_CAM, 0);
+}
+
+/// 0x0001af70 view window, fade window, timers, floor events
+pub fn Camera_BaseFUNC_Create_Game(e: &mut Engine) {
+    // Ghidra types pLocalDataCameraBase as float* here; the `(float)`/`(uint)` casts on the id slots
+    // (+200 camera, +0x138 fade window, +0x114.. timers) are register moves (mtc1/mfc1), not
+    // conversions: every other function reads these slots as uint. Raw words are kept.
+    let pfVar1 = LB(e);
+    e.wf(pfVar1, 0.75);
+    e.wf(pfVar1 + 4, 0.5625);
+    let cam = e.r32(pfVar1 + 0x32 * 4);
+    APIcamera::SetViewWindow(e, cam, 0.75, 0.5625);
+    if e.r32(pfVar1 + 0x4e * 4) == 0 {
+        let w = APIhud::WindowAdd(e, 1, 0xffff_ffff, 0x800, 1);
+        e.w32(pfVar1 + 0x4e * 4, w);
+        APIhud::WindowSetPos(e, w, -0.25, -0.25);
+        APIhud::WindowSetDims(e, w, 1.5, 1.5);
+        APIhud::WindowSetBackGround(e, w, 0xb, 0.0, 0.0);
+        let n = e.cstr("uiPanelFade");
+        APIhud::WindowSetName(e, w, n);
+        APIhud::WindowSetFlags(e, w, 0x100);
+    }
+    for i in [0x45, 0x46, 0x47, 0x48, 0x49, 0x4b] {
+        let t = APIextra::TimerCreate(e);
+        e.w32(pfVar1 + i * 4, t);
+    }
+    let (b, n) = (e.r32(G(e, pEventBuffer)), e.ri32(G(e, i32EventBufferSize)));
+    // FloorEventConstructor's event init calls (state 0) do nothing for both events
+    let _ = FloorEventConstructor(e, b, n);
+}
+
+/// calls the floor event function `f` (a word of the Events table) with state `st`
+/// (0 init, 1 enter, 2 stay, 3 leave, 4 destroy, 5 force)
+fn CallFloorEvent(e: &mut Engine, f: u32, st: i32) -> LResult<()> {
+    match f {
+        EV_DEFAULT => ManageEventDefault(e, st),
+        _ => Ok(()),
+    }
+}
+
+fn FloorEvent(e: &Engine, i: i32) -> u32 {
+    e.r32(e.r32(G(e, pEventCall)) + (i as u32) * 4)
+}
+
+/// 0x00018088 FloorEventManager: same event -> state 2; new event -> old state 3 (old -1 becomes 0),
+/// new state 1
+pub fn FloorEventManager(e: &mut Engine, param_1: i32) -> LResult<()> {
+    if param_1 < e.ri32(G(e, i32FloorEventBufferSize)) {
+        let act = e.ri32(G(e, i32ActualFloorEvent));
+        if act == param_1 {
+            let f = FloorEvent(e, act);
+            if f != 0 {
+                CallFloorEvent(e, f, 2)?;
+            }
+        } else {
+            let mut act = act;
+            if act == -1 {
+                act = 0;
+                let a = G(e, i32ActualFloorEvent);
+                e.w32(a, 0);
+            }
+            let f = FloorEvent(e, act);
+            if f != 0 {
+                CallFloorEvent(e, f, 3)?;
+            }
+            let a = G(e, i32ActualFloorEvent);
+            e.w32(a, param_1 as u32);
+            let f = FloorEvent(e, param_1);
+            if f != 0 {
+                CallFloorEvent(e, f, 1)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+/// 0x000182f8
+pub fn FloorEventForceState(e: &mut Engine, param_1: i32) -> LResult<()> {
+    let mut i = 0;
+    while i < e.ri32(G(e, i32FloorEventBufferSize)) {
+        let f = FloorEvent(e, i);
+        if f != 0 {
+            CallFloorEvent(e, f, param_1)?;
+        }
+        i += 1;
+    }
+    Ok(())
+}
+
+/// 0x0001fd10
+pub fn CameraFUNC_SetLocalParams(e: &mut Engine) {}
+
+/// 0x00018218 FloorEventSystem: runs every event's init (state 0)
+pub fn FloorEventConstructor(e: &mut Engine, api: Ptr, instanceCount: i32) -> LResult<()> {
+    let a = G(e, i32FloorEventBufferSize);
+    e.w32(a, instanceCount as u32);
+    let a = G(e, pEventCall);
+    e.w32(a, api);
+    let mut i = 0;
+    while i < e.ri32(G(e, i32FloorEventBufferSize)) {
+        let f = FloorEvent(e, i);
+        if f != 0 {
+            CallFloorEvent(e, f, 0)?;
+        }
+        i += 1;
+    }
+    let a = G(e, i32ActualFloorEvent);
+    e.w32(a, 0xffff_ffff);
+    Ok(())
+}
+
+/// 0x000183a8 (no caller in l03)
+pub fn FloorEventDestructor(e: &mut Engine, instanceCount: i32) -> LResult<()> {
+    let mut i = 0;
+    while i < e.ri32(G(e, i32FloorEventBufferSize)) {
+        let f = FloorEvent(e, i);
+        if f != 0 {
+            CallFloorEvent(e, f, 4)?;
+        }
+        i += 1;
+    }
+    let a = G(e, i32ActualFloorEvent);
+    e.w32(a, 0xffff_ffff);
+    Ok(())
+}
+
+/// 0x0001f230
+pub fn Camera_BaseFUNC_Constructor(e: &mut Engine, api: Ptr, instanceCount: i32) -> LResult<()> {
+    if instanceCount == 1 {
+        let st1: ExtFn = |e, _| Camera_BaseST_FIRSTMOVE(e);
+        let phys: ExtFn = |e, p| Camera_BaseCB_PHYSIC(e, p);
+        let tbl: [(i32, ExtFn); 20] = [
+            (1, st1),
+            (2, Camera_BaseST_BASICMOVE),
+            (3, Camera_BaseST_USER),
+            (6, Camera_BaseCB_TIMER),
+            (0xe, Camera_BaseCB_ANIM_LF),
+            (0xf, Camera_BaseCB_INIT),
+            (0x10, Camera_BaseCB_CUT_SCENE),
+            (0x13, Camera_BaseCB_INPUT_SWITCH),
+            (0x12, Camera_BaseCB_INPUT_START),
+            (0x11, Camera_BaseCB_INPUT_SELECT),
+            (0x14, Camera_BaseCB_INPUT_STICK),
+            (0x15, Camera_BaseCB_INPUT_RSTICK),
+            (0x16, Camera_BaseCB_INPUT_RSTICK_IDLE),
+            (0x17, Camera_BaseCB_INPUT_X),
+            (0x18, Camera_BaseCB_INPUT_SQUARE),
+            (0x19, Camera_BaseCB_INPUT_CIRCLE),
+            (0x1a, Camera_BaseCB_INPUT_TRIANGLE),
+            (0x1e, Camera_BaseCB_INPUT_R3),
+            (4, phys),
+            (5, Camera_BaseCB_COLLIDE),
+        ];
+        for (i, f) in tbl {
+            APIcons::SetExternalFunction(e, i, f);
+        }
+        let tables: [(u32, fn(&mut Engine) -> Ptr); 12] = [
+            (pAnim, |e| APIcons::GetApiAnim(e)),
+            (pInput, |e| APIcons::GetApiInput(e)),
+            (pMath, |e| APIcons::GetApiMath(e)),
+            (pStdlib, |e| APIcons::GetApiStdlib(e)),
+            (pGame, |e| APIcons::GetApiGame(e)),
+            (pCamera, |e| APIcons::GetApiCamera(e)),
+            (pGameObj, |e| APIcons::GetApiGameObj(e)),
+            (pExtra, |e| APIcons::GetApiExtra(e)),
+            (pPhysic, |e| APIcons::GetApiPhysic(e)),
+            (pConsole, |e| APIcons::GetApiConsole(e)),
+            (pHud, |e| APIcons::GetApiHUD(e)),
+            (pSound, |e| APIcons::GetApiNewSound(e)),
+        ];
+        for (slot, get) in tables {
+            let v = get(e);
+            let a = G(e, slot);
+            e.w32(a, v);
+        }
+        for (slot, name) in [(pDebug, "debug"), (pMiscFunc, "MiscFunc"), (pApiCFunc, "ApiCFunctions"), (pText, "ApiText")] {
+            let n = e.cstr(name);
+            let v = APIcons::GetApiCustom(e, n);
+            let a = G(e, slot);
+            e.w32(a, v);
+        }
+        let slot = G(e, pGlobalDataCameraBase);
+        APIcons::GetGlobalData(e, slot, 0x20);
+        for (i, (b, s, c)) in [(0u32, 0x8f8u32, 1u32), (1, 0x68, 1), (3, 0x40, 1), (2, 0x158, 1), (4, 8, 1), (6, 0x14, 0)].into_iter().enumerate() {
+            let v = APIgameobj::GetGameBuffer(e, b, s, c);
+            let gd = GDB(e);
+            e.w32(gd + i as u32 * 4, v);
+        }
+    }
+    let slot = G(e, pLocalDataCameraBase);
+    APIcons::GetLocalData(e, slot, 0x17c);
+    APIcons::SetMessageFunction(e, Camera_BaseFUNC_MessageHandler);
+    let s = e.cstr("Camera> Camera_BaseFUNC_Constructor\n");
+    APIextra::null_printf(e, s, 0);
+    APIgameobj::RegisterNotify(e, SELF_CAM, 0xffff_ffff, 0x14, 0xf);
+    let lb = LB(e);
+    e.w32(lb + 0x13c, 0xffff_ffff);
+    let c = APIcamera::CreateCamera(e, SELF_CAM);
+    let lb = LB(e);
+    e.w32(lb + 200, c);
+    APIcamera::SetRenderFlag(e, c, 0);
+    Ok(())
+}
+
+/// title_cameraConstructor -> mtitle_cameraFUNC_Constructor -> Camera_BaseFUNC_Constructor
+pub fn title_cameraConstructor(e: &mut Engine, api: Ptr, instanceCount: i32) -> LResult<()> {
+    // mtitle_cameraFUNC_Constructor
+    Camera_BaseFUNC_Constructor(e, api, instanceCount)?;
+    let slot = G(e, pLocalDataCameraEp1);
+    APIcons::GetLocalData(e, slot, 0x17c);
+    if instanceCount == 1 {
+        let slot = G(e, pGlobalDataCameraEp1);
+        APIcons::GetGlobalData(e, slot, 0x20);
+        let v = APIgameobj::GetGameBuffer(e, 0, 0x8f8, 1);
+        let gd = e.r32(G(e, pGlobalDataCameraEp1));
+        e.w32(gd, v);
+    }
+    APIcons::SetMessageFunction(e, CameraFUNC_MessageHandler);
+    Camera_BaseFUNC_Create_Physic(e);
+    Camera_BaseFUNC_Create_Input(e);
+    Camera_BaseFUNC_Create_Game(e);
+    // title_cameraConstructor
+    let slot = G(e, pLocalDataCamera);
+    APIcons::GetLocalData(e, slot, 0x17c);
+    if instanceCount == 1 {
+        APIcons::SetExternalFunction(e, 1, CameraST_FIRSTMOVE);
+        let slot = G(e, pGlobalDataCamera);
+        APIcons::GetGlobalData(e, slot, 0x20);
+        let v = APIgameobj::GetGameBuffer(e, 0, 0x8f8, 1);
+        let gd = e.r32(G(e, pGlobalDataCamera));
+        e.w32(gd, v);
+    }
+    APIcons::SetMessageFunction(e, CameraFUNC_MessageHandler);
+    APIcons::SetInitialState(e, 1);
+    Ok(())
+}
+
+/// title_cameraDestructor -> mtitle_cameraFUNC_Destructor -> Camera_BaseFUNC_Destructor
+pub fn title_cameraDestructor(e: &mut Engine, instanceCount: i32) -> LResult<()> {
+    Camera_BaseFUNC_Destructor(e, instanceCount);
+    Ok(())
+}
