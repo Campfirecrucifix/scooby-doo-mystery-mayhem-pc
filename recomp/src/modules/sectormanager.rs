@@ -14,6 +14,7 @@ use crate::engine::*;
 use crate::libs::api_sector_clipping as clip;
 use crate::logic::{CodeFn, LResult, ModuleDef};
 
+#[derive(Debug)]
 pub struct Build {
     pub key: &'static str,
     /// respawn object the start floor ray is cast from

@@ -4,23 +4,35 @@
 use super::Var;
 
 pub const KEYS: [&str; 15] = ["64b2633a", "876ca9b6", "9e2d68e4", "9e67afa5", "9efa6340", "9f60c594", "b4cee97a", "1d6cdf74", "32a5bf2e", "49cc7562", "68691de5", "852f0c8f", "f50a6ba2", "76d61404", "fd412404"];
-pub static VARS: [Var; 15] = [
-    Var { name: "hs_door__64b2633a", n: 0x1e, radar: 0x2a100006, cam: 0x2a00005c, snd_lock: 0x40000001, snd_open: 0x40000000, dbg: false, pgame: 0x1f080, cam27: 0x1f0e0, pextra: 0x1f0f4, pfunction: 0x1f0a0, plight: 0x0, size: 0xf110 },
-    Var { name: "hs_door__876ca9b6", n: 0x5, radar: 0x2a100006, cam: 0x2a000012, snd_lock: 0x40000001, snd_open: 0x40000000, dbg: false, pgame: 0x12814, cam27: 0x12870, pextra: 0x12884, pfunction: 0x0, plight: 0x0, size: 0x28a0 },
-    Var { name: "hs_door__9e2d68e4", n: 0x4, radar: 0x2a100006, cam: 0x2a00000e, snd_lock: 0x4000000c, snd_open: 0x4000000b, dbg: true, pgame: 0x12010, cam27: 0x12070, pextra: 0x12084, pfunction: 0x12030, plight: 0x12034, size: 0x20a0 },
-    Var { name: "hs_door__9e67afa5", n: 0x3, radar: 0x2a100006, cam: 0x2a00000f, snd_lock: 0x40000001, snd_open: 0x40000000, dbg: false, pgame: 0x1180c, cam27: 0x11868, pextra: 0x118cc, pfunction: 0x0, plight: 0x0, size: 0x2e70 },
-    Var { name: "hs_door__9efa6340", n: 0x1c, radar: 0x2a100006, cam: 0x2a000027, snd_lock: 0x40000001, snd_open: 0x40000000, dbg: false, pgame: 0x1e070, cam27: 0x1e0c8, pextra: 0x1e0dc, pfunction: 0x0, plight: 0x0, size: 0xe100 },
-    Var { name: "hs_door__9f60c594", n: 0x1c, radar: 0x2a100006, cam: 0x2a00001f, snd_lock: 0x40000001, snd_open: 0x40000000, dbg: false, pgame: 0x1e070, cam27: 0x1e0c8, pextra: 0x1e0dc, pfunction: 0x0, plight: 0x0, size: 0xe100 },
-    Var { name: "hs_door__b4cee97a", n: 0xd, radar: 0x2a100006, cam: 0x2a00005c, snd_lock: 0x40000001, snd_open: 0x40000000, dbg: false, pgame: 0x16834, cam27: 0x16890, pextra: 0x168a4, pfunction: 0x16854, plight: 0x0, size: 0x68c0 },
-    Var { name: "hs_door_l01__1d6cdf74", n: 0xa, radar: 0x2a100006, cam: 0x2a000017, snd_lock: 0x40000001, snd_open: 0x40000000, dbg: false, pgame: 0x15028, cam27: 0x15080, pextra: 0x15094, pfunction: 0x0, plight: 0x0, size: 0x50b0 },
-    Var { name: "hs_door_l01__32a5bf2e", n: 0x2, radar: 0x2a100006, cam: 0x2a0000dd, snd_lock: 0x40000001, snd_open: 0x40000000, dbg: false, pgame: 0x11008, cam27: 0x11060, pextra: 0x11074, pfunction: 0x0, plight: 0x0, size: 0x1090 },
-    Var { name: "hs_door_l01__49cc7562", n: 0x8, radar: 0x2a100006, cam: 0x2a000037, snd_lock: 0x4000000f, snd_open: 0x4000000e, dbg: false, pgame: 0x14020, cam27: 0x14078, pextra: 0x1408c, pfunction: 0x0, plight: 0x0, size: 0x40b0 },
-    Var { name: "hs_door_l01__68691de5", n: 0xa, radar: 0x2a100006, cam: 0x2a000025, snd_lock: 0x40000001, snd_open: 0x40000000, dbg: false, pgame: 0x15028, cam27: 0x15080, pextra: 0x15094, pfunction: 0x0, plight: 0x0, size: 0x50b0 },
-    Var { name: "hs_door_l01__852f0c8f", n: 0x6, radar: 0x2a100006, cam: 0x2a000004, snd_lock: 0x40000001, snd_open: 0x40000000, dbg: false, pgame: 0x13018, cam27: 0x13070, pextra: 0x13084, pfunction: 0x0, plight: 0x0, size: 0x30a0 },
-    Var { name: "hs_door_l01__f50a6ba2", n: 0x10, radar: 0x2a100013, cam: 0x2a000027, snd_lock: 0x40000001, snd_open: 0x40000000, dbg: false, pgame: 0x18040, cam27: 0x18098, pextra: 0x180ac, pfunction: 0x0, plight: 0x0, size: 0x80d0 },
-    Var { name: "hs_door_l03__76d61404", n: 0xc, radar: 0x2a100006, cam: 0x2a00001e, snd_lock: 0x40000001, snd_open: 0x40000000, dbg: false, pgame: 0x16030, cam27: 0x16088, pextra: 0x1609c, pfunction: 0x0, plight: 0x0, size: 0x60c0 },
-    Var { name: "hs_door_l03__fd412404", n: 0x16, radar: 0x2a100006, cam: 0x2a000020, snd_lock: 0x40000001, snd_open: 0x40000000, dbg: false, pgame: 0x1b058, cam27: 0x1b0b0, pextra: 0x1b0c4, pfunction: 0x0, plight: 0x0, size: 0xb0e0 },
-];
+pub static VARS: Table<Var> = Table::new(&VARS_K, vars_row);
+const VARS_G: [u8; 15] = [0, 1, 2, 3, 4, 4, 5, 6, 7, 8, 6, 9, 10, 11, 12];
+fn vars_row(k: &TRow) -> Var {
+    match VARS_G[k.1] {
+        0 => Var { name: lks(format!("hs_door__{}", k.0.builds[k.1])), n: 0x1e, radar: k.v(0), cam: k.v(1), snd_lock: k.v(2), snd_open: k.v(3), dbg: false, pgame: k.v(4), cam27: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x10038, pextra: k.v(5), pfunction: k.v(6), plight: 0x0, size: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x68 },
+        1 => Var { name: lks(format!("hs_door__{}", k.0.builds[k.1])), n: 0x5, radar: k.v(0), cam: k.v(1), snd_lock: k.v(2), snd_open: k.v(3), dbg: false, pgame: k.v(4), cam27: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x10038, pextra: k.v(5), pfunction: 0x0, plight: 0x0, size: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x68 },
+        2 => Var { name: lks(format!("hs_door__{}", k.0.builds[k.1])), n: 0x4, radar: k.v(0), cam: k.v(7), snd_lock: k.v(8), snd_open: k.v(9), dbg: true, pgame: k.v(4), cam27: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x10038, pextra: k.v(5), pfunction: k.v(6), plight: k.v(10), size: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x68 },
+        3 => Var { name: lks(format!("hs_door__{}", k.0.builds[k.1])), n: 0x3, radar: k.v(0), cam: k.v(11), snd_lock: k.v(2), snd_open: k.v(3), dbg: false, pgame: k.v(4), cam27: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x10038, pextra: k.v(5), pfunction: 0x0, plight: 0x0, size: k.v(12) },
+        4 => Var { name: lks(format!("hs_door__{}", k.0.builds[k.1])), n: 0x1c, radar: k.v(0), cam: k.v(1), snd_lock: k.v(2), snd_open: k.v(13), dbg: false, pgame: k.v(4), cam27: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x10038, pextra: k.v(5), pfunction: 0x0, plight: 0x0, size: 0xe100 },
+        5 => Var { name: lks(format!("hs_door__{}", k.0.builds[k.1])), n: 0xd, radar: k.v(0), cam: k.v(1), snd_lock: k.v(2), snd_open: k.v(3), dbg: false, pgame: k.v(4), cam27: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x10038, pextra: k.v(5), pfunction: k.v(6), plight: 0x0, size: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x68 },
+        6 => Var { name: lks(format!("hs_door_l01__{}", k.0.builds[k.1])), n: 0xa, radar: k.v(0), cam: k.v(14), snd_lock: k.v(2), snd_open: k.v(15), dbg: false, pgame: k.v(4), cam27: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x10038, pextra: k.v(5), pfunction: 0x0, plight: 0x0, size: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x68 },
+        7 => Var { name: lks(format!("hs_door_l01__{}", k.0.builds[k.1])), n: 0x2, radar: k.v(0), cam: k.v(1), snd_lock: k.v(2), snd_open: k.v(3), dbg: false, pgame: k.v(4), cam27: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x10038, pextra: k.v(5), pfunction: 0x0, plight: 0x0, size: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x68 },
+        8 => Var { name: lks(format!("hs_door_l01__{}", k.0.builds[k.1])), n: 0x8, radar: k.v(0), cam: k.v(16), snd_lock: k.v(17), snd_open: k.v(9), dbg: false, pgame: k.v(4), cam27: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x10038, pextra: k.v(5), pfunction: 0x0, plight: 0x0, size: 0x40b0 },
+        9 => Var { name: lks(format!("hs_door_l01__{}", k.0.builds[k.1])), n: 0x6, radar: k.v(0), cam: k.v(1), snd_lock: k.v(2), snd_open: k.v(3), dbg: false, pgame: k.v(4), cam27: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x10038, pextra: k.v(5), pfunction: 0x0, plight: 0x0, size: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x68 },
+        10 => Var { name: lks(format!("hs_door_l01__{}", k.0.builds[k.1])), n: 0x10, radar: k.v(0), cam: k.v(1), snd_lock: k.v(2), snd_open: k.v(3), dbg: false, pgame: k.v(4), cam27: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x10038, pextra: k.v(5), pfunction: 0x0, plight: 0x0, size: 0x80d0 },
+        11 => Var { name: lks(format!("hs_door_l03__{}", k.0.builds[k.1])), n: 0xc, radar: k.v(0), cam: k.v(1), snd_lock: k.v(2), snd_open: k.v(3), dbg: false, pgame: k.v(4), cam27: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x10038, pextra: k.v(5), pfunction: 0x0, plight: 0x0, size: 0x60c0 },
+        12 => Var { name: lks(format!("hs_door_l03__{}", k.0.builds[k.1])), n: 0x16, radar: k.v(0), cam: k.v(1), snd_lock: k.v(2), snd_open: k.v(3), dbg: false, pgame: k.v(4), cam27: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x10038, pextra: k.v(5), pfunction: 0x0, plight: 0x0, size: crate::engine::gamedata::text_sym(k.0.builds[k.1], "moCameraParams.27") + 0x68 },
+        _ => unreachable!(),
+    }
+}
+static VARS_K: TSpec = TSpec {
+    builds: &["64b2633a", "876ca9b6", "9e2d68e4", "9e67afa5", "9efa6340", "9f60c594", "b4cee97a", "1d6cdf74", "32a5bf2e", "49cc7562", "68691de5", "852f0c8f", "f50a6ba2", "76d61404", "fd412404"],
+    fns: &["ResetCollision", "hs_door_baseCB_InputAction_X", "pGame", "pExtra", "pFunction", "fcback_COLLISION_LOCAL", "pLight", "hs_door_baseST_FIRSTMOVE"],
+    entries: &[
+        L(0, 3, 15, 1), L(1, 3, 280, 1), L(1, 3, 196, 1), L(1, 2, 121, 0), L(2, 9, 0, 0), L(3, 9, 0, 0), L(4, 9, 0, 0), L(5, 3, 112, 1),
+        L(1, 3, 210, 1), L(1, 3, 121, 1), L(6, 9, 0, 0), L(5, 3, 9, 38), L(7, 0, 152, 0), M(&[KLoc(5, 0xf41f0c75, 255, 2, 67, 0), KLoc(1, 0xef13b888, 255, 2, 121, 0)]), M(&[KLoc(5, 0xa9b0a42f, 255, 3, 74, 1), KLoc(1, 0xef13b888, 255, 3, 280, 1)]), M(&[KLoc(5, 0x2b292bff, 255, 2, 50, 0), KLoc(1, 0xef13b888, 255, 2, 121, 0)]),
+        L(1, 3, 281, 1), L(1, 3, 197, 1),
+    ],
+};
 /// Initialised image of each build: module address runs read from the module on the user's disc
 /// image (WP-X1, `engine::gamedata::c2rs_image`: words; the .text pointers are interned strings).
 pub static RUNS: [&[(u32, u32)]; 15] = [
@@ -40,3 +52,6 @@ pub static RUNS: [&[(u32, u32)]; 15] = [
     &[(0x10000, 0x15858)],
     &[(0x10000, 0x1a880)],
 ];
+
+#[allow(unused_imports)]
+use crate::engine::gamedata::{KLoc, TRow, TSpec, Table, TE::{L, M, X}, lk, lks};

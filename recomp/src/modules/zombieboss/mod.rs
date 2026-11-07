@@ -39,16 +39,10 @@ pub static MODULE: ModuleDef = ModuleDef {
     ctor: zombiebossConstructor,
     dtor: zombiebossDestructor,
     register: None,
-    // TmpMonsterMap (read from the carved .o; one record: type 0xc). The 0x4f movie parameters
-    // (DAT_00010f18) are built on the stack by ZombieBossMessageFonction; strings use `e.cstr`.
-    init: &[(
-        TmpMonsterMap,
-        &[
-            0xc, 0x40c0_0000, 0x40c0_0000, 0x40c0_0000, 0x40c0_0000, 0x40c0_0000, 0x3fc0_0000, 0x3fc0_0000,
-            0x3fc0_0000, 0x3fc0_0000, 0x3fc0_0000, 0x3e99_999a, 0x3f33_3333, 0x4296_0000, 0x3fc0_0000,
-        ],
-    )],
-    build_init: None,
+    // TmpMonsterMap (one record: type 0xc), read from the module on the disc (WP-X4). The 0x4f movie
+    // parameters (DAT_00010f18) are built on the stack by ZombieBossMessageFonction; strings use `e.cstr`.
+    init: &[],
+    build_init: Some(|m, d, _| crate::engine::gamedata::init_syms(m, d, "a064c25c", &["TmpMonsterMap"])),
 };
 
 /// The only build.

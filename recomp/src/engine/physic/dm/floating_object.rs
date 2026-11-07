@@ -17,7 +17,7 @@
 
 use std::sync::Arc;
 
-use super::water_simulation::{EFDMWaterSimulation, WaterSimRef};
+use super::water_simulation::WaterSimRef;
 use crate::engine::physic::mgr::EFPhysicMgr;
 use crate::engine::physic::module::*;
 use crate::engine::physic::rwm::*;
@@ -40,9 +40,7 @@ pub fn FindWaterSimModule(mgr: &EFPhysicMgr) -> Option<WaterSimRef> {
         let h = mgr.FindModule(id, 0xc, 0);
         if h != 0 {
             let m = mgr.Module(h)?;
-            // Kind 0xc is only ever constructed as EFDMWaterSimulation (dm::NewModule), so the
-            // trait object's concrete type is known (EFDM has no Any downcast).
-            let w = unsafe { &*(m as *const dyn EFDM as *const EFDMWaterSimulation) };
+            let w = m.as_water_sim()?;
             return Some(w.sim.clone());
         }
     }

@@ -101,12 +101,39 @@ pub struct AnimBinding {
     /// N2: per anim, the REFPUID of the DT_ANIM_NODE_DESCR (EFGameObject::ResolveRefPUID: the
     /// 3D descriptor with that PUID is the EF3dObj the EFHAnimNode drives)
     pub refs: Vec<u32>,
+    /// per anim, the descriptor's SOUND_EVENT_IDS (EFHAnimNode::Initialize sound table)
+    pub sounds: Vec<Vec<i32>>,
+    /// camera anim descriptors (0x53): (anim id, EFAnimRes uid)
+    pub cams: Vec<(u32, u32)>,
+    /// texture anim descriptors (0x54): (anim id, EFTextureAnimRes uid, REFPUID, texture name)
+    pub texs: Vec<(u32, u32, u32, String)>,
+}
+
+/// EFHAnimNode::Initialize: this+0x48 = per callback index the resolved sound (0 for id -1);
+/// None when the descriptor lists no sound events. Kind-0 callbacks with a sound play it
+/// instead of notifying the logic (0xb). The ids are pre-resolved by [`resolve_sounds`].
+fn sound_table(ids: Option<&Vec<i32>>) -> Option<Vec<u32>> {
+    let ids = ids.filter(|v| !v.is_empty())?;
+    Some(ids.iter().map(|&i| if i == -1 { 0 } else { i as u32 }).collect())
+}
+
+/// EFNewSoundMgr::ResolveSoundEventID = GetSound on the owner's sound list: an id is found only
+/// when the object's GLO has a sound (container) descriptor with it; unresolved ids become -1 (0).
+fn resolve_sounds(go: &EFGameObject, ids: &[i32]) -> Vec<i32> {
+    use crate::engine::dt::descriptors::{DTSoundContainerDescriptor, DTSoundDescriptor};
+    let has = |id: u32| go.glo.object_descriptors.objects.iter().any(|d| {
+        let a = d.as_any();
+        a.downcast_ref::<EFIDescriptor<DTSoundDescriptor>>().is_some_and(|w| w.desc.index as u32 == id)
+            || a.downcast_ref::<EFIDescriptor<DTSoundContainerDescriptor>>().is_some_and(|w| w.desc.sound_event_id == id)
+    });
+    ids.iter().map(|&i| if i != -1 && has(i as u32) { i } else { -1 }).collect()
 }
 
 /// K6: a latent template's per-uid data saved by [`Subsystems::CloneInstances`]
 #[derive(Clone)]
 pub struct LatentTpl {
     obj3d: Option<(u32, bool)>,
+    obj3d_flags: Option<u32>,
     obj3d_list: Option<Vec<(u32, u32)>>,
     anim_bind: Option<AnimBinding>,
 }
@@ -118,6 +145,16 @@ pub struct Subsystems {
     pub anim_bind: HashMap<u32, AnimBinding>,
     /// EFRessourceFactory: HAnim resources by uid
     pub hanim: HashMap<u32, Arc<EFHAnimRes>>,
+    /// EFRessourceFactory: EFAnimRes (0x49) DTAnimHdr by uid (EFCameraAnimNode resources)
+    pub anim_res: HashMap<u32, Arc<crate::engine::anim::res::DTAnimHdr>>,
+    /// P26 R31: EFRessourceFactory: EFTextureAnimRes (0x2c) by uid (EFTextureAnimNode resources)
+    pub tex_anim_res: HashMap<u32, Arc<crate::engine::anim::res::EFTextureAnimRes>>,
+    /// P26 R31: texture names of each EF3dObjRes clump's materials (EFTextureAnimNode::Connect's
+    /// ForAllAtomicFindMaterialCB search, done on names; the renderer swaps by name)
+    pub res_tex_names: HashMap<u32, Vec<String>>,
+    /// R6 P27: EFCameraAnimNode writes of the last UpdateAnims, applied by the runtime (which
+    /// owns the cameras and the camera RwFrame = the owning object's frame)
+    pub camera_anim_out: Vec<crate::engine::camera::CameraAnimOut>,
     /// _gpoPhysicMgr
     pub physic: EFPhysicMgr,
     /// J3: the EFCollisionSystem driven by EFPhysicMgr::CollisionStage (was NoCollision in J2;
@@ -132,16 +169,29 @@ pub struct Subsystems {
     pub hanim_parent: HashMap<u32, Arc<(Vec<i32>, Vec<Option<u32>>)>>,
     /// J3: game object uid -> (EF3dObj resource uid, HAnim hierarchy = EF3dObj+0x2c & 4)
     pub obj3d: HashMap<u32, (u32, bool)>,
+    /// P26 R16: game object uid -> DT3dObjectDescriptor INSTANCE_FLAG (+0x20), the
+    /// DTCreationParameters flags EF3dObj::Initialize turns into the transparent-pass bits
+    /// (8 -> 0x10, 0x20 -> 0x100, 0x40 -> 0x200)
+    pub obj3d_flags: HashMap<u32, u32>,
     /// J9: DT_HOTSPOT_DESCR of hot-spot game objects (EFGameObject::InitHotspot)
     pub hotspot: HashMap<u32, crate::engine::dt::descriptors::DTHotSpotDescriptor>,
     /// J8: game object uid -> EFGameObject+0x174: (descriptor index n, EF3dObj resource uid) of
     /// every 3D object descriptor (APIhud_Window3DSetObj picks +0x174[n])
     pub obj3d_list: HashMap<u32, Vec<(u32, u32)>>,
+    /// P28 B10: 3D object descriptor UID (0xf000xxx, EF3dObj+8) -> (game object uid, res puid).
+    /// EFWorld::GetObjectPosData(0xf..) returns the EF3dObj itself, so pGameObj->Rotate/SetRotation
+    /// on such a uid moves that 3D object's own frame (HUD courage needle 0xf000624, tome 0xf00062a).
+    pub obj3d_desc: HashMap<u32, (u32, u32)>,
     /// N2: anim-node `obj` keys of the EF3dObjs other than `obj3d` ((game object uid, 3D res
     /// puid) -> key; key -> game object uid): objects with several animated 3D descriptors
     /// (pause-menu panel 0x2a100006: ~45 EF3dObjs, each with its own anims)
     pub anim_obj_keys: HashMap<(u32, u32), u32>,
     pub anim_obj_owner: HashMap<u32, u32>,
+    /// P22 R26 GAME_LOGICCLIP: objects off the EFWorld +0x414c animation list (disabled, or clip word 0x20)
+    pub anim_clip_off: std::collections::HashSet<u32>,
+    /// EFDMCameraFlex::UpdateAnimation camera writes from the last UpdatePhysics (FOV channel 0x14 ->
+    /// EFCamera::SetFOV(GetCamera(0)), far clip channel 0x13); applied by the runtime to camera 0
+    pub cam_flex_req: (Option<f32>, Option<f32>),
     /// K6: latent templates whose uid was later reused by a launched instance (see CloneInstances)
     pub latent_tpl: HashMap<u32, LatentTpl>,
     /// J3: EFAnimNode events (node obj uid, event) drained by UpdateAnims, delivered by the runtime
@@ -156,14 +206,46 @@ pub struct Subsystems {
     pub lights: EFLightMgr_BC,
     pub input: RuntimeInput,
     pub log: ApiLog,
+    /// P20 R121 ANIMSND switch: EFHAnimNode::Initialize sound table (kind-0 anim callbacks with a
+    /// resolved sound play it instead of notifying the logic, as the C does). ON in game.exe; the
+    /// headless tests keep it OFF unless P17_ANIMSND=1 (routes tuned without it; see common.md).
+    /// Survives LoadLevel.
+    pub anim_sound: bool,
+    /// P26 R19 CAMANIM switch: EFDMCameraFlex::UpdateAnimation camera anim channels (0x002283d0). ON in
+    /// game.exe and (P20 R170) in headless tests (tests/all/common.rs camanim_on; P17_CAMANIM=0 = off). Survives LoadLevel.
+    pub cam_anim: bool,
+    /// P28 R11: logic-side joint posing on anim start (see gfx::render::NodePoser)
+    pub node_poser: crate::engine::gfx::render::NodePoser,
 }
 
 impl Subsystems {
+    /// P28 R11: EFAnimationMgr::PlayHAnim poses the hierarchy at once: re-publish `obj`'s node frames
+    /// from its new pose, for objects whose nodes are published (renderer / headless node set) and whose
+    /// clump the publisher registered. Others are left to the publisher, as before.
+    pub fn ReposeNodes(&mut self, w: &mut RuntimeWorld, obj: u32) {
+        if !w.nodes.contains_key(&obj) {
+            return;
+        }
+        let Some(&(res_uid, _)) = self.obj3d.get(&obj) else { return };
+        let Some(f) = w.frames.get(&obj).copied() else { return };
+        let pose = self.anim_bind.get(&obj).and_then(|b| self.anim.get(&obj).and_then(|m| m.GetPose(b.obj3d)));
+        let ltm = [f.right[0], f.right[1], f.right[2], 0., f.up[0], f.up[1], f.up[2], 0., f.at[0], f.at[1], f.at[2], 0., f.pos[0], f.pos[1], f.pos[2], 1.];
+        if let Some((nodes, ids)) = self.node_poser.Repose(obj, res_uid, pose.as_deref(), ltm) {
+            w.nodes.insert(obj, nodes);
+            w.node_ids.insert(obj, ids);
+            w.node_root.insert(obj, f);
+        }
+    }
     pub fn new(rng: SharedRand) -> Self {
         Subsystems {
             anim: HashMap::new(),
             anim_bind: HashMap::new(),
+            cam_flex_req: (None, None),
             hanim: HashMap::new(),
+            anim_res: HashMap::new(),
+            tex_anim_res: HashMap::new(),
+            res_tex_names: HashMap::new(),
+            camera_anim_out: Vec::new(),
             physic: EFPhysicMgr::new(),
             collision: EFCollisionSystem { rand: rng.clone(), ..EFCollisionSystem::new() },
             col_notify: Vec::new(),
@@ -171,10 +253,13 @@ impl Subsystems {
             res_collision: HashMap::new(),
             hanim_parent: HashMap::new(),
             obj3d: HashMap::new(),
+            obj3d_flags: HashMap::new(),
             hotspot: HashMap::new(),
             obj3d_list: HashMap::new(),
+            obj3d_desc: HashMap::new(),
             anim_obj_keys: HashMap::new(),
             anim_obj_owner: HashMap::new(),
+            anim_clip_off: Default::default(),
             latent_tpl: HashMap::new(),
             audio: EFNewAudioMgr::with_rng(rng),
             sample_len: HashMap::new(),
@@ -182,14 +267,18 @@ impl Subsystems {
             lights: EFLightMgr_BC::new(),
             input: RuntimeInput::default(),
             log: ApiLog::default(),
+            anim_sound: false,
+            cam_anim: false,
+            node_poser: Default::default(),
         }
     }
 
     /// Level part of the subsystems (EFRessourcesMgr::LoadLevel registrations + EFGameObject::
     /// CreateInstances for anims and sounds). `fs` reads the sound banks (SOUND_BankLoad).
     pub fn LoadLevel(&mut self, res: &mut EFRessourcesMgr, level_dir: &str, read: &mut dyn FnMut(&str) -> Option<Vec<u8>>) {
+        crate::crashlog::set_level(level_dir);
         let rng = self.audio.rng.clone();
-        *self = Subsystems { input: std::mem::take(&mut self.input), ..Subsystems::new(rng) };
+        *self = Subsystems { input: std::mem::take(&mut self.input), anim_sound: self.anim_sound, cam_anim: self.cam_anim, ..Subsystems::new(rng) };
         for o in res.objects.iter_mut() {
             if let Some(r) = o.as_raw() {
                 // EF_COLLISION_MAP -> EFPhysicMgr::AddMap
@@ -209,6 +298,10 @@ impl Subsystems {
                                 self.hanim_parent.insert(g.res.uid, Arc::new(t));
                             }
                         }
+                        if let Some(c) = &g.clump {
+                            let names = c.geometries.iter().flat_map(|g| g.materials.iter()).filter_map(|m| m.texture.as_ref().map(|t| t.name.clone())).collect();
+                            self.res_tex_names.insert(g.res.uid, names);
+                        }
                         if let Some(c) = g.clump.and_then(|c| c.collision) {
                             self.res_collision.insert(g.res.uid, c);
                         }
@@ -220,6 +313,12 @@ impl Subsystems {
             let a = d.as_any();
             if let Some(h) = a.downcast_ref::<EFHAnimRes>() {
                 self.hanim.insert(h.base.hdr.uid, Arc::new(h.clone()));
+            } else if let Some(r) = a.downcast_ref::<crate::engine::anim::res::EFTextureAnimRes>() {
+                self.tex_anim_res.insert(r.hdr.uid, Arc::new(r.clone()));
+            } else if let Some(r) = a.downcast_ref::<crate::engine::anim::res::EFAnimRes>() {
+                if let Some(hdr) = &r.anim {
+                    self.anim_res.insert(r.hdr.uid, Arc::new(hdr.clone()));
+                }
             } else if let Some(env) = a.downcast_ref::<EFAudioEnvDescriptor>() {
                 env.Apply(&mut self.audio);
             }
@@ -241,6 +340,40 @@ impl Subsystems {
                     self.sample_len.insert((b as u32, i as u32), p.samples.len() as f32 / rate as f32);
                 }
             }
+            // WP-P21 R30: STREAM banks (VAG voice lines) have no PCM; without a length their voices never
+            // completed (ObjIsSoundPlaying stuck true, e.g. EP3/L01 inv_racecontroller waits for
+            // 0x8000000c to end). Length = VAG body (BE size @0xc) / 16 * 28 samples at the rate @0x10.
+            if bank.sbh.is_stream() && std::env::var_os("GAME_NOSTREAMLEN").is_none() {
+                for (i, s) in bank.sbh.samples.iter().enumerate() {
+                    let Some(f) = read(&crate::engine::audio::paths::stream_path(&s.name)) else { continue };
+                    // P26 R10: .INT interleaved stereo streams (A2M header, e.g. EP1/L01 inv_tutorial VO
+                    // CS1_4_2.INT): per-channel length as spu::AdpcmStream::interleaved plays it. Without
+                    // it the voice never completed, so no end-of-sound notification (B9 pickup cut-scene).
+                    if crate::engine::audio::spu::is_interleaved(&f) {
+                        use crate::engine::audio::spu::{INT_HEADER, INT_INTERLEAVE};
+                        let rate = if s.sampling_rate != 0 { s.sampling_rate } else { u32::from_be_bytes(f[0x10..0x14].try_into().unwrap()) };
+                        let per_ch = (f.len() - INT_HEADER) / (2 * INT_INTERLEAVE) * INT_INTERLEAVE;
+                        if rate > 0 {
+                            let len = (per_ch / 16 * 28) as f32 / rate as f32;
+                            if std::env::var_os("GAME_STREAMLEN").is_some() {
+                                eprintln!("STREAMLEN bank {b} {i} {} INT rate {rate} file {:#x} -> {len}s hdr {:02x?} tail {:02x?}", s.name, f.len(), &f[..0x30], &f[f.len() - 0x40..]);
+                            }
+                            self.sample_len.insert((b as u32, i as u32), len);
+                        }
+                        continue;
+                    }
+                    if f.len() < 0x30 || &f[0..4] != b"VAGp" { continue }
+                    let be = |o: usize| u32::from_be_bytes(f[o..o + 4].try_into().unwrap());
+                    let rate = if s.sampling_rate != 0 { s.sampling_rate } else { be(0x10) };
+                    if rate > 0 {
+                        let len = (be(0xc) / 16 * 28) as f32 / rate as f32;
+                        if std::env::var_os("GAME_STREAMLEN").is_some() {
+                            eprintln!("STREAMLEN bank {b} {i} {} rate {rate} hdr {} size {:#x} file {:#x} -> {len}s", s.name, be(0x10), be(0xc), f.len());
+                        }
+                        self.sample_len.insert((b as u32, i as u32), len);
+                    }
+                }
+            }
         }
         for go in &res.game_objects {
             self.CreateInstances(go);
@@ -253,6 +386,10 @@ impl Subsystems {
     /// EFNewSoundMgr entry.
     pub fn CreateInstances(&mut self, go: &EFGameObject) {
         let mut b = AnimBinding::default();
+        // EFCameraAnimNode descriptors (instance class 0x53): (descriptor index, resource puid)
+        let mut cams: Vec<(u32, u32)> = Vec::new();
+        // P26 R31: EFTextureAnimNode descriptors (instance class 0x54): (index, res puid, REFPUID, texture name)
+        let mut texs: Vec<(u32, u32, u32, String)> = Vec::new();
         // anim id = index in OBJECT_DESCRIPTORS (the 3D descriptor is index 0, so base = 1)
         for (i, c) in go.glo.object_descriptors.objects.iter().enumerate() {
             let a = c.as_any();
@@ -264,30 +401,58 @@ impl Subsystems {
             if let Some(d) = a.downcast_ref::<EFIDescriptor<DT3dObjectDescriptor>>() {
                 b.obj3d = go.uid;
                 self.obj3d.insert(go.uid, (d.desc.puid as u32, false));
+                self.obj3d_flags.insert(go.uid, d.desc.instance_flag as u32);
                 self.obj3d_list.entry(go.uid).or_default().push((i as u32, d.desc.puid as u32));
+                if d.desc.uid >> 24 == 0xf {
+                    self.obj3d_desc.insert(d.desc.uid, (go.uid, d.desc.puid as u32));
+                }
             } else if let Some(d) = a.downcast_ref::<EFIDescriptor<DTAnimDescriptor>>() {
                 b.anims.push((i as u32, d.desc.puid as u32));
                 b.refs.push(d.desc.refpuid as u32);
+                b.sounds.push(if self.anim_sound { resolve_sounds(go, &d.desc.sound_event_ids) } else { Vec::new() });
+            } else if let Some(d) = a.downcast_ref::<EFIDescriptor<crate::engine::dt::descriptors::DTTextureAnimationDescriptor>>() {
+                texs.push((i as u32, d.desc.puid as u32, d.desc.refpuid as u32, d.desc.texture_file_name.clone()));
+            } else if let Some(d) = crate::engine::dt::descriptors::as_idesc(c.as_ref()).filter(|d| d.GetInstanceCLSID() == 0x53 && std::env::var_os("P27_NOCAMANIM").is_none()) {
+                // R6 P27: EFGameObject::CreateInstances 0x001ff350 creates an EFAnimNode for the
+                // instance classes 0x4a/0x53/0x54/0x51 (EFBaseIDescriptor::CreateNode: res = puid)
+                cams.push((i as u32, d.DescPUID() as u32));
             }
         }
-        if !b.anims.is_empty() {
+        if !b.anims.is_empty() || !cams.is_empty() || !texs.is_empty() {
             // HAnim objects get the EF3dObj HAnim flag (4)
-            if let Some(o) = self.obj3d.get_mut(&go.uid) {
-                o.1 = true;
+            if !b.anims.is_empty() {
+                if let Some(o) = self.obj3d.get_mut(&go.uid) {
+                    o.1 = true;
+                }
             }
-            let base = b.anims[0].0;
-            let count = b.anims.iter().map(|(id, _)| id.wrapping_sub(base) as usize + 1).max().unwrap_or(0);
+            // +0x60 base = index of the first anim-node descriptor
+            let ids = || b.anims.iter().map(|x| x.0).chain(cams.iter().map(|x| x.0)).chain(texs.iter().map(|x| x.0));
+            let base = ids().min().unwrap_or(0);
+            let count = ids().map(|id| id.wrapping_sub(base) as usize + 1).max().unwrap_or(0);
             let mut m = EFAnimationMgr::new(base, count);
             m.owner_uid = go.uid;
             for (k, &(id, ruid)) in b.anims.iter().enumerate() {
                 if let Some(r) = self.hanim.get(&ruid).cloned() {
                     let mut n = EFHAnimNode::new(r, id);
+                    // EFGameObject::Initialize passes ResolveRefPUID(REFPUID) to InitialiseNode as the
+                    // creation params' 3D object (+4); EFHAnimNode::Initialize builds the sound table only
+                    // when it is non-null (REFPUID among the object's descriptors, or a 0x18 static obj)
+                    let resolved = b.refs.get(k).is_some_and(|&r| r >> 24 == 0x18 || self.obj3d_list.get(&go.uid).is_some_and(|l| l.iter().any(|x| x.1 == r)));
+                    n.sound_table = if resolved { sound_table(b.sounds.get(k)) } else { None };
+                    // debug: P17_ANIMDUMP=<hex uid> lists the anim's callbacks (time, kind, idx) + sound table
+                    if std::env::var("P17_ANIMDUMP").ok().and_then(|h| u32::from_str_radix(&h, 16).ok()) == Some(go.uid) {
+                        let cbs: Vec<(f32, u8, u32)> = (0..n.res.cb_count).map(|i| n.cb(i)).collect();
+                        eprintln!("ANIMDUMP {:#x} anim {} res {:#x} ref {:#x?} cbs {:?} snd {:?} tbl {:?}", go.uid, id, ruid, b.refs.get(k), cbs, b.sounds.get(k), n.sound_table);
+                    }
                     let (obj, res) = self.anim_target(go.uid, b.refs.get(k).copied());
                     n.obj = obj;
                     n.parent_joint = self.parent_joint_res(res);
                     m.AddAnim(n, id);
                 }
             }
+            self.add_cam_tex_nodes(go.uid, &mut m, &cams, &texs);
+            b.cams = cams;
+            b.texs = texs;
             self.anim.insert(go.uid, m);
             self.anim_bind.insert(go.uid, b);
         }
@@ -328,6 +493,20 @@ impl Subsystems {
         (key, r)
     }
 
+    /// P26 R31: the EFTextureAnimNodes in the EF3dObj +0x60 list of game object `go`'s 3D object
+    /// `res` (connected 0xf nodes that were played and not stopped): (original texture, current
+    /// frame texture) for EF3dObj::Render's ApplyText/RestoreText
+    pub fn TexAnimsOf(&self, go: u32, res: u32) -> Vec<(String, String)> {
+        use crate::engine::anim::mgr::NodeKind;
+        let Some(m) = self.anim.get(&go) else { return Vec::new() };
+        m.anims.iter().flatten().filter_map(|&i| match &m.node(i).kind {
+            NodeKind::Texture(t) if t.target == 0xf && t.obj == res && t.played && t.state & crate::engine::anim::nodes::state::STOPPED == 0 => {
+                Some((t.orig_texture.clone()?, t.current_texture()?.to_string()))
+            }
+            _ => None,
+        }).collect()
+    }
+
     /// N2: pose of the EF3dObj (3D res puid `res`) of game object `go`
     pub fn PoseOf(&self, go: u32, res: u32) -> Option<Vec<crate::engine::anim::res::DTTransfo>> {
         let m = self.anim.get(&go)?;
@@ -348,15 +527,19 @@ impl Subsystems {
     /// moved aside the first time an instance id overwrites it and is read from there.
     pub fn CloneInstances(&mut self, template: u32, new_id: u32) {
         if !self.latent_tpl.contains_key(&new_id) {
-            let t = LatentTpl { obj3d: self.obj3d.get(&new_id).copied(), obj3d_list: self.obj3d_list.get(&new_id).cloned(), anim_bind: self.anim_bind.get(&new_id).cloned() };
+            let t = LatentTpl { obj3d: self.obj3d.get(&new_id).copied(), obj3d_flags: self.obj3d_flags.get(&new_id).copied(), obj3d_list: self.obj3d_list.get(&new_id).cloned(), anim_bind: self.anim_bind.get(&new_id).cloned() };
             if t.obj3d.is_some() || t.obj3d_list.is_some() || t.anim_bind.is_some() {
                 self.latent_tpl.insert(new_id, t);
             }
         }
-        let tpl = self.latent_tpl.get(&template).cloned().unwrap_or_else(|| LatentTpl { obj3d: self.obj3d.get(&template).copied(), obj3d_list: self.obj3d_list.get(&template).cloned(), anim_bind: self.anim_bind.get(&template).cloned() });
+        let tpl = self.latent_tpl.get(&template).cloned().unwrap_or_else(|| LatentTpl { obj3d: self.obj3d.get(&template).copied(), obj3d_flags: self.obj3d_flags.get(&template).copied(), obj3d_list: self.obj3d_list.get(&template).cloned(), anim_bind: self.anim_bind.get(&template).cloned() });
         match tpl.obj3d {
             Some(o) => { self.obj3d.insert(new_id, o); }
             None => { self.obj3d.remove(&new_id); }
+        }
+        match tpl.obj3d_flags {
+            Some(f) => { self.obj3d_flags.insert(new_id, f); }
+            None => { self.obj3d_flags.remove(&new_id); }
         }
         match tpl.obj3d_list {
             Some(l) => { self.obj3d_list.insert(new_id, l); }
@@ -368,21 +551,49 @@ impl Subsystems {
             return;
         };
         let obj = if b.obj3d == template { new_id } else { b.obj3d };
-        let base = b.anims[0].0;
-        let count = b.anims.iter().map(|(id, _)| id.wrapping_sub(base) as usize + 1).max().unwrap_or(0);
+        // EFGameObject::CreateInstances creates every anim node kind (0x4a/0x53/0x54) per instance
+        let ids = || b.anims.iter().map(|x| x.0).chain(b.cams.iter().map(|x| x.0)).chain(b.texs.iter().map(|x| x.0));
+        let base = ids().min().unwrap_or(0);
+        let count = ids().map(|id| id.wrapping_sub(base) as usize + 1).max().unwrap_or(0);
         let mut m = EFAnimationMgr::new(base, count);
         m.owner_uid = new_id;
         for (k, &(id, ruid)) in b.anims.iter().enumerate() {
             if let Some(r) = self.hanim.get(&ruid).cloned() {
                 let mut n = EFHAnimNode::new(r, id);
+                n.sound_table = sound_table(b.sounds.get(k));
                 let (o, res) = if obj == new_id { self.anim_target(new_id, b.refs.get(k).copied()) } else { (obj, self.obj3d.get(&obj).map_or(0, |o| o.0)) };
                 n.obj = o;
                 n.parent_joint = self.parent_joint_res(res);
                 m.AddAnim(n, id);
             }
         }
+        self.add_cam_tex_nodes(new_id, &mut m, &b.cams, &b.texs);
         self.anim.insert(new_id, m);
-        self.anim_bind.insert(new_id, AnimBinding { obj3d: obj, anims: b.anims, refs: b.refs });
+        self.anim_bind.insert(new_id, AnimBinding { obj3d: obj, ..b });
+    }
+
+    /// EFGameObject::CreateInstances: the camera (0x53) and texture (0x54) anim nodes of `uid`
+    fn add_cam_tex_nodes(&self, uid: u32, m: &mut EFAnimationMgr, cams: &[(u32, u32)], texs: &[(u32, u32, u32, String)]) {
+        for &(id, ruid) in cams {
+            if let Some(r) = self.anim_res.get(&ruid).cloned() {
+                m.AddCameraAnim(crate::engine::camera::EFCameraAnimNode::new(r, id), id);
+            }
+        }
+        for (id, ruid, refpuid, name) in texs {
+            let Some(r) = self.tex_anim_res.get(ruid).cloned() else { continue };
+            // EFTextureAnimNode::Initialize: +0x54 = the descriptor's texture (current TXD), then
+            // Connect(ResolveRefPUID(REFPUID)) when it resolves (a 3D object of this game object
+            // or a 0x18 static world instance)
+            let mut n = crate::engine::anim::texture_node::EFTextureAnimNode::new(r, *id, Some(name.clone()));
+            let refpuid = *refpuid;
+            if refpuid >> 24 == 0x18 {
+                n.Connect(0, 0x18, true);
+            } else if self.obj3d_list.get(&uid).is_some_and(|l| l.iter().any(|x| x.1 == refpuid)) {
+                let found = self.res_tex_names.get(&refpuid).is_some_and(|v| v.iter().any(|t| t.eq_ignore_ascii_case(name)));
+                n.Connect(refpuid, 0xf, found);
+            }
+            m.AddTextureAnim(n, *id);
+        }
     }
 
     /// EFWorld::Update animation slot: EFAnimationMgr::Update of every game object (list
@@ -392,18 +603,33 @@ impl Subsystems {
         let mut keys: Vec<u32> = self.anim.keys().copied().collect();
         keys.sort_unstable();
         for k in keys {
+            if self.anim_clip_off.contains(&k) {
+                continue;
+            }
             let m = self.anim.get_mut(&k).unwrap();
             // N2: EFWorld::Update calls EFAnimationMgr::Update for every object; the world pause
             // only reaches the pausable objects (EFWorld::Pause -> SetLogicFlags 0x8 -> +0x50 bit0)
             let _ = paused;
             m.Update(dt);
             out.append(&mut m.notifications);
+            // R6 P27: EFCameraAnimNode writes + Notify (node +0x28 = this game object)
+            for n in m.nodes.iter_mut().flatten() {
+                if let crate::engine::anim::mgr::NodeKind::Camera(c) = &mut n.kind {
+                    self.camera_anim_out.extend(c.out.take());
+                    if std::env::var_os("GAME_CAMANIM").is_some() && c.state & 0x800_0000 == 0 {
+                        eprintln!("CAMNODE f{} obj {k:#x} cam {:x?} t {} / {} state {:#x}", crate::engine::runtime::TRACE_FRAME.load(std::sync::atomic::Ordering::Relaxed), c.camera, c.time, c.duration, c.state);
+                    }
+                    self.anim_events.extend(c.notifies.drain(..).map(|(code, user)| (k, crate::engine::anim::nodes::AnimEvent::Notify { code, user, arg: user })));
+                }
+            }
             // J3: EFAnimNode::Notify (0x0022d5a0) queued by the nodes during Evaluate:
             // EFNotificationMgr::Notify(gameLogic, code, node obj uid, code 0xb ? obj uid : node user, arg, 1)
             for n in m.nodes.iter_mut().flatten() {
                 let (obj, ev) = match &mut n.kind {
                     crate::engine::anim::mgr::NodeKind::HAnim(h) => (h.obj, std::mem::take(&mut h.events)),
-                    crate::engine::anim::mgr::NodeKind::Texture(t) => (t.obj, std::mem::take(&mut t.events)),
+                    // EFTextureAnimNode::Update/Stop: EFAnimNode::Notify with +0x28 = the game object
+                    // (EFGameObject::CreateInstances); t.obj is the connected 3D object
+                    crate::engine::anim::mgr::NodeKind::Texture(t) => (k, std::mem::take(&mut t.events)),
                     _ => continue,
                 };
                 // N2: nodes driving a secondary EF3dObj notify for their game object (EFAnimNode +0x28)
@@ -437,8 +663,9 @@ impl Subsystems {
             }
         }
         {
-            let w = RuntimePhysicWorld { world: &*world, input: &self.input, camera, splines };
+            let w = RuntimePhysicWorld { world: &*world, input: &self.input, camera, splines, anim: if self.cam_anim { Some(&self.anim) } else { None }, cam_req: Default::default() };
             self.physic.Update(dt, world.paused, &w, &mut self.collision);
+            self.cam_flex_req = w.cam_req.get();
         }
         self.col_notify.append(&mut self.physic.col_notify);
         for p in self.physic.physics.iter().flatten() {
@@ -478,6 +705,10 @@ pub struct RuntimePhysicWorld<'a> {
     pub camera: RwMatrix,
     /// _gpoSplineMgr splines (EFDMSplineMove / RopeSlide / CameraFlex)
     pub splines: &'a [crate::engine::spline::EFQuadraticSpline],
+    /// EFGameObject +0x60 EFAnimationMgr per object (EFDMCameraFlex::UpdateAnimation)
+    pub anim: Option<&'a HashMap<u32, EFAnimationMgr>>,
+    /// (FOV, far clip) written by EFDMCameraFlex::UpdateAnimation to GetCamera(0)
+    pub cam_req: std::cell::Cell<(Option<f32>, Option<f32>)>,
 }
 
 impl PhysicWorld for RuntimePhysicWorld<'_> {
@@ -492,6 +723,59 @@ impl PhysicWorld for RuntimePhysicWorld<'_> {
     }
     fn GetCameraLTM(&self) -> RwMatrix {
         self.camera
+    }
+    fn GetParentObject(&self, uid: u32) -> Option<u32> {
+        self.world.parents.get(&uid).copied()
+    }
+    /// EFDMCameraFlex::UpdateAnimation (0x00228420): walk GetGameObject(uid)+0x60 (EFAnimationMgr,
+    /// count +0x4c, table +4 indexed by i - first id +0) -> node +0x30 res +0x10 DTAnimHdr, first
+    /// channel set whose id == spline id.
+    fn CameraAnimChannels(&self, uid: u32, spline_id: i32) -> Option<Vec<(u32, crate::engine::anim::res::DTFCurve)>> {
+        use crate::engine::anim::mgr::NodeKind;
+        let m = self.anim?.get(&uid)?;
+        for i in 0..m.anims.len() as u32 {
+            // quirk: the C indexes the table with i - first id (garbage when the first id != 0)
+            let Some(Some(n)) = m.anims.get(i.wrapping_sub(m.base) as usize) else { continue };
+            let hdr = match &m.nodes.get(*n).and_then(|x| x.as_ref())?.kind {
+                NodeKind::HAnim(h) => h.res.base.anim.as_ref(),
+                NodeKind::Camera(c) => Some(&*c.anim),
+                _ => None,
+            };
+            if let Some(set) = hdr.and_then(|h| h.sets.iter().find(|s| s.bone == spline_id as u32)) {
+                return Some(set.channels.iter().map(|c| (c.id, c.curve.clone())).collect());
+            }
+        }
+        None
+    }
+    fn CameraSetFarClipPlane(&self, v: f32) {
+        let (f, _) = self.cam_req.get();
+        self.cam_req.set((f, Some(v)));
+    }
+    fn CameraSetFOV(&self, fov: f32) {
+        let (_, c) = self.cam_req.get();
+        self.cam_req.set((Some(fov), c));
+    }
+    /// P20 R44: the HAnim node frames published by the renderer (RuntimeWorld::nodes, modelling
+    /// matrix + LTM); `bone` with high bits = HAnim id (node_ids), else a node index. Before this
+    /// the default None made SyncModels pin every bone-attached prim to the root frame (EP2/L01A
+    /// castlegate 0x16a's gate prim on node 1 never followed its open anim).
+    fn GetBone(&self, uid: u32, bone: u32) -> Option<(RwMatrix, RwMatrix)> {
+        // debug/bisect: GAME_NO_GETBONE=1 restores the pre-R44 behaviour (no bone frames)
+        static OFF: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+        // P20 R46: node 0 (HAnim root) stays on the object frame (pre-R44 behaviour): the hero prims sit on
+        // node 0 and following it broke EP1/L03B (ep1_chain) -- unresolved whether the C does follow it
+        if bone == 0 || *OFF.get_or_init(|| std::env::var_os("GAME_NO_GETBONE").is_some()) {
+            return None;
+        }
+        let i = if bone & 0xffff_0000 != 0 { self.world.node_ids.get(&uid)?.iter().position(|&h| h as u32 == bone)? } else { bone as usize };
+        let (m, l) = self.world.nodes.get(&uid)?.get(i)?;
+        let mut l = dt_to_rw(l);
+        // the nodes are published by the renderer after the previous frame: move them with the object
+        // (LTM = rel * root; rel = LTM * root_pub^-1) so a walking hero's prims do not lag a frame
+        if let (Some(r0), Some(r1)) = (self.world.node_root.get(&uid), self.world.frames.get(&uid)) {
+            l = RwMatrix::Multiply(&RwMatrix::Multiply(&l, &dt_to_rw(r0).Invert()), &dt_to_rw(r1));
+        }
+        Some((dt_to_rw(m), l))
     }
 }
 
@@ -556,18 +840,30 @@ macro_rules! with {
 impl J2<'_> {
     // ---- anim
     pub fn anim_play(&self, obj: u32, anim: u32, flags: u32, t: f32) -> u32 {
-        with!(self, |s, _w| {
+        with!(self, |s, w| {
+            if std::env::var_os("GAME_CAMANIM").is_some() && s.anim.get_mut(&obj).is_some_and(|m| m.camera_mut(anim).is_some()) {
+                eprintln!("CAMPLAY f{} obj {obj:#x} anim {anim} flags {flags:#x} t {t}", crate::engine::runtime::TRACE_FRAME.load(std::sync::atomic::Ordering::Relaxed));
+            }
             let r = aapi::APIanim_Play(s.am(obj), anim, flags, t);
             let started = s.anim.get(&obj).map_or(false, |m| aapi::APIanim_IsAnimPlaying(Some(m), anim) != 0);
             s.log.anim_play.push((obj, anim, flags, started));
+            if std::env::var("GAME_ANIMPLAY").is_ok_and(|v| u32::from_str_radix(v.trim_start_matches("0x"), 16) == Ok(obj)) {
+                eprintln!("ANIMPLAY f{} obj {obj:#x} anim {anim:#x} flags {flags:#x} t {t} r {r} started {started}", crate::engine::runtime::TRACE_FRAME.load(std::sync::atomic::Ordering::Relaxed));
+            }
+            if started {
+                s.ReposeNodes(w, obj);
+            }
             r
         })
     }
     pub fn anim_play_blend(&self, mem: &Mem, obj: u32, anim: u32, flags: u32, t: f32, p: Ptr) -> u32 {
-        with!(self, |s, _w| {
+        with!(self, |s, w| {
             let r = aapi::APIanim_PlayBlend(s.am(obj), mem, anim, flags, t, p);
             let started = s.anim.get(&obj).map_or(false, |m| aapi::APIanim_IsAnimPlaying(Some(m), anim) != 0);
             s.log.anim_play.push((obj, anim, flags, started));
+            if started {
+                s.ReposeNodes(w, obj);
+            }
             r
         })
     }
@@ -578,7 +874,12 @@ impl J2<'_> {
         with!(self, |s, _w| aapi::APIanim_ChangeBlendParams(s.am(obj), mem, p))
     }
     pub fn anim_stop(&self, obj: u32, anim: u32) -> u32 {
-        with!(self, |s, _w| aapi::APIanim_StopAnim(s.am(obj), anim))
+        with!(self, |s, _w| {
+            if std::env::var_os("GAME_CAMANIM").is_some() && s.anim.get_mut(&obj).is_some_and(|m| m.camera_mut(anim).is_some()) {
+                eprintln!("CAMSTOP f{} obj {obj:#x} anim {anim}", crate::engine::runtime::TRACE_FRAME.load(std::sync::atomic::Ordering::Relaxed));
+            }
+            aapi::APIanim_StopAnim(s.am(obj), anim)
+        })
     }
     pub fn anim_stop_all(&self, obj: u32) -> u32 {
         with!(self, |s, _w| aapi::APIanim_StopAllAnim(s.am(obj)))
@@ -600,8 +901,42 @@ impl J2<'_> {
     }
     pub fn anim_connect(&self, obj: u32, anim: u32, target: u32) -> u32 {
         with!(self, |s, w| {
-            let exists = w.frames.contains_key(&target);
+            // EFWorld::GetObjectPosData(target): camera instances (0x10) or object frames
+            let exists = if target >> 24 == 0x10 { s.cameras.GetCamera(target).is_some() } else { w.frames.contains_key(&target) };
+            // EFCameraAnimNode::Connect (vtable +0x28); the other node types' Connect is empty
+            if exists {
+                if let Some(c) = s.anim.get_mut(&obj).and_then(|m| m.camera_mut(anim)) {
+                    c.Connect(target);
+                }
+                // P26 R31: EFTextureAnimNode::Connect(EFInstance*): an EF3dObj instance (0xf) is
+                // searched for a material with the node's texture; a 0x18 static instance connects
+                // to the world material
+                let r3d = s.obj3d_desc.get(&target).map(|x| x.1);
+                let names = r3d.and_then(|r| s.res_tex_names.get(&r)).cloned();
+                if let Some(m) = s.anim.get_mut(&obj) {
+                    if let Some(i) = m.anim_node(anim) {
+                        if let crate::engine::anim::mgr::NodeKind::Texture(t) = &mut m.node_mut(i).kind {
+                            let orig = t.orig_texture.clone().unwrap_or_default();
+                            match (target >> 24, r3d) {
+                                (0xf, Some(r)) => t.Connect(r, 0xf, names.is_some_and(|v| v.iter().any(|n| n.eq_ignore_ascii_case(&orig)))),
+                                (0x18, _) => t.Connect(0, 0x18, true),
+                                _ => {}
+                            }
+                            let o = t.obj;
+                            m.node_mut(i).obj = o;
+                        }
+                    }
+                }
+            }
             aapi::APIanim_Connect(s.am(obj), anim, exists)
+        })
+    }
+    /// EFCutScenePlayer::Play: a type-7 node (EFCameraAnimNode) gets vtable +0x28 Connect(pos data)
+    pub fn anim_node_connect(&self, obj: u32, anim: u32, target: u32) {
+        with!(self, |s, _w| {
+            if let Some(c) = s.anim.get_mut(&obj).and_then(|m| m.camera_mut(anim)) {
+                c.Connect(target);
+            }
         })
     }
     pub fn anim_get_group(&self, obj: u32, anim: u32) -> u32 {
@@ -660,7 +995,7 @@ impl J2<'_> {
     }
     pub fn physic<R>(&self, f: impl FnOnce(&mut EFPhysicMgr, &RuntimePhysicWorld) -> R) -> R {
         with_s1!(self, |s, w, s1| {
-            let pw = RuntimePhysicWorld { world: &*w, input: &s.input, camera: RwMatrix::default(), splines: &s1.splines.splines };
+            let pw = RuntimePhysicWorld { world: &*w, input: &s.input, camera: RwMatrix::default(), splines: &s1.splines.splines, anim: None, cam_req: Default::default() };
             f(&mut s.physic, &pw)
         })
     }
@@ -678,7 +1013,7 @@ impl J2<'_> {
             exclude: w[10],
         };
         let r = with_s1!(self, |s, w, s1| {
-            let pw = RuntimePhysicWorld { world: &*w, input: &s.input, camera: RwMatrix::default(), splines: &s1.splines.splines };
+            let pw = RuntimePhysicWorld { world: &*w, input: &s.input, camera: RwMatrix::default(), splines: &s1.splines.splines, anim: None, cam_req: Default::default() };
             papi::CheckRayIntersectionOut(&mut s.physic, rin, &pw, &mut s.collision)
         });
         match r {
@@ -764,8 +1099,11 @@ impl J2<'_> {
             // L4: the logic creates the real camera on the camera object (EP1L01 l01_camera
             // Camera_BaseFUNC_Constructor): drop the J2 load-time stand-in on that object (not
             // logic-created), else it keeps rendering slot 0 with the RwCameraCreate far = 10.
+            // P26 B1: also drop the owner-0 identity stand-in (levels without a camera-anim GLO,
+            // e.g. INTRO: title_camera creates the only camera in the C); it kept slot 0 and the
+            // title menu rendered from the origin instead of title_camera's frame.
             for slot in s.cameras.cameras.iter_mut() {
-                if matches!(slot, Some(c) if c.frame_owner == obj && !s.log.camera_create.iter().any(|x| x.1 == c.uid)) {
+                if matches!(slot, Some(c) if (c.frame_owner == obj || c.frame_owner == 0) && !s.log.camera_create.iter().any(|x| x.1 == c.uid)) {
                     *slot = None;
                     s.cameras.count -= 1;
                 }

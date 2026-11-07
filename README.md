@@ -8,6 +8,15 @@ input run on [Bevy](https://bevyengine.org/).
 models, textures, sounds, videos, text, and the data images of the game-logic modules — is read
 at run time from **your own disc image** of the original PS2 game. You must own the game legally.
 
+## Download (Windows)
+
+Get the latest build from [Releases](https://github.com/Campfirecrucifix/scooby-doo-mystery-mayhem-pc/releases):
+unzip it, run **`Scooby-Doo Mystery Mayhem.exe`** (the launcher), click **Browse...** to pick your own
+PS2 disc image, then **PLAY**. Settings (graphics, audio, controls) are in the launcher and in-game
+under Options > PC SETTINGS. Logs and crash reports go to `%LOCALAPPDATA%\ScoobyMM\logs`.
+
+Known issues in 1.0.0-rc.2: music may not play and short voice lines can be missing in some setups.
+
 ## Requirements
 
 - A Rust toolchain (stable, edition 2024), `cargo`.

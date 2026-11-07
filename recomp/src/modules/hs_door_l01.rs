@@ -318,6 +318,9 @@ pub fn hs_door_baseCB_CollisionDetectionOut(e: &mut Engine, _: u32) -> LResult<u
 /// ext fn 6
 pub fn hs_door_baseCB_InputAction_X(e: &mut Engine, _: u32) -> LResult<u64> {
     let gb0 = GB(e, 0);
+    if std::env::var_os("GAME_DOORLOG").is_some() {
+        eprintln!("DOORLOG X door {:#x} gb0+14 {:#x} +7c {:#x} +34 {:#x}", APIgameobj::GetID(e, SELF, 0), e.r32(gb0 + 0x14), e.r32(gb0 + 0x7c), e.r32(gb0 + 0x34));
+    }
     if e.r32(gb0 + 0x14) & 0x0800_090d != 0 || e.r32(gb0 + 0x7c) == 1 {
         return Ok(0);
     }

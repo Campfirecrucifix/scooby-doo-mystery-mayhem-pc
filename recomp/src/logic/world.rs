@@ -216,6 +216,126 @@ impl Engine {
         Some(v)
     }
 
+    /// world position of object `id` (its frame LTM translation), None = no frame
+    fn obj_world_pos(&mut self, id: u32) -> Option<[f32; 3]> {
+        let out = self.mem.alloca(0x10);
+        let _b = super::LogicBind::new(&mut self.rt);
+        if self.host.APIgameobj_GetPosition(&mut self.mem, id, 0x7fff_ffff, out) == 0 {
+            return None;
+        }
+        Some([self.mem.rf(out), self.mem.rf(out + 4), self.mem.rf(out + 8)])
+    }
+    /// retriever centre (EFInRange/EFNearestRetriever +0x14): params[3..6] offset, transformed by the
+    /// LTM of the centre object params[2] (RwV3dTransformPoints: rotated + translated) when it exists
+    fn retriever_centre(&mut self, params: Ptr) -> [f32; 3] {
+        let off = [self.mem.rf(params + 0xc), self.mem.rf(params + 0x10), self.mem.rf(params + 0x14)];
+        let id = self.mem.r32(params + 8);
+        if id == 0 {
+            return off;
+        }
+        let Some(p) = self.obj_world_pos(id) else { return off };
+        if off == [0.0; 3] {
+            return p;
+        }
+        let out = self.mem.alloca(0x10);
+        let mut axis = |w: &mut Self, f: fn(&mut dyn crate::engine::Host, &mut crate::engine::Mem, u32, u32, Ptr) -> Ptr| {
+            f(w.host.as_mut(), &mut w.mem, id, 0x7fff_ffff, out);
+            [w.mem.rf(out), w.mem.rf(out + 4), w.mem.rf(out + 8)]
+        };
+        let r = axis(self, |h, m, a, b, c| h.APIgameobj_GetLookRight(m, a, b, c));
+        let u = axis(self, |h, m, a, b, c| h.APIgameobj_GetLookUp(m, a, b, c));
+        let t = axis(self, |h, m, a, b, c| h.APIgameobj_GetLookAt(m, a, b, c));
+        [0, 1, 2].map(|i| p[i] + r[i] * off[0] + u[i] * off[1] + t[i] * off[2])
+    }
+    /// group filter of the id (+0x154 == params[1]) / mask (+0x158 & params[1]) retrievers, flag 8 clear
+    fn retriever_match(&self, h: ObjH, want: u32, mask: bool) -> bool {
+        let o = self.rt.obj(h);
+        (if mask { want & o.group_mask != 0 } else { want == o.group_id }) && o.flags & 8 == 0
+    }
+    /// P20 R52/R53: EFInRangeIdRetriever / EFInRangeMaskRetriever::GetObject (0x00208e50 / 0x00209210),
+    /// retrievers 0xff000080 / 0xff000100. params: [0] cursor (1 = start, else the previous hit's id),
+    /// [1] group id / mask, [2] centre object (0 = none), [3..6] offset, [6] range, [7] epsilon. Returns
+    /// the nearest matching object farther than the previous hit + epsilon and within range; the cursor
+    /// becomes its id, or 0x7ffffffe at the end. Without them Poltergeist_BaseFUNC_ChooseThrowable never
+    /// found a throwable and TomeDoomFUNC_ContactWisps never reached a wisp.
+    fn in_range_retriever(&mut self, params: Ptr, mask: bool) -> Option<ObjH> {
+        let sp = self.mem.sp();
+        let r = (|| {
+            if self.mem.rf(params + 0x1c) <= 0.0 {
+                self.mem.wf(params + 0x1c, f32::MIN_POSITIVE);
+            }
+            let eps = self.mem.rf(params + 0x1c);
+            let range = self.mem.rf(params + 0x18);
+            let c = self.retriever_centre(params);
+            let d2 = |q: [f32; 3]| (q[2] - c[2]) * (q[2] - c[2]) + (q[0] - c[0]) * (q[0] - c[0]) + (q[1] - c[1]) * (q[1] - c[1]);
+            let mut max = range * range;
+            let cur = self.mem.r32(params);
+            let min = if cur == CURSOR_START { 0.0 } else { self.obj_world_pos(cur).map_or(0.0, |q| eps + d2(q)) };
+            let want = self.mem.r32(params + 4);
+            let mut best = None;
+            let mut node = self.rt.map.first();
+            while node != 0 {
+                let h = self.rt.map.val(node);
+                node = self.rt.map.next(node);
+                if !self.retriever_match(h, want, mask) {
+                    continue;
+                }
+                let id = self.rt.obj(h).id;
+                let Some(q) = self.obj_world_pos(id) else { continue };
+                let d = d2(q);
+                if d <= max && min <= d {
+                    max = if eps < d { d - eps } else { 0.0 };
+                    best = Some((h, id));
+                }
+            }
+            match best {
+                Some((h, id)) if id != cur => {
+                    self.mem.w32(params, id);
+                    Some(h)
+                }
+                _ => {
+                    self.mem.w32(params, CURSOR_DONE);
+                    None
+                }
+            }
+        })();
+        self.mem.set_sp(sp);
+        r
+    }
+    /// P20 R53: EFNearestIDRetriever / EFNearestMaskRetriever::GetObject (0x002086f0.. / 0x002084a0),
+    /// retrievers 0xff000002 / 0xff000004: walk the map from the cursor (params[0]: 1 = first node) to
+    /// its end (cursor = 0 afterwards) and return the nearest matching object strictly within range
+    /// params[6] of the centre. EFNearestRetriever::AcknowledgeNearest: the retriever is created per
+    /// call (+0xc = 0), so any nearest hit is returned.
+    fn nearest_retriever(&mut self, params: Ptr, mask: bool) -> Option<ObjH> {
+        let sp = self.mem.sp();
+        let r = (|| {
+            let range = self.mem.rf(params + 0x18);
+            let c = self.retriever_centre(params);
+            let want = self.mem.r32(params + 4);
+            let mut best_d = range * range;
+            let mut best = None;
+            let cur = self.mem.r32(params);
+            let mut node = if cur == CURSOR_START { self.rt.map.first() } else { cur };
+            while node != 0 {
+                let h = self.rt.map.val(node);
+                node = self.rt.map.next(node);
+                if !self.retriever_match(h, want, mask) {
+                    continue;
+                }
+                let Some(q) = self.obj_world_pos(self.rt.obj(h).id) else { continue };
+                let d = (c[2] - q[2]) * (c[2] - q[2]) + (c[0] - q[0]) * (c[0] - q[0]) + (c[1] - q[1]) * (c[1] - q[1]);
+                if d < best_d {
+                    best_d = d;
+                    best = Some(h);
+                }
+            }
+            self.mem.w32(params, 0);
+            best
+        })();
+        self.mem.set_sp(sp);
+        r
+    }
     /// EFWorld::GetRetriever(id, params) + the retriever's GetObject (vtable +0x10): the next object
     /// selected by retriever id `id`. Outer None = no retriever has that id (GetRetriever returns NULL).
     pub fn retriever_get_object(&mut self, id: u32, params: Ptr) -> Option<Option<ObjH>> {
@@ -238,9 +358,25 @@ impl Engine {
                     return Some(Some(h));
                 }
             },
-            // nearest / in-range / parent / children: need positions and the scene graph, which the
-            // platform layer owns
-            0xff00_0002 | 0xff00_0004 | 0xff00_0020 | 0xff00_0040 | 0xff00_0080 | 0xff00_0100 => {
+            // GAME_NO_RETRIEVERS=1 (bisect): the pre-R52 behaviour (no position retrievers);
+            // =ff000002,ff000100 disables only the listed ones
+            0xff00_0080 | 0xff00_0100 | 0xff00_0002 | 0xff00_0004
+                if std::env::var("GAME_NO_RETRIEVERS").is_ok_and(|v| v == "1" || v.split(',').any(|t| u32::from_str_radix(t.trim_start_matches("0x"), 16) == Ok(id))) =>
+            {
+                if params != NULL { self.mem.w32(params, CURSOR_DONE); }
+                Some(None)
+            }
+            0xff00_0080 | 0xff00_0100 | 0xff00_0002 | 0xff00_0004 if params != NULL => {
+                let pv: Vec<u32> = (0..8).map(|i| self.mem.r32(params + 4 * i)).collect();
+                let r = if id & 0x180 != 0 { self.in_range_retriever(params, id == 0xff00_0100) } else { self.nearest_retriever(params, id == 0xff00_0004) };
+                // GAME_RETRLOG=1 (debug): every position retriever call (params before, hit uid)
+                if std::env::var_os("GAME_RETRLOG").is_some() {
+                    eprintln!("RETR {id:#x} params {pv:x?} -> {:?}", r.map(|h| format!("{:#x}", self.rt.obj(h).id)));
+                }
+                Some(r)
+            }
+            // parent / children: need the scene graph, which the platform layer owns
+            0xff00_0002 | 0xff00_0004 | 0xff00_0080 | 0xff00_0100 | 0xff00_0020 | 0xff00_0040 => {
                 let r = self.host.retriever_get_object(&mut self.mem, id, params);
                 // WP-V1: a host without this retriever yields nothing; mark the cursor done like
                 // the map-walking retrievers so cursor loops (`while (params[0] != 0x7ffffffe)`,

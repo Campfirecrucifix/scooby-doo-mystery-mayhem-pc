@@ -56,7 +56,7 @@ pub struct EFRayResult {
 }
 
 /// EFUpdatePhysicStruct: +0 dt, then 2 passes x {EFDynamicPhysic* first, count}, +0x14 emitter
-/// array, +0x18 emitter count (PLParticleMgr walk: unported, always empty).
+/// array, +0x18 emitter count (PLParticleMgr walk: see EFPhysicMgr::emitters, P22 R41).
 #[derive(Debug, Clone, Default)]
 pub struct EFUpdatePhysicStruct {
     pub dt: f32,
@@ -158,6 +158,35 @@ pub struct EFPhysicMgr {
     pub col_notify: Vec<(u32, u32, crate::engine::physic::report::CollisionNotifyMsg)>,
     /// game object uid -> EFPhysicData+0x28 (EFWorld::GetGameObject(uid)+0x28)
     pub by_owner: HashMap<u32, PhysId>,
+    /// P22 R26 GAME_LOGICCLIP: owners off the world +0x4148 list (disabled, or clip word 0x80): not stepped
+    pub clip_off: std::collections::HashSet<u32>,
+    /// P22 R41: _gpoPLParticleMgr seen by the physics (EFCollisionSystem::BuildParticleEmittersList /
+    /// EFPhysic::CheckParticleCollisions): every emitter with live particles, in type-list then
+    /// emitter-list order, snapshotted by the coordinator before Update; stamps written back after.
+    pub emitters: Vec<PLEmitterSnap>,
+    /// PLParticle::mui16GlobalCount
+    pub particle_global: u16,
+}
+
+/// The PLType / PLEmitter / PLParticle fields the physics reads.
+#[derive(Debug, Clone, Default)]
+pub struct PLEmitterSnap {
+    /// PLType +8 id
+    pub type_id: u32,
+    /// PLType +0x1a4..+0x1b0 user ints
+    pub user: [u32; 4],
+    /// PLType +0x158 bsphere radius
+    pub type_radius: f32,
+    /// PLEmitter +8 id
+    pub id: u32,
+    /// PLEmitter +0x2c flags
+    pub flags: u32,
+    /// RwFrameGetLTM(PLEmitter +0x14) pos
+    pub pos: V3,
+    /// particle list (+0xbc): (pos +4, radius +0x20, stamp +0x28)
+    pub parts: Vec<(V3, f32, u16)>,
+    /// pool indices of `parts` (stamp write-back)
+    pub idx: Vec<usize>,
 }
 
 impl Default for EFPhysicMgr {
@@ -182,6 +211,9 @@ impl EFPhysicMgr {
             notify: Vec::new(),
             col_notify: Vec::new(),
             by_owner: HashMap::new(),
+            clip_off: Default::default(),
+            emitters: Vec::new(),
+            particle_global: 0,
         }
     }
 
@@ -420,7 +452,7 @@ impl EFPhysicMgr {
     /// EFPhysicMgr::InitFrame (0x001dbd70). The original walks the world's game-object list
     /// (_gpoWorldMgr+0x4148, next = obj+0x168) and takes each object's physic (obj+0x28): that
     /// order is `world.world_order()`. When the host gives none, the physic lists are walked
-    /// (list 0 then 1) — same set, possibly different order. Particle emitters: unported.
+    /// (list 0 then 1) — same set, possibly different order. Particle emitters: `emitters` (P22 R41).
     pub fn InitFrame(&mut self, ups: &mut EFUpdatePhysicStruct, world: &dyn PhysicWorld) {
         ups.emitter_count = 0;
         ups.passes[0].clear();
@@ -432,7 +464,7 @@ impl EFPhysicMgr {
         {
             for &id in &order {
                 let Some(p) = self.physics.get_mut(id as usize - 1).and_then(|p| p.as_mut()) else { continue };
-                if p.flags & 0x10020 != 0 {
+                if p.flags & 0x10020 != 0 || self.clip_off.contains(&p.owner) {
                     continue;
                 }
                 let frame = rows(&p.frame);
@@ -540,6 +572,43 @@ impl EFPhysicMgr {
         }
     }
 
+    /// EFPhysic::CheckParticleCollisions(PLEmitter**, count) (0x001dae20): emitters with flags & 0xc
+    /// whose type user ints meet the physic masks; per matching prim CheckParticlesIntersection
+    /// (mark = flags & 8). Unmarked: Notify(8, {type id, emitter id, 1}) at the first hit; marked:
+    /// after all prims with the hit count.
+    pub fn CheckParticleCollisions(&mut self, p: &EFPhysic, list: &[usize]) {
+        let m = &p.model.masks; // +0x94 = [0], +0x98 = [1], +0x9c = [2], +0xa0 = [3]
+        for &ei in list {
+            let em = &mut self.emitters[ei];
+            if em.flags & 0xc == 0 {
+                continue;
+            }
+            let (u4, u6, u3, u5) = (em.user[0], em.user[1], em.user[2], em.user[3]);
+            if u3 & m[0] == 0 && u4 & m[2] == 0 && u5 & m[1] == 0 && u6 & m[3] == 0 {
+                continue;
+            }
+            self.particle_global = self.particle_global.wrapping_add(1);
+            let mark = em.flags & 8 != 0;
+            let mut n = 0i32;
+            for pr in p.model.prims.iter().flatten() {
+                let w = |o| pr.base.word(o);
+                if u3 & w(0x10) != 0 || u4 & w(0x14) != 0 || u5 & w(0x18) != 0 || u6 & w(0x1c) != 0 {
+                    n += pr.CheckParticlesIntersection(&mut em.parts, mark, self.particle_global);
+                    if n != 0 && !mark {
+                        self.notify.push(PhysicNotify { owner: p.owner, code: 8, data: [em.type_id, em.id, 1, 0] });
+                        break;
+                    }
+                }
+            }
+            if n != 0 && std::env::var_os("P22_PARTHIT").is_some() {
+                eprintln!("PARTHIT f{} owner {:#x} type {:#x} em {:#x} n {n} flags {:#x} user {:x?} masks {:x?}", self.frame, p.owner, em.type_id, em.id, em.flags, em.user, m);
+            }
+            if n != 0 && mark {
+                self.notify.push(PhysicNotify { owner: p.owner, code: 8, data: [em.type_id, em.id, n as u32, 0] });
+            }
+        }
+    }
+
     /// EFPhysic::PostCollisionUpdate(dt, stage, dyn). `validate` = EFCollisionModel::
     /// ValidatePrimaryPrimTrans(stage) on this physic (supplied by the collision system together
     /// with the stage; called before the modules and after the particles as in the C++).
@@ -585,12 +654,15 @@ impl EFPhysicMgr {
                 m.base_mut().flags &= !0x40;
             }
         }
-        // flags & 0x80000: CheckParticleCollisions (particles unported)
+        if p.flags & flags::PARTICLES != 0 && !dp.emitter_list.is_empty() {
+            let list = dp.emitter_list.clone();
+            self.CheckParticleCollisions(&p, &list);
+        }
         if let Some(v) = validate {
             v(&mut p, frame);
         }
-        if let Some(st) = p.UpdatePhysicState(dt, dp.prev_state) {
-            self.notify.push(PhysicNotify { owner: p.owner, code: 5, data: [st, 0, 0, 0] });
+        if let Some((st, ch)) = p.UpdatePhysicState(dt, dp.prev_state) {
+            self.notify.push(PhysicNotify { owner: p.owner, code: 5, data: [st, ch, 0, 0] });
         }
         self.put_back(id, p);
     }

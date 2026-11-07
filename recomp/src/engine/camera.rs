@@ -422,12 +422,19 @@ impl EFCamera {
     }
 }
 
-/// EFCameraAnimNode (class 0x53, "EF_CAMERA_ANIM_NODE", 0x48 bytes): drives a camera from a DTAnimHdr.
+/// EFCameraAnimNode (class 0x53, "EF_CAMERA_ANIM_NODE", 0x48 bytes, DTOperator type 7): drives
+/// a camera from a DTAnimHdr. Created by EFGameObject::CreateInstances (0x001ff350) for the
+/// DT_CAMERA_ANIM_DESCR descriptors, connected to a camera by APIanim::Connect /
+/// EFCutScenePlayer::Play (vtable +0x28), updated by the EFAnimationMgr tree.
 /// The EFAnimNode state/time fields use the same bit meanings as anim::nodes::state.
 #[derive(Debug, Clone)]
 pub struct EFCameraAnimNode {
     /// +0x30 -> res (+0x10 DTAnimHdr)
     pub anim: Arc<DTAnimHdr>,
+    /// +0x24 exclusivity key (EFAnimNode::Initialize: hdr byte +0xd)
+    pub excl: u32,
+    /// +0x2c creation params +4 (EFGameObject::ResolveRefPUID); only FindExclNode reads it
+    pub obj: u32,
     /// +0x34
     pub state: u32,
     /// +0x38
@@ -440,18 +447,54 @@ pub struct EFCameraAnimNode {
     pub user: u32,
     /// +0x44 connected camera uid (Connect accepts only uid>>24 == 0x10)
     pub camera: Option<u32>,
-    /// EFAnimNode::Notify(1, user) calls, drained by the coordinator
-    pub notifies: Vec<u32>,
+    /// EFAnimNode::Notify(code, user) calls (code 0 = Stop, 1 = end), drained by the coordinator
+    pub notifies: Vec<(u32, u32)>,
+    /// what the last Update wrote to the camera (applied by the coordinator, which owns the
+    /// cameras and the camera RwFrame shared with the owning game object)
+    pub out: Option<CameraAnimOut>,
+}
+
+/// One EFCameraAnimNode::Update write: SetFOV calls (channel order), then the camera RwFrame
+/// modelling matrix (SetToRotation if any rotation channel, translation always) + RwFrameUpdateObjects.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct CameraAnimOut {
+    pub camera: u32,
+    pub fovs: Vec<f32>,
+    pub rot: Option<[f32; 3]>,
+    pub pos: [f32; 3],
+}
+
+impl CameraAnimOut {
+    /// Applies the write to camera `self.camera`; `frame` = the camera's RwFrame (the owning game
+    /// object's frame), else the camera LTM itself.
+    pub fn Apply(&self, cams: &mut EFGraphicsMgrCameras, frame: Option<&mut DTMatrix>) {
+        let Some(c) = cams.GetCamera(self.camera) else { return };
+        for &f in &self.fovs {
+            c.SetFOV(f);
+        }
+        let mut m = frame.as_deref().copied().unwrap_or(c.ltm);
+        if let Some(e) = self.rot {
+            m.SetToRotation(e);
+        }
+        m.pos = self.pos;
+        c.ltm = m;
+        if let Some(f) = frame {
+            *f = m;
+        }
+    }
 }
 
 impl EFCameraAnimNode {
+    /// ctor (0x002369d0) + EFBaseIDescriptor::CreateNode (res) + Initialize (0x00236a70)
     pub fn new(anim: Arc<DTAnimHdr>, user: u32) -> Self {
         let duration = anim.duration;
-        EFCameraAnimNode { anim, state: 0x800_0000, time: 0.0, duration, speed: 1.0, user, camera: None, notifies: vec![] }
+        let excl = anim.unkd[0] as u32;
+        EFCameraAnimNode { anim, excl, obj: 0, state: 0x800_0000, time: 0.0, duration, speed: 1.0, user, camera: None, notifies: vec![], out: None }
     }
     pub fn GetClassID(&self) -> u32 {
         0x53
     }
+    /// 0x00237090
     pub fn Connect(&mut self, uid: u32) {
         if uid >> 24 == 0x10 {
             self.camera = Some(uid);
@@ -461,8 +504,16 @@ impl EFCameraAnimNode {
     pub fn Play(&mut self, flags: u32, _f: f32) {
         self.state = flags;
     }
+    /// EFCameraAnimNode::Stop (0x00237060): LeaveParent (done by the mgr) + EFAnimNode::Stop
+    pub fn Stop(&mut self) {
+        if self.state != 0x800_0000 {
+            self.state = 0x800_0000;
+            self.time = 0.0;
+            self.notifies.push((0, self.user));
+        }
+    }
     /// EFCameraAnimNode::Update (0x00236ae0)
-    pub fn Update(&mut self, dt: f32, cams: &mut EFGraphicsMgrCameras) -> u32 {
+    pub fn Update(&mut self, dt: f32) -> u32 {
         let Some(uid) = self.camera else { return 0 };
         if self.state & 0x800_0000 == 0 && self.duration > 0.0 {
             self.time += dt * self.speed;
@@ -493,14 +544,14 @@ impl EFCameraAnimNode {
             }
         }
         let mut rot = false;
-        let mut pos = [0.0f32; 3];
+        let mut out = CameraAnimOut { camera: uid, ..Default::default() };
         let mut e = [0.0f32; 3];
-        let mut fov = None;
         for set in &self.anim.sets {
             for ch in &set.channels {
                 let v = ch.curve.Evaluate(self.time);
                 match ch.id & 0xff_ffff {
-                    0x14 => fov = Some(((12.44712 / v) as f64).atan() * 2.0),
+                    // quirk: SetFOV is applied immediately, in channel order
+                    0x14 => out.fovs.push((((12.44712 / v) as f64).atan() * 2.0) as f32),
                     8 => {
                         rot = true;
                         e[2] = v;
@@ -513,30 +564,24 @@ impl EFCameraAnimNode {
                         rot = true;
                         e[0] = -v;
                     }
-                    5 => pos[2] = v,
-                    4 => pos[1] = v,
-                    3 => pos[0] = v,
+                    5 => out.pos[2] = v,
+                    4 => out.pos[1] = v,
+                    3 => out.pos[0] = v,
                     _ => {}
                 }
-                if let (Some(f), Some(c)) = (fov.take(), cams.GetCamera(uid)) {
-                    // quirk: SetFOV is applied immediately, in channel order
-                    c.SetFOV(f as f32);
-                }
             }
         }
-        if let Some(c) = cams.GetCamera(uid) {
-            if rot {
-                c.ltm.SetToRotation(e);
-            }
-            c.ltm.pos = pos;
+        if rot {
+            out.rot = Some(e);
         }
+        self.out = Some(out);
         if self.state & 1 != 0
             && ((self.speed < 0.0 && self.time == 0.0) || (0.0 < self.speed && self.time == self.duration))
         {
             self.state |= 0x2000_0000;
         }
         if self.state & 0x200_0000 != 0 {
-            self.notifies.push(self.user);
+            self.notifies.push((1, self.user));
             self.state &= 0xfdff_ffff;
         }
         0

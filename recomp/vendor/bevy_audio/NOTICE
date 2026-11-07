@@ -1,0 +1,4 @@
+bevy_audio 0.19.1 (https://github.com/bevyengine/bevy, MIT OR Apache-2.0), vendored and modified for the
+Scooby-Doo! Mystery Mayhem PC port: src/audio_output.rs (AudioOutput made public; the default output stream
+is opened with an error callback that flags a lost device, plus is_available/is_lost/close/reopen) and
+src/lib.rs (re-export). All other files are unchanged from the crates.io release.

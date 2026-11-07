@@ -160,7 +160,7 @@ pub struct MpegPlay {
     pub fps: f32,
     /// stereo PCM (rate, L/R interleaved), taken by the host to start the audio voice
     pub audio: Option<(u32, Vec<i16>)>,
-    audio_secs: f32,
+    pub audio_secs: f32,
     /// display started (`startDisplay`: video buffer full + audio preset)
     pub started: bool,
     /// seconds since startDisplay
@@ -310,6 +310,14 @@ impl MpegPlay {
             self.done = true;
         }
         !self.done
+    }
+
+    /// P36: [`Update`] driven by an absolute clock (seconds since the movie's audio started) instead
+    /// of a frame delta, so the picture stays locked to the audio across host hitches (the host's
+    /// per-frame dt is clamped, which used to let the video fall permanently behind the sound).
+    pub fn UpdateClock(&mut self, clock: f32, buttons: u16) -> bool {
+        let dt = if self.started { (clock - self.t).max(0.0) } else { 0.0 };
+        self.Update(dt, buttons)
     }
 
     /// The picture changed since the last call (upload it).

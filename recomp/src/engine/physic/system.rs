@@ -1,6 +1,6 @@
 //! EFCollisionSystem (Classes/EF/EFCollisionSystem.cpp, all 14 functions) plus the EFPhysic
 //! collision methods it drives (EFPhysic::CheckEnvCollisions 0x001d9090, CheckNoPushCollisions
-//! 0x001d9940, CheckObjCollisions 0x001d9cb0, CollisionUpdate 0x001da8a0: unported by WP-E2) and
+//! 0x001d9940, CheckObjCollisions 0x001d9cb0, CollisionUpdate 0x001da8a0: ported below as EFPhysic_*) and
 //! EFCollisionStage::CheckMultipleCollisions (0x001dddc0, needs EFPhysic state).
 //!
 //! Memory model:
@@ -272,7 +272,7 @@ impl EFCollisionSystem {
         }
         self.CreateSystem(mgr, ups, pass, index);
         self.BuildCollidableLists(ups);
-        self.BuildParticleEmittersList();
+        self.BuildParticleEmittersList(mgr, ups);
         self.BuildEnvPrimsLists(mgr, ups);
         self.initialized = true;
         for s in 0..self.stages.len() {
@@ -343,11 +343,35 @@ impl EFCollisionSystem {
         self.ComputeBSphere(mgr, ups);
     }
 
-    /// BuildParticleEmittersList (0x001de8f0): only when the stage flags have bit 19 (PARTICLES).
-    /// Unported: needs PLParticleMgr (particles are not ported; E2 keeps emitter_count = 0).
-    pub fn BuildParticleEmittersList(&mut self) {
-        if self.phys_flags & flags::PARTICLES != 0 {
-            // ponytail: PLParticleMgr emitter walk unported (no particle system yet)
+    /// BuildParticleEmittersList (0x001de8f0): only when the stage flags have bit 19 (PARTICLES):
+    /// the emitters (with live particles) of the types whose user ints meet the system masks and
+    /// whose frame lies within system radius + type bsphere radius of the system center; every
+    /// stage's dyn +0x40/+0x44 = that list.
+    pub fn BuildParticleEmittersList(&mut self, mgr: &EFPhysicMgr, ups: &mut EFUpdatePhysicStruct) {
+        if self.phys_flags & flags::PARTICLES == 0 {
+            return;
+        }
+        let m = self.masks; // +0x28 = [0], +0x2c = [1], +0x30 = [2], +0x34 = [3]
+        let mut list = Vec::new();
+        for (i, em) in mgr.emitters.iter().enumerate() {
+            let u = em.user;
+            if m[2] & u[0] == 0 && m[3] & u[1] == 0 && m[0] & u[2] == 0 && m[1] & u[3] == 0 {
+                continue;
+            }
+            if em.parts.is_empty() {
+                continue;
+            }
+            let r = self.radius + em.type_radius;
+            let d = [em.pos[0] - self.center[0], em.pos[1] - self.center[1], em.pos[2] - self.center[2]];
+            if d[2] * d[2] + d[0] * d[0] + d[1] * d[1] <= r * r {
+                list.push(i);
+            }
+        }
+        for st in &self.stages {
+            if let Some(dp) = ups.passes[st.dyn_ref.0].get_mut(st.dyn_ref.1) {
+                dp.emitters = list.len() as u32;
+                dp.emitter_list = list.clone();
+            }
         }
     }
 
@@ -773,6 +797,7 @@ impl EFCollisionSystem {
                 let d = st.dyn_ref;
                 if let Some(dp) = ups.passes[d.0].get_mut(d.1) {
                     dp.emitters = ups.emitter_count;
+                    dp.emitter_list.clear();
                 }
             }
             self.arena.clear();
@@ -1058,6 +1083,12 @@ impl EFCollisionSystem {
         let buid = Self::owner(mgr, Self::pid(ups, od));
         let bp = Self::report_prim(Self::prim(mgr, buid, r.base.other_prim as usize));
         let out = EFCollisionReport::CheckNotify((auid, ap), Some((buid, bp)), p0, p1);
+        // P23 R44 debug: GAME_RPDBG=1 prints notifies to/from the EP6/L02 arcs
+        if !out.is_empty() && std::env::var_os("GAME_RPDBG").is_some() && [auid, buid].iter().any(|u| (0x2a00_0180..0x2a00_01a0).contains(u)) {
+            let pa = st.col_prims.get(r.base.prim as usize).and_then(|&(pi, _)| Self::prim(mgr, auid, pi as usize)).map(|p| p.base.center);
+            let pb = Self::prim(mgr, buid, r.base.other_prim as usize).map(|p| (p.base.center, p.base.kind, p.base.radius));
+            eprintln!("RPDBG a {auid:#x} prim {} {pa:.2?} b {buid:#x} prim {} {pb:.2?} t {:.3}", r.base.prim, r.base.other_prim, r.base.t);
+        }
         self.notifies.extend(out);
     }
 

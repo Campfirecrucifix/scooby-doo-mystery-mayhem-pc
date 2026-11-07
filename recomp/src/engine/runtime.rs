@@ -86,11 +86,17 @@ pub struct RuntimeWorld {
     pub nodes: HashMap<u32, Vec<(DTMatrix, DTMatrix)>>,
     /// J14: per game object, the HAnim node ids (node index order) for RpHAnimIDGetIndex
     pub node_ids: HashMap<u32, Vec<i32>>,
+    /// P20 R46: the object frame the `nodes` were published with (GetBone re-roots the stale node
+    /// LTMs onto the current object frame)
+    pub node_root: HashMap<u32, DTMatrix>,
     /// _gpoWorldMgr+0x14
     pub paused: bool,
     /// J5: EF3dObj_SP visibility (EF3dObj +0x2c & 2) per game object, set by
     /// APIgameobj::SetGameObjectVisible (absent = visible, EF3dObj default after CreateInstances)
     pub hidden: std::collections::HashSet<u32>,
+    /// P23 R8: game-object parent of each AddChild'ed object (the `parented` list, mirrored before
+    /// the physic update) for EFPhysic::CheckObjCollisions' parent/child pair skip (EFInstance+0x1c)
+    pub parents: HashMap<u32, u32>,
 }
 
 impl PLWorld for RuntimeWorld {
@@ -150,6 +156,37 @@ impl crate::engine::gfx::api::GfxWorld for RuntimeWorld {
     }
 }
 
+/// P28 B8: RuntimeWorld + SELF + the 3d-object descriptor uids, for the TexFader target lookup
+/// (EFWorld::GetGameObject(0x2a000000)->Get3dObject(i)+8 == uid for 0xf uids).
+struct FaderWorld<'a> {
+    w: &'a RuntimeWorld,
+    sub: &'a Subsystems,
+    cur: u32,
+}
+
+impl crate::engine::gfx::api::GfxWorld for FaderWorld<'_> {
+    fn ResolveGameObject(&self, uid: u32) -> Option<u32> {
+        if uid == crate::engine::SELF {
+            return (self.cur != crate::engine::SELF).then_some(self.cur);
+        }
+        crate::engine::gfx::api::GfxWorld::ResolveGameObject(self.w, uid)
+    }
+    fn GetObjectFrame(&self, obj: u32, bone: u32) -> Option<DTMatrix> {
+        crate::engine::gfx::api::GfxWorld::GetObjectFrame(self.w, obj, bone)
+    }
+    fn GetObjectPosDataFrame(&self, uid: u32) -> Option<DTMatrix> {
+        crate::engine::gfx::api::GfxWorld::GetObjectPosDataFrame(self.w, uid)
+    }
+    fn GetJointLTM(&self, obj: u32, joint: u32) -> Option<DTMatrix> {
+        crate::engine::gfx::api::GfxWorld::GetJointLTM(self.w, obj, joint)
+    }
+    /// the obj3d_list order (descriptor order); descriptor uids other than 0xf.. are not kept (0)
+    fn Get3dObjectUids(&self, obj: u32) -> Option<Vec<u32>> {
+        let l = self.sub.obj3d_list.get(&obj)?;
+        Some(l.iter().map(|&(_, res)| self.sub.obj3d_desc.iter().find(|(_, v)| **v == (obj, res)).map_or(0, |(d, _)| *d)).collect())
+    }
+}
+
 /// The particle state shared between the Bevy resource and the logic's APIparticle_* calls
 /// (which arrive through the `Host` inside `Engine`).
 pub struct ParticleShared {
@@ -158,6 +195,9 @@ pub struct ParticleShared {
     /// The child's RwFrame is a child of the bone frame (local = identity + offset, flag 1 = no
     /// offset), so its world frame follows the bone; LeaveParent keeps the world LTM.
     pub parented: Vec<(u32, u32, u32, [f32; 3])>,
+    /// P22 R43: APIgameobj::AddChild of particle emitters (GAME_EMCHILD). On by default in
+    /// headless and game.exe since P23 R62 (opt-out GAME_EMCHILD=0).
+    pub em_child: bool,
     pub pl: PLMgr_BC,
     pub bb: EFBillboardMgr,
     pub world: RuntimeWorld,
@@ -165,7 +205,8 @@ pub struct ParticleShared {
     pub sub: Subsystems,
     /// J2: the logic runtime while EFGameLogicMgr::Update runs (EngineRuntime::StepLogic), so the
     /// host resolves SELF (EFWorld::GetGameObject(0x2a000000) = running object). See findings.
-    pub logic: Option<*const crate::logic::LogicRuntime>,
+    /// P32 R75: a flag only; the runtime itself is lent per API call (`crate::logic::LogicBind`).
+    pub logic: bool,
     /// J2: EFPlayerDeviceMgr (+ EFInputMgr) behind APIinput_* / APIsimpleinput_*
     pub devices: crate::engine::input::EFPlayerDeviceMgr,
     /// J3: (object, bone) -> Mem block standing in for the bone's RwFrame (EFGameObject::
@@ -200,12 +241,24 @@ pub enum CutSceneReq {
     Stop,
     Skip,
 }
-// SAFETY: the pointer is only set for the duration of GameLogicUpdate on the same thread.
+// SAFETY: (P32 R75: no logic-runtime pointer is stored here any more, see crate::logic::LogicBind)
+// the remaining non-Send members are only touched on the thread driving the engine.
 unsafe impl Send for ParticleShared {}
+
+impl ParticleShared {
+    /// P28 B10 / P32 R1: EFWorld::GetObjectPosData(uid >> 24 == 0xf) = the EF3dObj of 0x2a000000
+    /// whose +8 is uid: its own frame (rest = identity), created on first use (GetLMat/GetWMat/SetLMat
+    /// alike; before P32 GetLMat read a zeroed stand-in, so FlashButton_Start saved a zero matrix)
+    pub fn hud_frame(&mut self, id: u32) {
+        if id >> 24 == 0xf && !self.world.frames.contains_key(&id) && self.sub.obj3d_desc.contains_key(&id) {
+            self.world.frames.insert(id, DTMatrix::default());
+        }
+    }
+}
 
 impl Default for ParticleShared {
     fn default() -> Self {
-        ParticleShared { pl: PLMgr_BC::default(), bb: EFBillboardMgr::default(), world: RuntimeWorld::default(), sub: Subsystems::new(Default::default()), logic: None, devices: crate::engine::input::EFPlayerDeviceMgr::new(), bone_frames: HashMap::new(), gfxapi: Default::default(), hud: crate::engine::hud::EFHudMgr::new(), hud3d: HashMap::new(), cutscene: None, cutscene_req: Vec::new(), proximity: HashMap::new(), game: Default::default(), parented: Vec::new(), s1: Default::default() }
+        ParticleShared { pl: PLMgr_BC::default(), bb: EFBillboardMgr::default(), world: RuntimeWorld::default(), sub: Subsystems::new(Default::default()), logic: false, devices: crate::engine::input::EFPlayerDeviceMgr::new(), bone_frames: HashMap::new(), gfxapi: Default::default(), hud: crate::engine::hud::EFHudMgr::new(), hud3d: HashMap::new(), cutscene: None, cutscene_req: Vec::new(), proximity: HashMap::new(), game: Default::default(), parented: Vec::new(), em_child: std::env::var("GAME_EMCHILD").as_deref() != Ok("0"), s1: Default::default() }
     }
 }
 
@@ -386,11 +439,10 @@ impl RuntimeHost {
         if id != crate::engine::SELF {
             return id;
         }
-        let Some(l) = self.p.lock().unwrap().logic else { return id };
-        // SAFETY: set by StepLogic around GameLogicUpdate; the host is called from inside it and
-        // only reads the stack top and the object id.
-        let l = unsafe { &*l };
-        l.current_object().and_then(|h| l.objects[h].as_ref()).map_or(id, |o| o.id)
+        if !self.p.lock().unwrap().logic {
+            return id;
+        }
+        crate::logic::with_bound(|l| l.current_object().and_then(|h| l.objects[h].as_ref()).map(|o| o.id)).flatten().unwrap_or(id)
     }
     /// EFGameObject::GetObjectFrame(bone) LTM (0x7fffffff = the object's own frame) / pos-data frame
     /// J14: world frame of each parented object = local (identity + offset) * parent bone LTM
@@ -410,12 +462,10 @@ impl RuntimeHost {
     /// models), None = NULL.
     fn group<R>(&self, id: u32, f: impl FnOnce(&mut crate::logic::GameObject) -> R) -> Option<R> {
         let id = self.r(id);
-        let l = self.p.lock().unwrap().logic?;
-        // SAFETY: as in `r`: set around the logic update on this thread; the object fields touched
-        // here (+0x154/+0x158) are not borrowed by the calling module code.
-        let l = unsafe { &mut *(l as *mut crate::logic::LogicRuntime) };
-        let h = l.map.find(id)?;
-        l.objects[h].as_mut().map(f)
+        if !self.p.lock().unwrap().logic {
+            return None;
+        }
+        crate::logic::with_bound(|l| l.map.find(id).and_then(|h| l.objects[h].as_mut()).map(f)).flatten()
     }
 }
 
@@ -427,6 +477,9 @@ fn place_parented(g: &mut ParticleShared) {
         let pos = std::array::from_fn(|i| m.pos[i] + off[0] * m.right[i] + off[1] * m.up[i] + off[2] * m.at[i]);
         if let Some(f) = g.world.frames.get_mut(&c) {
             *f = DTMatrix { pos, ..m };
+        } else if let Some(l) = g.sub.lights.lights.iter_mut().find(|l| l.uid == c && l.frame.is_some()) {
+            // P26 R16: a light's frame (EFLight +0x14) parented by APIgameobj_AddChild
+            l.frame = Some(DTMatrix { pos, ..m });
         }
     }
 }
@@ -481,6 +534,17 @@ macro_rules! pl {
 }
 
 impl Host for RuntimeHost {
+    /// R15: parent retriever 0xff000020 (params[1] = the child): the AddChild parent (`parented`).
+    /// Carried wisps (WispSourceNew children) read their carrier with it in FIRSTMOVE; without it
+    /// +0x98 stayed 0x7ffffffe, the 0x120 "collected" never reached the source and no child respawned.
+    fn retriever_get_object(&mut self, mem: &mut Mem, id: u32, params: Ptr) -> Option<u32> {
+        if id != 0xff00_0020 || params == 0 || mem.r32(params) != 1 {
+            return None;
+        }
+        let c = mem.r32(params + 4);
+        let p = self.p.lock().unwrap().parented.iter().find(|x| x.0 == c).map(|x| x.1);
+        p
+    }
     // J7: APIhud_* -> _gpoHudMgr (EFApi_HUD.cpp). Varargs: the generated ABI passes the first
     // vararg word only (a2) -> args = [a2].
     fn APIhud_WindowAdd(&mut self, _m: &mut Mem, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { hd!(self, APIhud_WindowAdd(a0, a1, a2, a3)) }
@@ -727,7 +791,13 @@ impl Host for RuntimeHost {
     fn APIparticle_EmitterStop(&mut self, mem: &mut Mem, a0: i32) -> u32 { pl!(self, APIparticle_EmitterStop(mem, a0)) }
     fn APIparticle_EmitterReset(&mut self, mem: &mut Mem, a0: i32) -> u32 { pl!(self, APIparticle_EmitterReset(mem, a0)) }
     fn APIparticle_EmitterSetCollisionPlane(&mut self, mem: &mut Mem, a0: i32, a1: u32, a2: Ptr, a3: Ptr, a4: f32) -> u32 { pl!(self, APIparticle_EmitterSetCollisionPlane(mem, a0, a1, a2, a3, a4)) }
+    /// P26 R22: EFWorld::GetGameObject(0x2a000000) is the calling object (EP2/L09 wisp halo +
+    /// spirit emitters joint to SELF, launched latents 0x2a8000xx): unresolved, it returned 0x40
+    /// and the emitters had no frame (never drawn: no green orb halo).
     fn APIparticle_EmitterSetJoint(&mut self, mem: &mut Mem, a0: i32, a1: u32, a2: u32) -> u32 {
+        // gated like em_child (on; GAME_EMCHILD=0 = off): with frames the emitters
+        // run (particles, clipping) and the headless routes were tuned without them (R22 gate: EP2/3/4/6 chains stopped)
+        let a1 = if self.p.lock().unwrap().em_child { self.r(a1) } else { a1 };
         let mut g = self.p.lock().unwrap();
         let ParticleShared { pl, world, .. } = &mut *g;
         pl.APIparticle_EmitterSetJoint(mem, a0, a1, a2, world)
@@ -926,7 +996,18 @@ impl Host for RuntimeHost {
     fn APInewSound_GetStreamVolume(&mut self, _m: &mut Mem) -> u32 { J2(&self.p).sound(|s| s.APInewSound_GetStreamVolume().to_bits()) }
     fn APInewSound_SetSoundEventMasterVolume(&mut self, _m: &mut Mem, a0: u32, a1: u32, a2: f32) -> u32 { let a0 = self.r(a0); J2(&self.p).sound(|s| s.APInewSound_SetSoundEventMasterVolume(a0, a1, a2)) }
     fn APInewSound_GetSoundEventMasterVolume(&mut self, _m: &mut Mem, a0: u32, a1: u32) -> f32 { let a0 = self.r(a0); J2(&self.p).sound(|s| s.APInewSound_GetSoundEventMasterVolume(a0, a1)) }
-    fn APInewSound_IsPlaying(&mut self, _m: &mut Mem, a0: u32, a1: u32) -> u8 { let a0 = self.r(a0); J2(&self.p).sound(|s| s.APInewSound_IsPlaying(a0, a1)) as u8 }
+    fn APInewSound_IsPlaying(&mut self, _m: &mut Mem, a0: u32, a1: u32) -> u8 {
+        let a0 = self.r(a0);
+        let r = J2(&self.p).sound(|s| s.APInewSound_IsPlaying(a0, a1)) as u8;
+        // GAME_SNDTRACE: log IsPlaying result changes per (object, event)
+        if std::env::var_os("GAME_SNDTRACE").is_some() {
+            use std::sync::Mutex;
+            static LAST: Mutex<Option<std::collections::HashMap<(u32, u32), u8>>> = Mutex::new(None);
+            let mut g = LAST.lock().unwrap();
+            if g.get_or_insert_with(Default::default).insert((a0, a1), r) != Some(r) { eprintln!("SNDTRACE f{} IsPlaying {a0:#x} {a1:#x} -> {r}", TRACE_FRAME.load(std::sync::atomic::Ordering::Relaxed)); }
+        }
+        r
+    }
     fn APInewSound_SetPitch(&mut self, _m: &mut Mem, a0: u32, a1: u32, a2: f32) -> u32 { let a0 = self.r(a0); J2(&self.p).sound(|s| s.APInewSound_SetPitch(a0, a1, a2)) }
     fn APInewSound_ParentSoundEventToJoint(&mut self, _m: &mut Mem, a0: u32, a1: u32, a2: u32, _a3: u32) -> u32 { let a0 = self.r(a0); J2(&self.p).sound(|s| s.APInewSound_ParentSoundEventToJoint(a0, a1, a2)) }
     fn APInewSound_SetDSPEffectForGroup(&mut self, _m: &mut Mem, a0: u32, a1: u32) -> u32 { J2(&self.p).sound(|s| s.APInewSound_SetDSPEffectForGroup(a0, a1)); 0 }
@@ -935,7 +1016,23 @@ impl Host for RuntimeHost {
     fn APInewSound_GetVideoVolume(&mut self, _m: &mut Mem) -> u32 { J2(&self.p).sound(|s| s.APInewSound_GetVideoVolume().to_bits()) }
 
     // ---- J2: EFApi_Camera.cpp (GetGameObject(obj) frame passed to CreateCamera)
-    fn APIcamera_CreateCamera(&mut self, m: &mut Mem, a0: u32) -> u32 { let a0 = self.r(a0); J2(&self.p).camera_create(m, a0) }
+    /// EFApi_Camera CreateCamera (0x001eb3d0..): EFGraphicsMgr::CreateCamera on the object frame, then
+    /// the object's band-0 clip words (EFClippingParams +8/+0xc) are zeroed with SetClippingParams(.., 1):
+    /// the camera object is never logic-clipped (it is always outside its own frustum).
+    fn APIcamera_CreateCamera(&mut self, m: &mut Mem, a0: u32) -> u32 {
+        let a0 = self.r(a0);
+        let id = J2(&self.p).camera_create(m, a0);
+        // opt-in with GAME_LOGICCLIP (default runs keep the pre-R27 clip params)
+        if crate::engine::host::gameobj::logic_clip_enabled() && self.s1_is_go(a0) {
+            let p = m.malloc(0x40);
+            self.s1_GetClippingParams(m, a0, p);
+            m.w32(p + 8, 0);
+            m.w32(p + 0xc, 0);
+            self.s1_SetClippingParams(m, a0, p, 1);
+            m.free(p);
+        }
+        id
+    }
     fn APIcamera_DestroyCamera(&mut self, m: &mut Mem, a0: u32) -> u32 { J2(&self.p).cameras(|c, _| c.APIcamera_DestroyCamera(m, a0)) }
     fn APIcamera_Activate(&mut self, m: &mut Mem, a0: u32, a1: u32) -> u32 { J2(&self.p).cameras(|c, _| c.APIcamera_Activate(m, a0, a1)) }
     fn APIcamera_SetPriority(&mut self, m: &mut Mem, a0: u32, a1: f32) -> u32 { J2(&self.p).cameras(|c, _| c.APIcamera_SetPriority(m, a0, a1)) }
@@ -986,8 +1083,10 @@ impl Host for RuntimeHost {
     fn APIgraphics_SpriteGroupAddSprite(&mut self, m: &mut Mem, a0: u32, a1: u32, a2: u32, a3: f32) -> u32 { let a1 = self.r(a1); gxw!(self, w, APIgraphics_SpriteGroupAddSprite(m, a0, a1, a2, a3, w)) }
     fn APIgraphics_SpriteGroupRemoveSprite(&mut self, m: &mut Mem, a0: u32, a1: u32) -> u32 { gx!(self, APIgraphics_SpriteGroupRemoveSprite(m, a0, a1)) }
     fn APIgraphics_StartPaletteTransition(&mut self, m: &mut Mem, a0: Ptr) -> u32 { gx!(self, APIgraphics_StartPaletteTransition(m, a0)) }
-    fn APIgraphics_TexFaderPlay(&mut self, m: &mut Mem, a0: u32, a1: Ptr) -> u32 { let a0 = self.r(a0); gxw!(self, w, APIgraphics_TexFaderPlay(m, a0, a1, w)) }
-    fn APIgraphics_TexFaderPause(&mut self, m: &mut Mem, a0: u32, a1: u32) -> u32 { let a0 = self.r(a0); gxw!(self, w, APIgraphics_TexFaderPause(m, a0, a1, w)) }
+    // P28 B8: the fader target lookup needs SELF and its 3d-object descriptor uids (0xf00062c = the
+    // panel's tome/costume meter icon); RuntimeWorld alone resolved neither, so no fade was ever queued.
+    fn APIgraphics_TexFaderPlay(&mut self, m: &mut Mem, a0: u32, a1: Ptr) -> u32 { let a0 = self.r(a0); let cur = self.r(crate::engine::SELF); let mut g = self.p.lock().unwrap(); let ParticleShared { gfxapi, world, sub, .. } = &mut *g; gfxapi.APIgraphics_TexFaderPlay(m, a0, a1, &FaderWorld { w: world, sub, cur }) }
+    fn APIgraphics_TexFaderPause(&mut self, m: &mut Mem, a0: u32, a1: u32) -> u32 { let a0 = self.r(a0); let cur = self.r(crate::engine::SELF); let mut g = self.p.lock().unwrap(); let ParticleShared { gfxapi, world, sub, .. } = &mut *g; gfxapi.APIgraphics_TexFaderPause(m, a0, a1, &FaderWorld { w: world, sub, cur }) }
     fn APIgraphics_MTCreateSystem(&mut self, m: &mut Mem, a0: u32, a1: u32, a2: u32) -> u32 { gx!(self, APIgraphics_MTCreateSystem(m, a0, a1, a2)) }
     fn APIgraphics_MTDestroySystem(&mut self, m: &mut Mem, a0: u32) -> u32 { gx!(self, APIgraphics_MTDestroySystem(m, a0)) }
     fn APIgraphics_MTSetFrequency(&mut self, m: &mut Mem, a0: u32, a1: f32) -> u32 { gx!(self, APIgraphics_MTSetFrequency(m, a0, a1)) }
@@ -1029,6 +1128,34 @@ impl Host for RuntimeHost {
                 g.parented.push((a2, a0, a1, off));
                 drop(g);
                 self.place_parented();
+                // P32 R82 (P33 table B #3): flag 0x10 = EFPosData.cpp:153-157: the child takes the parent's
+                // clipping params (non-recursive) and SetMyCurrentClipping(child, parent +0x138). Flags 2/4
+                // (attach messages) are core::apigameobj::AddChild.
+                if a3 & 0x10 != 0 {
+                    let c = *self.p.lock().unwrap().s1.clip.get(&a0).unwrap_or(&crate::engine::host::gameobj::CLIP_DEFAULT);
+                    self.s1_set_clip_words(a2, c, 0);
+                    let mut g = self.p.lock().unwrap();
+                    let ParticleShared { s1, sub, .. } = &mut *g;
+                    let w = s1.clip_cur.get(&a0).copied().unwrap_or(0);
+                    crate::engine::host::gameobj::SetMyCurrentClipping(&mut s1.clip_cur, &mut sub.physic, a2, w);
+                    if crate::engine::host::gameobj::anim_clip_on() { crate::engine::host::gameobj::SetAnimClipMode(&mut sub.anim, a2, w); }
+                }
+            }
+            return 0;
+        }
+        // P26 R16: a dynamic light child (APIlight_CreateLight uid 0x12xxxxxx): EFPosData::AddChild of
+        // the light's frame (EFLight +0x14, identity at creation) to the object's frame; flag 1 =
+        // identity local frame, else the local translation keeps its world position. Was a no-op, so
+        // the directional lights of ligth_l04 kept the identity frame (direction +z).
+        if a0 >> 24 == 0x2a && a2 >> 24 == 0x12 {
+            let cf = J2(&self.p).lights(|l| l.lights.iter().find(|x| x.uid == a2).and_then(|x| x.frame));
+            if let (Some(pf), Some(cf)) = (self.obj_ltm(a0, a1), cf) {
+                let off = if a3 & 1 != 0 { [0.0; 3] } else { std::array::from_fn(|i| cf.pos[i] - pf.pos[i]) };
+                let mut g = self.p.lock().unwrap();
+                g.parented.retain(|c| c.0 != a2);
+                g.parented.push((a2, a0, a1, off));
+                drop(g);
+                self.place_parented();
             }
             return 0;
         }
@@ -1045,6 +1172,24 @@ impl Host for RuntimeHost {
                 self.place_parented();
             }
             return 0;
+        }
+        // P22 R41: a particle emitter child (EFPosData::AddChildFrame of the emitter frame +0x14): the
+        // frame becomes a child of the parent's (bone) frame; flag 1 = identity local frame, else the
+        // local translation keeps its world position (as the objects above). Was a no-op, so every
+        // AddChild'ed emitter (zombie/boss gas, ...) stayed at the world origin.
+        // P22 R42 (default on since P23 R62; GAME_EMCHILD=0 = off, see em_child): attached emitters become visible (not clipped),
+        // so they emit and draw from the shared libc rand -> the logic rand stream changes from frame 2
+        // and every chain drifts (EP2/3/4/6 'not fired'; no particle hit involved: 0 PARTHIT outside EP4/L04).
+        // Faithful, but the routes were tuned without it; each lane retunes before the default flips.
+        if a2 >> 24 == 0x2e && self.p.lock().unwrap().em_child {
+            let pf = self.obj_ltm(a0, a1);
+            let mut g = self.p.lock().unwrap();
+            if let (Some(pf), Some(f)) = (pf, g.pl.emitter_mut(a2 as i32).and_then(|em| em.frame.as_mut())) {
+                let off: [f32; 3] = if a3 & 1 != 0 { [0.0; 3] } else { std::array::from_fn(|i| f.ltm.pos[i] - pf.pos[i]) };
+                f.local = DTMatrix { right: [1., 0., 0.], up: [0., 1., 0.], at: [0., 0., 1.], pos: off };
+                f.attach = crate::engine::particle::PLFrameAttach::Child { obj: a0, bone: a1 };
+                return 0;
+            }
         }
         let mut g = self.p.lock().unwrap();
         let bone = if a0 >> 24 == 0x2a && a1 != 0x7fff_ffff { a1 } else { 0 };
@@ -1087,7 +1232,49 @@ impl Host for RuntimeHost {
     /// done by the next EFPhysicMgr::Update copy-in of the frame.
     fn APIgameobj_SetTranslation(&mut self, mem: &mut Mem, a0: u32, a1: Ptr) -> u32 {
         let a0 = self.r(a0);
+        // deviation: NULL source (GetPosition of a missing object, e.g. the costume heroes'
+        // FUNC_NextMove with no current track when a camera's caught-fade timer sends 0x4f)
+        // read PS2 low memory in the original; here the translation is left unchanged.
+        if a1 == 0 {
+            return 0;
+        }
         let v = rv3(mem, a1);
+        if v[1] > 900.0 && std::env::var_os("GAME_TPTRACE").is_some() {
+            eprintln!("TPTRACE {a0:#x} {v:?}
+{}", std::backtrace::Backtrace::force_capture());
+        }
+        // P22 R44: an emitter uid -> GetObjectPosData(emitter)->frame = the emitter PLFrame; the
+        // modelling matrix pos becomes v (local to the parent when AddChild'ed: ZombieBoss
+        // Particles_Start_GazStomp spreads its 15 root emitters at (rand ±4, 0.3, rand ±4)). Was a
+        // no-op, so all 15 emitted at the boss feet. Only with em_child (attached emitters; the
+        // headless default keeps the old frames, routes were tuned on them).
+        if a0 >> 24 == 0x2e {
+            let mut g = self.p.lock().unwrap();
+            if g.em_child {
+                if let Some(f) = g.pl.emitter_mut(a0 as i32).and_then(|em| em.frame.as_mut()) {
+                    f.local.pos = v;
+                }
+            }
+            return 0;
+        }
+        // P26 R43: a sprite uid (0x4c..) -> EFWorld::GetObjectPosData -> EFSpriteMgr_BC::GetSprite: the
+        // sprite's own frame translation (local to the AddChild'ed joint). Was a no-op, so e.g. the
+        // EP3 dust devil's ring sprites (CreateEmitterPos radii 0.1..2.8 m) all sat on the joint axis.
+        // GAME_SPRITE_SETTR=0 = old behaviour.
+        if a0 >> 24 == 0x4c {
+            if std::env::var_os("GAME_SPRITE_SETTR").is_none_or(|s| s != "0") {
+                let mut g = self.p.lock().unwrap();
+                for gr in g.gfxapi.sprites.groups.iter_mut() {
+                    if let Some(s) = gr.GetSprite(a0) {
+                        if let crate::engine::gfx::sprite::SpriteFrame::Own { local, .. } = &mut s.frame {
+                            local.pos = v;
+                        }
+                        break;
+                    }
+                }
+            }
+            return 0;
+        }
         if let Some(f) = self.p.lock().unwrap().world.frames.get_mut(&a0) {
             f.pos = v;
         }
@@ -1131,6 +1318,7 @@ impl Host for RuntimeHost {
     /// call; writes are not fed back into the object frame.
     fn APIgameobj_GetLMat(&mut self, mem: &mut Mem, a0: u32) -> i32 {
         let a0 = self.r(a0);
+        self.p.lock().unwrap().hud_frame(a0);
         let f = bone_frame(&self.p, mem, a0, 0);
         if let Some(m) = self.p.lock().unwrap().world.frames.get(&a0).copied() {
             write_rwmatrix(mem, f + 0x10, &m);
@@ -1233,6 +1421,7 @@ impl Host for RuntimeHost {
     /// WP-S1: GetWMat (EFApi_GameObj): RwFrameGetLTM(GetObjectPosData(id)+0x14) -> the LTM
     fn APIgameobj_GetWMat(&mut self, mem: &mut Mem, a0: u32) -> u32 {
         let a0 = self.r(a0);
+        self.p.lock().unwrap().hud_frame(a0);
         let f = bone_frame(&self.p, mem, a0, 0);
         if let Some(m) = self.p.lock().unwrap().world.frames.get(&a0).copied() {
             write_rwmatrix(mem, f + 0x50, &m);
@@ -1312,12 +1501,29 @@ pub struct EngineRuntime {
     pub frame_gfx_deferred: Vec<crate::engine::gfx::api::GfxDeferred>,
     /// particle notifications delivered this frame (debug / tests)
     pub delivered: Vec<PLNotification>,
+    /// P22 R43: GAME_EMLOG counter
+    pub emlog_n: u64,
     pub frame_count: u32,
     pub level_loaded: bool,
+    /// P22 R26 GAME_LOGICCLIP: this frame's ClipGameObjects logic list (None = not clipped)
+    pub logic_clip: Option<Vec<u32>>,
+    /// P27 R8 (harness / autopilot only, never set by the pad path): the camera LTM a scripted stick was aimed
+    /// with. A route converts a world-space target into a stick using the camera it can see before the frame
+    /// (last frame's), but the physics reads this frame's camera (91d3db55, as the C). When set, this frame's
+    /// physics turns the stick back into world space with this same matrix, so world-space gotos stay exact
+    /// whatever the camera does this frame. Taken (reset) by every physics step.
+    pub stick_cam: Option<DTMatrix>,
 }
 
 /// Camera the runtime creates at level load until the camera logic/descriptors are wired.
 pub const SCREEN: (u32, u32) = (640, 448);
+
+/// Level directory of a pack file for the sound bank lookup (`LEVEL/<dir>/..`): episode packs
+/// "EP1L03A.P2R" -> "EP1/L03A", menu packs "INTRO.P2R" -> "INTRO", "LOADER.P2R" -> "LOADER".
+pub fn level_bank_dir(file: &str) -> String {
+    let f = file.split('.').next().unwrap_or(file);
+    if f.len() >= 6 && f.as_bytes()[..2].eq_ignore_ascii_case(b"EP") { format!("{}/{}", &f[0..3], &f[3..]) } else { f.to_string() }
+}
 
 impl EngineRuntime {
     pub fn new(particles: SharedParticles, rand: LibcRand) -> Self {
@@ -1335,8 +1541,11 @@ impl EngineRuntime {
             frame: RuntimeFrame::default(),
             frame_gfx_deferred: Vec::new(),
             delivered: Vec::new(),
+            emlog_n: 0,
             frame_count: 0,
             level_loaded: false,
+            logic_clip: None,
+            stick_cam: None,
         }
     }
 
@@ -1422,6 +1631,29 @@ impl EngineRuntime {
                     if st.LoadPropertiesBinary(&raw.data).is_ok() {
                         for l in &st.lights {
                             self.lights.CreateStaticLight(l.uid, l.light.light_type);
+                            // P26 R17: EFStatic3dObj::ReadLights (0x00275e60) copies the streamed light into
+                            // the manager's RpLight (RpLightSetColor, flags byte +2, RpLightSetRadius,
+                            // RpLightSetConeAngle for spots) and RpWorldAddLight's it: the rendered static
+                            // lights ARE these EFLights, so logic colour changes (APIlight_SetColor on
+                            // 0x128xxxxx, e.g. the EP4 bike levels' blue night ambient) reach the renderer.
+                            if let Some(e) = self.lights.GetLight(l.uid) {
+                                if let Some(r) = e.rp.as_mut() {
+                                    r.color = [l.light.color[0], l.light.color[1], l.light.color[2], r.color[3]];
+                                    r.flags = l.light.flags;
+                                    if matches!(l.light.light_type, 0x80..=0x82) {
+                                        r.radius = l.light.radius;
+                                    }
+                                    if matches!(l.light.light_type, 0x81 | 0x82) {
+                                        r.minus_cos_angle = l.light.minus_cos_angle;
+                                    }
+                                }
+                                // the 12 streamed reals are the light frame's matrix (RwFrameUpdateObjects)
+                                if e.frame.is_some() {
+                                    let m = l.matrix;
+                                    e.frame = Some(crate::engine::camera::DTMatrix { right: [m[0], m[1], m[2]], up: [m[3], m[4], m[5]], at: [m[6], m[7], m[8]], pos: [m[9], m[10], m[11]] });
+                                }
+                                crate::engine::light::EFLightMgr_BC::AddLightInstance(e);
+                            }
                         }
                     }
                 }
@@ -1466,7 +1698,10 @@ impl EngineRuntime {
             // banks (pre-read by ReadLevel)
             // J19: the level directory is the whole pack stem ("EP1L03A.P2R" -> "EP1/L03A"); the
             // former f[3..6] cut gave "EP1/L03" and lost the EP1L03A level + stream sound banks
-            let dir = res.level_file_name.as_deref().map(|f| f.split('.').next().unwrap_or(f)).filter(|f| f.len() >= 6).map(|f| format!("{}/{}", &f[0..3], &f[3..])).unwrap_or_default();
+            // P36: only episode packs split ("EP1L01" -> "EP1/L01"); the menu packs are flat dirs
+            // ("INTRO.P2R" -> "INTRO", "LOADER.P2R" -> "LOADER"): before, INTRO got "" and LOADER
+            // "LOA/DER", the level + stream banks were lost (title music / menu SFX -> no handle)
+            let dir = res.level_file_name.as_deref().map(level_bank_dir).unwrap_or_default();
             let side: HashMap<String, Vec<u8>> = res.side_files.iter().filter_map(|(p, b)| p.strip_prefix("AUDIO:").map(|p| (p.to_string(), b.clone()))).collect();
             g.sub.LoadLevel(&mut res, &dir, &mut |p| side.get(p).cloned());
         }
@@ -1487,6 +1722,23 @@ impl EngineRuntime {
         self.logic_map = LogicCodeMap::default();
         self.report = LevelLogicReport::default();
         self.objects = LinkLevelLogic(e, &res, &mut self.logic_map, &mut self.report);
+        // P26 R18: EFGameObject::Initialize (0x001ff610, EFGameObject.cpp:366-383) after +0x15c |=
+        // OBJECT_FLAGS: 0x400|0x800 -> EFShadowMgr::AddCaster per 3d object, 0x200 ->
+        // EFProjectorMgr_BC::AddReceiver. The port only did this on a later SetLogicFlags change, so
+        // objects flagged in their GLO (EP4 trail bike 0x2a00000d + riders, 0x902) never cast.
+        {
+            let mut g = self.particles.lock().unwrap();
+            for o in e.rt.objects.iter().flatten() {
+                let (uid, f) = (o.id, o.logic_flags);
+                if f & 0xc00 != 0 && !g.s1.shadow_casters.contains(&uid) {
+                    g.s1.shadow_casters.push(uid);
+                    g.s1.caster_flags.insert(uid, f);
+                }
+                if f & 0x200 != 0 && !g.s1.proj_receivers.contains(&uid) {
+                    g.s1.proj_receivers.push(uid);
+                }
+            }
+        }
 
         // J2 camera: no logic module calls APIcamera_CreateCamera; the game camera is the GLO
         // carrying the DT_CAMERA_ANIM_DESCR (0x55) descriptors (EP1L01: 0x2a00008f, logic
@@ -1499,8 +1751,15 @@ impl EngineRuntime {
                 Some(o) => (o, frames.get(&o).copied()),
                 None => (0, Some(DTMatrix { right: [1., 0., 0.], up: [0., 1., 0.], at: [0., 0., 1.], pos: [0.; 3] })),
             };
-            let id = self.gfx.cameras.APIcamera_CreateCamera(&mut e.mem, obj, f);
-            self.gfx.cameras.APIcamera_Activate(&mut e.mem, id, 1);
+            // P32 R66: no origin stand-in under GAME_LOGICCLIP. The C has no camera here, so EFWorld::ClipGameObjects
+            // (camera count 0) leaves the logic list empty and every object updates again until a camera module
+            // creates its camera. With the stand-in, ClipGameObjects clipped the SPLASH camera object (default clip
+            // words, outside the stand-in frustum) before its ST_INIT ran -> no timer -> "no game timer 0x0" panic at
+            // the controller's fade (EP1 end -> EP2 splash under game.exe's interactive default).
+            if cam_obj.is_some() || !crate::engine::host::gameobj::logic_clip_enabled() {
+                let id = self.gfx.cameras.APIcamera_CreateCamera(&mut e.mem, obj, f);
+                self.gfx.cameras.APIcamera_Activate(&mut e.mem, id, 1);
+            }
         }
         self.level_loaded = true;
     }
@@ -1533,10 +1792,14 @@ impl EngineRuntime {
             }
             (std::mem::take(&mut devices.notifies), std::mem::take(&mut devices.error_notifies))
         };
-        self.particles.lock().unwrap().logic = Some(&e.rt as *const _);
+        self.particles.lock().unwrap().logic = true;
         let block = e.mem.malloc(12);
         for n in notes {
             let Some(h) = e.rt.map.find(n.obj_uid) else { continue };
+            if std::env::var_os("P17_INLOG").is_some() {
+                let c = e.rt.obj(h).inst.code.unwrap();
+                eprintln!("INLOG notify {:#x} cb {} flags {:#x} inst.flags {:#x} module {} build {}", n.obj_uid, n.callback, n.state.flags, e.rt.obj(h).inst.flags, e.rt.codes[c].def.name, e.rt.codes[c].build);
+            }
             e.mem.w32(block, n.state.x.to_bits());
             e.mem.w32(block + 4, n.state.y.to_bits());
             e.mem.w32(block + 8, n.state.flags);
@@ -1547,7 +1810,7 @@ impl EngineRuntime {
             e.ExecLogicCallback(crate::logic::notify::LogicCallback { obj: h, cb: n.callback }, n.device_id as u32);
         }
         e.mem.free(block);
-        self.particles.lock().unwrap().logic = None;
+        self.particles.lock().unwrap().logic = false;
     }
 
     /// EFGameLogicMgr::Update (with ComputeDeltaTime). J2: the camera slots and the light
@@ -1555,9 +1818,9 @@ impl EngineRuntime {
     pub fn StepLogic(&mut self, e: &mut Engine, raw_dt: f32) -> f32 {
         let dt = e.clock.ComputeDeltaTime(raw_dt);
         self.SwapLogicState();
-        self.particles.lock().unwrap().logic = Some(&e.rt as *const _);
+        self.particles.lock().unwrap().logic = true;
         e.GameLogicUpdate(dt);
-        self.particles.lock().unwrap().logic = None;
+        self.particles.lock().unwrap().logic = false;
         self.SwapLogicState();
         dt
     }
@@ -1573,7 +1836,7 @@ impl EngineRuntime {
     /// (2 passes; physic notifications), joint frames, SyncFrames + PLMgr_BC::Update, then the
     /// particle notifications.
     pub fn StepParticles(&mut self, e: &mut Engine, dt: f32) {
-        self.particles.lock().unwrap().logic = Some(&e.rt as *const _);
+        self.particles.lock().unwrap().logic = true;
         // animation
         let anim_notes = {
             let mut g = self.particles.lock().unwrap();
@@ -1599,7 +1862,23 @@ impl EngineRuntime {
                     }
                 }
             }
+            // P20 R161: EnableObject(obj, 0) (EFApi_GameObj.cpp 0x001f0400) unlinks the object from the world's
+            // enabled list +0x4128, so it is off the animation list +0x414c whatever the cameras see. The default
+            // mode (no GAME_LOGICCLIP) kept animating disabled objects: e.g. the tome dropped by msg 0xda while
+            // opening still got its opening-anim LF callback (state 3 scan while put away). The list is built by
+            // ClipGameObjects (below, for the next frame), so default mode takes the disabled set there (opt-in, see below).
             let notes = g.sub.UpdateAnims(dt, paused);
+            // R6 P27: EFCameraAnimNode::Update writes the camera RwFrame (shared with the owning
+            // game object, see SyncCameras) and the FOV
+            for o in std::mem::take(&mut g.sub.camera_anim_out) {
+                let owner = self.gfx.cameras.GetCamera(o.camera).map(|c| c.frame_owner);
+                let f = owner.and_then(|u| g.world.frames.get_mut(&u));
+                // debug: GAME_CAMANIM=1 logs every camera anim write
+                if std::env::var_os("GAME_CAMANIM").is_some() {
+                    eprintln!("CAMANIM {:#x} owner {owner:x?} rot {:?} pos {:?} fov {:?}", o.camera, o.rot, o.pos, o.fovs);
+                }
+                o.Apply(&mut self.gfx.cameras, f);
+            }
             // EFAnimNode::SetCollPrimData (J16): the root anim node's collision-prim chain onto the
             // object's EFPhysic collision model
             let colls: Vec<(u32, crate::engine::anim::coll_blend::CollPrimList)> = g
@@ -1609,6 +1888,10 @@ impl EngineRuntime {
                 .filter_map(|(&uid, b)| Some((uid, g.sub.anim.get(&uid)?.GetCollPrims(b.obj3d)?)))
                 .collect();
             for (uid, l) in colls {
+                // head record: EF3dObj::SetClippingBSphere(DTSphere at +0x14) on every atomic
+                if let Some(h) = l.prims.first() {
+                    g.s1.anim_bsphere.insert(uid, (h.v(0x14), h.f(0x20)));
+                }
                 let ltm = g.world.frames.get(&uid).map(|f| crate::engine::physic::mgr::rows(&j2::dt_to_rw(f)));
                 let col = g.sub.obj3d.get(&uid).and_then(|(res, _)| g.sub.res_collision.get(res)).cloned();
                 let id = g.sub.physic.PhysicOf(uid);
@@ -1627,6 +1910,9 @@ impl EngineRuntime {
                 .sub
                 .anim_bind
                 .iter()
+                .filter(|(uid, _)| !g.sub.anim_clip_off.contains(uid))
+                // P32 R83 (P33 B #4): EFWorld::Update skips UpdateHierarchy when +0x138 & 0x60 (EFWorld.cpp:295)
+                .filter(|(uid, _)| !crate::engine::host::gameobj::anim_clip_on() || g.s1.clip_cur.get(uid).map_or(true, |w| w & 0x60 == 0))
                 .filter_map(|(&uid, b)| {
                     let pose = g.sub.anim.get(&uid)?.GetPose(b.obj3d)?;
                     let t = pose.iter().find(|t| t.id == 0 && t.state & 8 != 0)?;
@@ -1673,18 +1959,84 @@ impl EngineRuntime {
             e.Notify(code, obj, owner, p, true);
             self.particles.lock().unwrap().sub.log.notifications.push((code, obj));
         }
+        // P26 R10: end-of-sound notifications queued by the previous audio update (EFSoundEvent_BC::
+        // SoundIsCompleted 0x00243260: Notify(gameLogic, 0xf, owner id, sound id, new {owner id,
+        // sound id}, 1), deferred like the anim ones). E.g. inv_tutorial fcback_END_OF_SOUND.
+        let sounds_done = std::mem::take(&mut self.particles.lock().unwrap().sub.audio.completed);
+        for (obj, id) in sounds_done {
+            let p = e.mem.malloc(8);
+            e.mem.w32(p, obj);
+            e.mem.w32(p + 4, id);
+            e.Notify(0xf, obj, id, p, true);
+        }
         // deferred payloads are freed by FlushNotification (EFNotificationMgr owns them)
         let _ = payloads;
         e.FlushNotification();
         // TexFader
         self.gfx.tex_fader.Update(dt);
         // physics
-        let cam = self.gfx.cameras.cameras.iter().flatten().next().map(|c| c.ltm).unwrap_or(DTMatrix { right: [1., 0., 0.], up: [0., 1., 0.], at: [0., 0., 1.], pos: [0.; 3] });
+        // P27 R7: the C reads EFGraphicsMgr::GetCamera(0)'s RwFrame LTM, and that RwFrame is the owner object's
+        // frame, so this frame's camera logic write is already visible here (P25 R41: the hero turns toward
+        // camera yaw(N), not N-1). Refresh the LTM from the owner first (debug: P27_STALECAM=1 = old N-1 read).
+        if std::env::var_os("P27_STALECAM").is_none() {
+            self.SyncCameras();
+        }
+        let stick_cam = self.stick_cam.take();
+        let cam = stick_cam.or_else(|| self.gfx.cameras.cameras.iter().flatten().next().map(|c| c.ltm)).unwrap_or(DTMatrix { right: [1., 0., 0.], up: [0., 1., 0.], at: [0., 0., 1.], pos: [0.; 3] });
         let phys_notes = {
             let mut g = self.particles.lock().unwrap();
-            let ParticleShared { world, sub, .. } = &mut *g;
+            let ParticleShared { world, sub, parented, pl, .. } = &mut *g;
+            world.parents = parented.iter().map(|c| (c.0, c.1)).collect();
+            // P22 R41: the _gpoPLParticleMgr emitters EFCollisionSystem::BuildParticleEmittersList walks
+            // (types +0x2c list, emitters +0x18c, particles +0xbc; LTM = RwFrameGetLTM(emitter +0x14))
+            pl.SyncFrames(&*world);
+            sub.physic.emitters = pl
+                .types
+                .iter()
+                .flat_map(|t| t.emitters.iter().map(move |em| (t, em)))
+                .filter(|(_, em)| !em.particles.is_empty())
+                .map(|(t, em)| crate::engine::physic::mgr::PLEmitterSnap {
+                    type_id: t.d.id,
+                    user: [t.d.user[0], t.d.user[1], t.d.user[2], t.d.user[3]],
+                    type_radius: t.d.bsphere_radius,
+                    id: em.id,
+                    flags: em.flags,
+                    pos: em.frame.as_ref().map_or([0.0; 3], |f| f.ltm.pos),
+                    parts: em.particles.iter().map(|&i| { let p = &pl.pool.parts[i]; (p.pos, p.size, p.stamp) }).collect(),
+                    idx: em.particles.clone(),
+                })
+                .collect();
             let n = sub.UpdatePhysics(dt, world, crate::engine::physic::rwm::RwMatrix { right: cam.right, up: cam.up, at: cam.at, pos: cam.pos }, &self.splines.splines);
+            for em in std::mem::take(&mut sub.physic.emitters) {
+                // P32 R102: zip (idx and parts are built from the same em.particles, same length); the
+                // R101 srand-999 run panicked on `em.parts[k]` with len 0 (no logic path, flaky CPU)
+                for (&i, p) in em.idx.iter().zip(&em.parts) {
+                    if let Some(q) = pl.pool.parts.get_mut(i) {
+                        q.stamp = p.2;
+                    }
+                }
+            }
+            // EFDMCameraFlex::UpdateAnimation channels 0x14 / 0x13: EFCamera::SetFOV / RwCameraSetFarClipPlane on
+            // EFGraphicsMgr::GetCamera(0)
+            let (fov, far) = std::mem::take(&mut sub.cam_flex_req);
+            if let Some(c) = self.gfx.cameras.cameras.iter_mut().flatten().next() {
+                if let Some(fov) = fov {
+                    c.SetFOV(fov);
+                }
+                if let Some(v) = far {
+                    c.set_far(v);
+                    c.frustum_dirty = 1;
+                }
+            }
             sub.UpdateBones(world);
+            // P20 R65 debug: GAME_PRIMLOG=uid prints that object's prim world centres + node 1 world pos per frame
+            if let Some(u) = std::env::var("GAME_PRIMLOG").ok().and_then(|v| u32::from_str_radix(v.trim_start_matches("0x"), 16).ok()) {
+                let id = sub.physic.PhysicOf(u);
+                let c: Vec<[f32; 3]> = sub.physic.Physic(id).map(|p| p.model.prims.iter().flatten().map(|q| q.base.center).collect()).unwrap_or_default();
+                let n1 = world.nodes.get(&u).and_then(|v| v.get(1)).map(|x| x.1.pos);
+                let pose = sub.anim_bind.get(&u).and_then(|b| sub.anim.get(&u).and_then(|m| m.GetPose(b.obj3d))).map(|p| p.get(1).map(|t| (t.f[3], t.f[4], t.f[5])));
+                eprintln!("PRIMLOG {u:#x} prims {c:?} node1 {n1:?} pose1 {pose:?}");
+            }
             place_parented(&mut g);
             n
         };
@@ -1762,8 +2114,10 @@ impl EngineRuntime {
         // J12: EFWorld::ClipGameObjects (0x0026f930) proximity part: ClipProximityTest (0x00270030)
         // and EFInstance::Notify(obj, 10, {target, inside}) when params+0xc & 0x10000000 and the
         // result changed (or +0xcc bit 8 = first test). Deviation: only the proximity part of
-        // ClipObjects is ported (frustum/distance clipping unported; the `uVar13 |= params+0xc &
-        // ~0x10000000` clip-flag merge has no consumer here).
+        // ClipObjects is ported here (frustum/distance: gameobj::ClipGameObjects below, P22 R26; the `uVar13 |= params+0xc &
+        // ~0x10000000` merge is there too: `word |= e.0[3] & 0xefff_ffff`).
+        let lclip = crate::engine::host::gameobj::logic_clip_enabled();
+        let mut clip9 = Vec::new();
         let prox = {
             let mut g = self.particles.lock().unwrap();
             let ParticleShared { proximity, world, .. } = &mut *g;
@@ -1797,10 +2151,84 @@ impl EngineRuntime {
                 if *cc & 2 != 0 {
                     *inside = t;
                 }
-                *cc &= 0xffff_fff3;
+                if !lclip {
+                    *cc &= 0xffff_fff3;
+                }
+            }
+            // P22 R26 GAME_LOGICCLIP: the frustum / distance part of ClipGameObjects (logic list +0x4140)
+            // (P26 R5: without it, render_only still fills the per-camera shadow-caster words)
+            {
+                let ids: Vec<u32> = e.rt.objects.iter().flatten().map(|o| o.id).collect();
+                if std::env::var("GAME_CLIPDBG").as_deref() == Ok("names") {
+                    for o in e.rt.objects.iter().flatten() {
+                        let name = o.inst.code.map(|k| e.rt.codes[k].def.name.to_string()).unwrap_or_default();
+                        eprintln!("clipn {:#x} {name} lflags {:#x}", o.id, o.logic_flags);
+                    }
+                }
+                let first: std::collections::HashSet<u32> = e.rt.objects.iter().flatten().filter(|o| o.logic_flags & 0x4000 != 0).map(|o| o.id).collect();
+                let ParticleShared { proximity, world, s1, sub, .. } = &mut *g;
+                let r = crate::engine::host::gameobj::ClipGameObjects(!lclip, &ids, &first, &self.gfx.cameras, &world.frames, &sub.obj3d, s1, proximity);
+                for (_, (_, _, cc)) in proximity.iter_mut() {
+                    *cc &= 0xffff_fff3;
+                }
+                if let Some(r) = r.filter(|_| lclip) {
+                    clip9 = r.notify9;
+                    sub.anim_clip_off = r.anim_off;
+                    sub.physic.clip_off = r.phys_off;
+                    for &(uid, word) in &r.set_clipping {
+                        crate::engine::host::gameobj::SetMyCurrentClipping(&mut s1.clip_cur, &mut sub.physic, uid, word);
+                        if crate::engine::host::gameobj::anim_clip_on() { crate::engine::host::gameobj::SetAnimClipMode(&mut sub.anim, uid, word); }
+                    }
+                    self.logic_clip = Some(r.logic);
+                }
+            }
+            // (P23 R35: P26 R5 made the block above unconditional; P21's default-mode branch keeps `!lclip`)
+            if !lclip {
+                // P21 R133: default mode still drops the objects whose clip words keep them off the physic
+                // list (0x80) in every band (camera-independent, see gameobj::clip_always)
+                let ParticleShared { proximity, s1, sub, .. } = &mut *g;
+                // P20 R161: the animation list +0x414c leaves out the disabled objects (see UpdateAnims above)
+                // R167: on by default (C behaviour; routes retuned R164-R166 + P22 R55-R60). GAME_ANIMDIS=0 = old
+                // port behaviour (disabled objects kept animating in default mode).
+                if std::env::var("GAME_ANIMDIS").as_deref() != Ok("0") {
+                    sub.anim_clip_off = s1.disabled.clone();
+                }
+                let off: std::collections::HashSet<u32> = s1
+                    .clip
+                    .iter()
+                    .filter(|(u, c)| {
+                        let cc = proximity.get(u).map_or(crate::engine::host::gameobj::CC_DEFAULT, |p| p.2);
+                        // P23 R48 debug: GAME_CLIPKEEP=uid,uid.. keeps those objects on the physic list (A/B tests)
+                        static KEEP: std::sync::OnceLock<Vec<u32>> = std::sync::OnceLock::new();
+                        let keep = KEEP.get_or_init(|| std::env::var("GAME_CLIPKEEP").map_or(vec![], |v| v.split(',').filter_map(|x| u32::from_str_radix(x.trim(), 16).ok()).collect()));
+                        !keep.contains(*u) && crate::engine::host::gameobj::clip_always(c, cc) & 0x80 != 0
+                    })
+                    .map(|(u, _)| *u)
+                    .collect();
+                // debug: GAME_PHYSCLIPDBG=1 logs every change of the set
+                if std::env::var_os("GAME_PHYSCLIPDBG").is_some() && off != sub.physic.clip_off {
+                    let mut on: Vec<_> = off.difference(&sub.physic.clip_off).collect();
+                    let mut back: Vec<_> = sub.physic.clip_off.difference(&off).collect();
+                    on.sort();
+                    back.sort();
+                    eprintln!("physclip off {on:x?} back {back:x?}");
+                    for u in on {
+                        eprintln!("physclip {u:#x} cc {:#x} words {:x?}", proximity.get(u).map_or(crate::engine::host::gameobj::CC_DEFAULT, |p| p.2), s1.clip.get(u));
+                    }
+                }
+                sub.physic.clip_off = off;
             }
             out
         };
+        for (uid, w) in clip9 {
+            let p = e.mem.malloc(0xc);
+            for (i, v) in w.iter().enumerate() {
+                e.mem.w32(p + 4 * i as u32, *v);
+            }
+            e.Notify(9, uid, uid, p, false);
+            e.mem.free(p);
+            self.particles.lock().unwrap().sub.log.notifications.push((9, uid));
+        }
         for (uid, target, t) in prox {
             let p = e.mem.malloc(8);
             e.mem.w32(p, target);
@@ -1819,10 +2247,22 @@ impl EngineRuntime {
             pl.pool.rng.0 = r.0;
             pl.Update(dt, paused, &mut self.gfx.cameras);
             r.0 = pl.pool.rng.0;
+            // P22 R43 debug: GAME_EMLOG=N prints every N particle updates each emitter with live particles
+            if let Some(n) = std::env::var("GAME_EMLOG").ok().and_then(|v| v.parse::<u64>().ok()) {
+                self.emlog_n += 1;
+                if n > 0 && self.emlog_n % n == 0 {
+                    for t in &pl.types {
+                        for em in t.emitters.iter().filter(|em| !em.particles.is_empty()) {
+                            let f = em.frame.as_ref();
+                            eprintln!("EMLOG u{} type {:#x} em {:#x} flags {:#x} user {:x?} n {} attach {:?} pos {:?} p0 {:?}", self.emlog_n, t.d.id, em.id, em.flags, &t.d.user[..4], em.particles.len(), f.map(|f| f.attach), f.map(|f| f.ltm.pos), pl.pool.parts[em.particles[0]].pos);
+                        }
+                    }
+                }
+            }
             std::mem::take(&mut pl.notifications)
         };
         self.DrainNotifications(e, notes);
-        self.particles.lock().unwrap().logic = None;
+        self.particles.lock().unwrap().logic = false;
     }
 
     /// MainLoop audio slot (after Render, vtbl 0x40): EFNewAudioMgr update with 3D geometry from
@@ -1858,9 +2298,27 @@ impl EngineRuntime {
     }
 
     /// End of EFWorld::Update: kill list + PrepareRender (logic part).
+    /// WP-P21 R56: EFWorld::ClipGameObjects walks the world list (+0x4128, AddGameObject prepends = newest
+    /// first) and prepends every object whose clip flags lack 0x400 to +0x4140, so the next frames update
+    /// the objects OLDEST FIRST (creation order), not in object-map order (only the first frame after a
+    /// load runs the map pass). The port has no logic clipping (no 0x400 flags): all live objects, in
+    /// creation (= handle) order. OPT-IN (GAME_CLIPORDER=1, R56): fixes EP3/L02 key 0x82 (FIRSTMOVE before pianopuzzle
+    /// 0x120 ResetPuzzle sends it 0xd5) but breaks EP3/L04 (hero sinks to y -1.26 after the safe press, safe never
+    /// opens) and EP4/L01; default stays the load-time map-order list until that is understood.
     pub fn StepFinishWorld(e: &mut Engine) {
+        Self::StepFinishWorldClip(e, None);
+    }
+
+    /// StepFinishWorld with the GAME_LOGICCLIP list (`clip`, from ClipGameObjects in StepParticles):
+    /// only those objects run logic next frame.
+    pub fn StepFinishWorldClip(e: &mut Engine, clip: Option<Vec<u32>>) {
         e.ProcessKillList();
-        e.PrepareRender_Logic(None);
+        if let Some(ids) = clip {
+            e.PrepareRender_Logic(Some(&ids));
+            return;
+        }
+        let ids: Vec<u32> = e.rt.objects.iter().flatten().map(|o| o.id).collect();
+        if clip_order_enabled(std::env::var("GAME_CLIPORDER").ok().as_deref()) { e.PrepareRender_Logic(Some(&ids)); } else { e.PrepareRender_Logic(None); }
     }
 
     /// Camera RwFrame shared with its owning game object: refresh the LTM from the owner.
@@ -1883,16 +2341,38 @@ impl EngineRuntime {
         out.draws = std::mem::take(&mut self.gfx.draws);
         self.frame = out;
         self.frame_count += 1;
+        TRACE_FRAME.store(self.frame_count, std::sync::atomic::Ordering::Relaxed);
     }
 
     /// One whole frame in MainLoop order (for headless use / tests). The Bevy plugin runs the
     /// same steps as separate systems.
     pub fn Frame(&mut self, e: &mut Engine, raw_dt: f32) {
         self.StepInput(e, raw_dt);
+        self.FrameAfterInput(e, raw_dt);
+    }
+
+    /// StepInput, returning the objects whose animation the input callbacks (re)started.
+    /// P22 R23: EFAnimationMgr::PlayHAnim (0x001e9390) runs UpdateHierarchyAnimNode at once, so the
+    /// node frames show the new anim's pose before EFGameLogicMgr::Update (e.g. pipes_rotating
+    /// InputAction_X plays the push-side anim, then the hero's heroInit_PushingPipe snaps to node 2 of
+    /// it in the same frame). The node publisher (renderer / headless harness) re-poses these objects
+    /// between StepInput and FrameAfterInput.
+    pub fn StepInputPlayed(&mut self, e: &mut Engine, raw_dt: f32) -> Vec<u32> {
+        let n = self.particles.lock().unwrap().sub.log.anim_play.len();
+        self.StepInput(e, raw_dt);
+        let g = self.particles.lock().unwrap();
+        let mut v: Vec<u32> = g.sub.log.anim_play[n..].iter().map(|a| a.0).collect();
+        v.sort_unstable();
+        v.dedup();
+        v
+    }
+
+    /// The rest of `Frame` after StepInput.
+    pub fn FrameAfterInput(&mut self, e: &mut Engine, raw_dt: f32) {
         let dt = self.StepLogic(e, raw_dt);
         self.StepParticles(e, dt);
         self.StepGfxApi(dt);
-        Self::StepFinishWorld(e);
+        Self::StepFinishWorldClip(e, self.logic_clip.take());
         self.SyncCameras();
         self.StepRender(e, dt);
         self.StepAudio(dt);
@@ -1907,12 +2387,63 @@ pub struct RuntimeSeam<'a> {
     pub slot: u32,
 }
 
+/// P40 R7: (GAME_GS_WINDOW_LOG=1, GAME_GS_WINDOW=drop), read once
+fn gs_window_env() -> (bool, bool) {
+    static V: std::sync::OnceLock<(bool, bool)> = std::sync::OnceLock::new();
+    *V.get_or_init(|| (std::env::var_os("GAME_GS_WINDOW_LOG").is_some_and(|v| v == "1"), std::env::var_os("GAME_GS_WINDOW").is_some_and(|v| v == "drop")))
+}
+
+impl RuntimeSeam<'_> {
+    /// P40 R6: drop the sprites the PS2 VU1 sprite microcode skips (SpriteCamera::Vu1SpriteVisible:
+    /// centre not past the near plane, past the far plane, or far outside the frustum sides), for the
+    /// camera of this slot. `GAME_SPRITE_CULL=0` keeps them all (A/B).
+    fn vu1_sprite_cull(&self, mgr: &EFGraphicsMgr, batches: &mut Vec<PLDrawBatch>) {
+        let Some(Some(c)) = mgr.cameras.cameras.get(self.slot as usize) else { return };
+        let cam = crate::engine::gfx::sprite::SpriteCamera { ltm: c.ltm, view_window: c.rw.view_window, near: c.rw.near, far: c.rw.far, width: SCREEN.0 as i32, height: SCREEN.1 as i32, z_scale: 0.0, z_shift: 0.0 };
+        // P40 R7: GS 4096-px window (XYZ2 = 12.4 fixed point in 16 bits): GAME_GS_WINDOW_LOG=1 lists the
+        // sprites with a corner outside [0, 4096) (the PS2 would wrap it), GAME_GS_WINDOW=drop drops them.
+        let (log, drop) = gs_window_env();
+        if log || drop {
+            let corners = |s: &crate::engine::particle::PLSprite| crate::engine::gfx::sprite::Vu1SpriteCorners(c.ltm.right, c.ltm.up, s.pos, s.size, s.rot_index);
+            // P35 R8: bevy_adapter only exists with bevy_render (the default-feature `cargo test --lib` build failed)
+            #[cfg(feature = "bevy_render")]
+            let frame = crate::engine::gfx::bevy_adapter::SUBBLEND_FRAME.load(std::sync::atomic::Ordering::Relaxed);
+            #[cfg(not(feature = "bevy_render"))]
+            let frame = 0u32;
+            for b in batches.iter_mut() {
+                if let crate::engine::particle::PLPrims::Sprites(v) = &mut b.prims {
+                    v.retain(|s| {
+                        let k = corners(s);
+                        let ok = !cam.Vu1SpriteVisible(s.pos) || cam.GsWindowOk(&k);
+                        if log && !ok {
+                            let xy = k.map(|p| cam.GsXY(p)).map(|[x, y]| format!("({x:.0},{y:.0})")).join(" ");
+                            eprintln!("game: gswindow f{frame} slot {} emitter {:#x} tex {} pos {:?} size {:.3} z {:.3} corners {xy}", self.slot, b.emitter, b.texture, s.pos, s.size, cam.Transform(s.pos)[2]);
+                        }
+                        ok || !drop
+                    });
+                }
+            }
+        }
+        if std::env::var_os("GAME_SPRITE_CULL").is_some_and(|v| v == "0") {
+            batches.retain(|b| !matches!(&b.prims, crate::engine::particle::PLPrims::Sprites(v) if v.is_empty()));
+            return;
+        }
+        for b in batches.iter_mut() {
+            if let crate::engine::particle::PLPrims::Sprites(v) = &mut b.prims {
+                v.retain(|s| cam.Vu1SpriteVisible(s.pos));
+            }
+        }
+        batches.retain(|b| !matches!(&b.prims, crate::engine::particle::PLPrims::Sprites(v) if v.is_empty()));
+    }
+}
+
 impl RenderSeam for RuntimeSeam<'_> {
     fn pass(&mut self, _mgr: &mut EFGraphicsMgr, p: RenderPass) {
         match p {
             RenderPass::CameraBegin(s) => self.slot = s,
             RenderPass::Particles => {
-                let dl = self.p.lock().unwrap().pl.Render();
+                let mut dl = self.p.lock().unwrap().pl.Render();
+                self.vu1_sprite_cull(_mgr, &mut dl.batches);
                 self.out.particles.extend(dl.batches.into_iter().map(|b| (self.slot, b)));
             }
             RenderPass::SpritesNormal | RenderPass::SpritesTransparent | RenderPass::SpritesOccluded => {
@@ -1945,7 +2476,8 @@ impl RenderSeam for RuntimeSeam<'_> {
                 self.out.trails.extend(t.into_iter().map(|t| (self.slot, t)));
             }
             RenderPass::Billboards => {
-                let b = self.p.lock().unwrap().bb.Render(self.mem);
+                let mut b = self.p.lock().unwrap().bb.Render(self.mem);
+                self.vu1_sprite_cull(_mgr, &mut b);
                 self.out.billboards.extend(b.into_iter().map(|b| (self.slot, b)));
             }
             _ => {}
@@ -2052,9 +2584,9 @@ pub fn runtime_particles(mut e: ResMut<Engine>, mut rt: ResMut<EngineRuntime>, d
     }
 }
 
-pub fn runtime_finish_world(mut e: ResMut<Engine>, rt: Res<EngineRuntime>) {
+pub fn runtime_finish_world(mut e: ResMut<Engine>, mut rt: ResMut<EngineRuntime>) {
     if level_running(&rt) {
-        EngineRuntime::StepFinishWorld(&mut e);
+        EngineRuntime::StepFinishWorldClip(&mut e, rt.logic_clip.take());
     }
 }
 
@@ -2072,4 +2604,30 @@ pub fn runtime_render(e: Res<Engine>, mut rt: ResMut<EngineRuntime>, dt: Res<Run
 }
 fn rv3(mem: &Mem, a: Ptr) -> [f32; 3] {
     std::array::from_fn(|i| f32::from_bits(mem.r32(a + 4 * i as u32)))
+}
+
+/// Frame number for debug traces (GAME_SNDTRACE).
+pub static TRACE_FRAME: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
+
+/// WP-P21 R60: GAME_CLIPORDER parse. Creation (ClipGameObjects) order is still opt-in: only a value other
+/// than "0" / empty enables it ("0" = load-time object-map order, as unset). Flip the `None` arm to
+/// `true` when creation order becomes the default.
+pub fn clip_order_enabled(v: Option<&str>) -> bool {
+    match v.map(str::trim) {
+        // WP-P21 R61: ClipGameObjects creation order is the default; GAME_CLIPORDER=0 = load-time map order
+        Some("0") => false,
+        _ => true,
+    }
+}
+
+#[cfg(test)]
+mod clip_order_tests {
+    #[test]
+    fn clip_order_parse() {
+        use super::clip_order_enabled as c;
+        assert!(c(None));
+        assert!(!c(Some("0")));
+        assert!(c(Some("")));
+        assert!(c(Some("1")));
+    }
 }

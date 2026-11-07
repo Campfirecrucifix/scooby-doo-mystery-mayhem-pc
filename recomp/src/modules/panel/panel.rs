@@ -15,11 +15,14 @@ fn unported_local(e: &Engine, f: &str) -> ! {
     panic!("{f}: level-specific body of build {} is not ported yet", loc(e).sha8)
 }
 /// The two collision-notification windows `pLocalData_Panel + cn_wins + idx*4`.
+/// quirk: the C also runs this with idx still at the 0x7ffffffe sentinel (TIMER_COLLNOTIFY after a notify
+/// whose GetDisplayInfo found no window, e.g. EP3/L04 vault snacks 0x42..0x44 right after the a7 reward):
+/// 32-bit pointer math wraps to `cn_wins - 8` and passes that word to WindowSetFlags. Same wrap here.
 fn cn_windows(e: &Engine) -> [u32; 2] {
     let (l, lp) = (loc(e), LP(e));
     [l.cn_i0, l.cn_i1].map(|o| {
         let i = e.r32(lp + o);
-        e.r32(lp + l.cn_wins + i.wrapping_mul(4))
+        e.r32(lp.wrapping_add(l.cn_wins).wrapping_add(i.wrapping_mul(4)))
     })
 }
 

@@ -14,8 +14,9 @@ pub static MODULE: ModuleDef = ModuleDef {
     ctor: swampcreatureConstructor,
     dtor: swampcreatureDestructor,
     register: None,
-    init: &[(iSwampCreatureJoints, &[4, 7, 8, 9, 0xc, 0xd, 0xe]), (moSwampCreatureDataMap, &[0x2a00012f, 0x2a000130])],
-    build_init: None,
+    // iSwampCreatureJoints / moSwampCreatureDataMap: read from the module on the disc (WP-X4)
+    init: &[],
+    build_init: Some(|m, d, _| crate::engine::gamedata::init_syms(m, d, "17ed2301", &["iSwampCreatureJoints", "moSwampCreatureDataMap"])),
 };
 
 pub const iSwampCreatureJoints: u32 = 0x10000;

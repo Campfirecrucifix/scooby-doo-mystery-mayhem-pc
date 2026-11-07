@@ -37,14 +37,16 @@ pub fn JumpOnCoor(p: &SharedParticles, m: &mut Mem, uid: u32, prm: Ptr) -> u32 {
     0
 }
 
-/// 1:1 of the C++ body incl. flags 4/8 (DTQuartic time solves) that physic::api::JumpOnCoor
-/// leaves out. +0 target, +0xc target velocity, +0x18 max speed, +0x1c flags, +0x20 apex height,
+/// 1:1 of the C++ body incl. flags 4/8 (DTQuartic time solves; P32 R83 removed the old partial
+/// physic::api copy). +0 target, +0xc target velocity, +0x18 max speed, +0x1c flags, +0x20 apex height,
 /// +0x24 DM handle whose +0x30 vector is the gravity (DMGetParams words 0..3; invalid handle:
 /// the C++ reads low memory, gravity 0 here).
 fn jump_on_coor(m: &mut EFPhysicMgr, uid: u32, prm: &[u32], w: &dyn PhysicWorld) {
     let f = |i: usize| f32::from_bits(prm[i]);
     let id = m.PhysicOf(uid);
-    let Some(pos) = m.Physic(id).map(|p| p.frame.pos) else { return };
+    // the C++ takes the start from RwFrameGetLTM(gameobj+0x14) (the object frame), not the physic frame
+    let Some(pp) = m.Physic(id).map(|p| p.frame.pos) else { return };
+    let pos = w.GetObjectFrame(uid).map_or(pp, |f| f.pos);
     let g = papi::DMGetParams(m, prm[9], w).filter(|v| v.len() >= 3).map_or([0.0; 3], |v| [0, 1, 2].map(|i| f32::from_bits(v[i])));
     let (gx, gy, gz) = (g[0], g[1], g[2]);
     let (dx, dy, dz) = (f(0) - pos[0], f(1) - pos[1], f(2) - pos[2]);

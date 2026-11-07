@@ -125,7 +125,7 @@ pub fn LanternState_Activate_Execute(e: &mut Engine, mut param_1: u32) -> LResul
             }
             piVar1 = param_1;
             if ((e.r32((param_1).wrapping_add((19u32).wrapping_mul(4))) != 0u32) && (e.r32((param_1).wrapping_add((18u32).wrapping_mul(4))) != 0u32)) {
-                let _ = APIgame::GetFrameDeltaTime(e);
+                fVar2 = APIgame::GetFrameDeltaTime(e); // Ghidra dropped the f1 return
                 { let a0 = e.r32((e.r32(g(e, 0x10030))).wrapping_add((3u32).wrapping_mul(4))); let a1 = (e.rf(e.r32((e.r32(g(e, 0x10030))).wrapping_add((3u32).wrapping_mul(4)))) - (fVar2 / 30.0)); e.wf(a0, a1) };
                 let _ = APIgameobj::SendMessageTo(e, 0x2a100006u32, NULL, 39u32, 0u32, NULL);
                 piVar1 = e.r32(g(e, 0x10030));

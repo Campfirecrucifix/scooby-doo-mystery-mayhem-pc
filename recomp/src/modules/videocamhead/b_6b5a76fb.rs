@@ -170,10 +170,10 @@ pub fn VideoCamHeadState_Scan_In(e: &mut Engine, mut param_1: u32) -> LResult<()
         let _ = { let a1 = e.r32((param_1).wrapping_add((9u32).wrapping_mul(4))); APIextra::TimerReset(e, a1) };
         let _ = APIgameobj::GetLookAt(e, 0x2a00016fu32, 0x7fffffffu32, (frame + 0x0));
         fVar1 = { let a1 = e.rf(((frame + 0x0)).wrapping_add(0)); let a2 = e.rf(((frame + 0x0)).wrapping_add(8)); APImath::atan2f(e, a1, a2) };
-        e.w32((param_1).wrapping_add((12u32).wrapping_mul(4)), (((fVar1 * 57.29578)) as i64 as u32));
+        e.w32((param_1).wrapping_add((12u32).wrapping_mul(4)), (fVar1 * 57.29578).to_bits());
         let _ = APIgameobj::GetLookAt(e, 0x2a000170u32, 0x7fffffffu32, (frame + 0x0));
         fVar1 = { let a1 = e.rf(((frame + 0x0)).wrapping_add(0)); let a2 = e.rf(((frame + 0x0)).wrapping_add(8)); APImath::atan2f(e, a1, a2) };
-        e.w32((param_1).wrapping_add((13u32).wrapping_mul(4)), (((fVar1 * 57.29578)) as i64 as u32));
+        e.w32((param_1).wrapping_add((13u32).wrapping_mul(4)), (fVar1 * 57.29578).to_bits());
     }
     { let a1 = 0x11920u32; e.w32(param_1, a1) };
     let _ = call_code(e, e.r32(param_1), (param_1) as u32)?;

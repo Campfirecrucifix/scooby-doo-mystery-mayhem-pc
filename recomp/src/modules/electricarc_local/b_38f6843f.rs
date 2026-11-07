@@ -71,7 +71,7 @@ pub fn Electric_Arc_BaseCB_ANIM_LF(e: &mut Engine, ep1: u32) -> LResult<u64> {
         puVar3 = e.r32(g(e, 0x101b4));
         pAVar2 = e.r32(g(e, 0x10188));
         fVar4 = LIBApiCFunctions::FloatRandom(e, 0.0, 0.5, 0.01);
-        let _ = { let a1 = e.r32((puVar3).wrapping_add((30u32).wrapping_mul(4))); let a2 = ((fVar4 * ((e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)))) as f32)) + 1.0); APIextra::TimerSetFrequency(e, a1, a2) };
+        let _ = { let a1 = e.r32((puVar3).wrapping_add((30u32).wrapping_mul(4))); let a2 = ((fVar4 * f32::from_bits(e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4))))) + 1.0); APIextra::TimerSetFrequency(e, a1, a2) };
         let _ = { let a2 = e.r32((e.r32(g(e, 0x101b4))).wrapping_add((30u32).wrapping_mul(4))); APIextra::TimerRegisterNotify(e, 0x2a000000u32, a2, 6u32) };
     } else if (uVar1 < 4u32) {
         if (uVar1 == 1u32) {
@@ -79,7 +79,7 @@ pub fn Electric_Arc_BaseCB_ANIM_LF(e: &mut Engine, ep1: u32) -> LResult<u64> {
             puVar3 = e.r32(g(e, 0x101b4));
             pAVar2 = e.r32(g(e, 0x10188));
             fVar4 = LIBApiCFunctions::FloatRandom(e, 0.0, 0.75, 0.01);
-            let _ = { let a1 = e.r32((puVar3).wrapping_add((30u32).wrapping_mul(4))); let a2 = ((fVar4 * ((e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)))) as f32)) + 1.0); APIextra::TimerSetFrequency(e, a1, a2) };
+            let _ = { let a1 = e.r32((puVar3).wrapping_add((30u32).wrapping_mul(4))); let a2 = ((fVar4 * f32::from_bits(e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4))))) + 1.0); APIextra::TimerSetFrequency(e, a1, a2) };
             let _ = { let a2 = e.r32((e.r32(g(e, 0x101b4))).wrapping_add((30u32).wrapping_mul(4))); APIextra::TimerRegisterNotify(e, 0x2a000000u32, a2, 6u32) };
         }
     } else if (uVar1 == 4u32) {
@@ -127,11 +127,11 @@ pub fn Electric_Arc_BaseFUNC_MessageHandler(e: &mut Engine, mp1: u32, mp2: u32, 
                 return Ok(0u64);
             }
             if (param_2 == 0i32) {
-                if (((e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)))) as f32) < 7.0) {
-                    { let a0 = (e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)); let a1 = (((((((e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)))) as f32) + 1.0)) as i32)) as u32); e.w32(a0, a1) };
+                if (f32::from_bits(e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)))) < 7.0) {
+                    { let a0 = (e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)); let a1 = (((((f32::from_bits(e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)))) + 1.0)))).to_bits()); e.w32(a0, a1) };
                 }
-            } else if ((param_2 == 1i32) && (0.0 < ((e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)))) as f32))) {
-                { let a0 = (e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)); let a1 = (((((((e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)))) as f32) - 1.0)) as i32)) as u32); e.w32(a0, a1) };
+            } else if ((param_2 == 1i32) && (0.0 < f32::from_bits(e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)))))) {
+                { let a0 = (e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)); let a1 = (((((f32::from_bits(e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)))) - 1.0)))).to_bits()); e.w32(a0, a1) };
             }
             if (e.r32((e.r32(g(e, 0x101b4))).wrapping_add((4u32).wrapping_mul(4))) != 1u32) {
                 if (e.r32((e.r32(g(e, 0x101b4))).wrapping_add((4u32).wrapping_mul(4))) != 3u32) {
@@ -141,14 +141,14 @@ pub fn Electric_Arc_BaseFUNC_MessageHandler(e: &mut Engine, mp1: u32, mp2: u32, 
                 piVar2 = e.r32(g(e, 0x101b4));
                 pAVar1 = e.r32(g(e, 0x10188));
                 fVar3 = LIBApiCFunctions::FloatRandom(e, 0.0, 0.5, 0.01);
-                let _ = { let a1 = ((e.ri32((piVar2).wrapping_add((30u32).wrapping_mul(4)))) as u32); let a2 = ((fVar3 * ((e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)))) as f32)) + 1.0); APIextra::TimerSetFrequency(e, a1, a2) };
+                let _ = { let a1 = ((e.ri32((piVar2).wrapping_add((30u32).wrapping_mul(4)))) as u32); let a2 = ((fVar3 * f32::from_bits(e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4))))) + 1.0); APIextra::TimerSetFrequency(e, a1, a2) };
                 return Ok(0u64);
             }
             let _ = { let a1 = e.r32((e.r32(g(e, 0x101b4))).wrapping_add((30u32).wrapping_mul(4))); APIextra::TimerReset(e, a1) };
             piVar2 = e.r32(g(e, 0x101b4));
             pAVar1 = e.r32(g(e, 0x10188));
             fVar3 = LIBApiCFunctions::FloatRandom(e, 0.0, 0.75, 0.01);
-            let _ = { let a1 = ((e.ri32((piVar2).wrapping_add((30u32).wrapping_mul(4)))) as u32); let a2 = ((fVar3 * ((e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4)))) as f32)) + 1.0); APIextra::TimerSetFrequency(e, a1, a2) };
+            let _ = { let a1 = ((e.ri32((piVar2).wrapping_add((30u32).wrapping_mul(4)))) as u32); let a2 = ((fVar3 * f32::from_bits(e.r32((e.r32(g(e, 0x101b4))).wrapping_add((31u32).wrapping_mul(4))))) + 1.0); APIextra::TimerSetFrequency(e, a1, a2) };
             return Ok(0u64);
         }
         if (param_1 != 0x1dcu32) {

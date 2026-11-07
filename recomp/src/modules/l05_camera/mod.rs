@@ -80,23 +80,9 @@ pub static MODULE: ModuleDef = ModuleDef {
     ctor: l05_cameraConstructor,
     dtor: l05_cameraDestructor,
     register: None,
-    init: &[
-        // CameraFlags.. fSpeedFactor
-        (0x10168, &[0, 0, 0x3f99_999a, 0x7fff_ffff, 0x3f40_0000, 0]),
-        // fCameraCurve[6][2] {hauteur, distance} + the 3 CheckWall ray dirs (0x101b0/c0/d0)
-        (
-            0x10180,
-            &[
-                0, 0x4026_6666, 0x3f80_0000, 0x4000_0000, 0x4000_0000, 0x3fd9_999a, //
-                0x4040_0000, 0x4019_999a, 0x4080_0000, 0x4040_0000, 0x40a0_0000, 0x409c_cccd, //
-                0, 0, 0x3f80_0000, 0, 0x3f5d_b22d, 0, 0xbf00_0000, 0, 0xbf5d_b22d, 0, 0xbf00_0000, 0,
-            ],
-        ),
-        // Events[1] (code pointer, see EV_DEFAULT); pEventBuffer set by build_init; i32EventBufferSize 1
-        (0x101f0, &[EV_DEFAULT, 0, 1]),
-        // szFileName_172 = "ScoobyScreenShot00.bmp"
-        (0x10200, &[0x6f6f_6353, 0x6353_7962, 0x6e65_6572, 0x746f_6853, 0x622e_3030, 0x0000_706d]),
-    ],
+    // module image 0x10000..0x10218 (goHeroesData, CameraFlags.. fSpeedFactor, fCameraCurve, CheckWall ray
+    // dirs, Events, szFileName) is read from the module on the disc by build_init (WP-X4)
+    init: &[],
     build_init: Some(l05_camera_build_init),
 };
 
@@ -110,6 +96,8 @@ pub fn build_index(key: &str) -> Option<usize> {
 
 /// goHeroesData of the build (module image .text+0) and the relocated pointer pEventBuffer = &Events
 fn l05_camera_build_init(m: &mut Mem, data: Ptr, build: usize) {
+    crate::engine::gamedata::init_runs(m, data, ["b76d2d71", "c87e3daa"][build], &[(0x10000, 0x10218)]);
+    m.w32(data + (Events - 0x10000), EV_DEFAULT); // relocated code pointer
     for (i, v) in BUILDS[build].heroes_data.iter().enumerate() {
         m.w32(data + (goHeroesData - 0x10000) + 4 * i as u32, *v);
     }

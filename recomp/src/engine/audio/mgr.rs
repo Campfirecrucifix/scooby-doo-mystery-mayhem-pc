@@ -70,6 +70,10 @@ pub struct Voice {
     /// seconds since start (driven by `Update`)
     pub time: f32,
     pub inst: EventInst,
+    /// P36: unique per key-on (host identity of the SPU voice): two instances of one event on the
+    /// same handle/sample, or a Stop + Play in one frame, are distinct voices (SPU2 key-on restarts
+    /// the channel); the host keyed voices by (handle, bank, sample) and merged/continued them.
+    pub serial: u32,
 }
 
 /// EFNewSoundMgr list node (0x14): +0 next, +4 sound id, +8 handle, +0xc master volume, +0x10 parented.
@@ -139,6 +143,16 @@ pub struct EFNewAudioMgr {
     /// 3D inputs for the next ComputeVolumeAndPan (set by the host each frame)
     pub geometry: HashMap<u32, Geometry>,
     pub default_geometry: Geometry,
+    /// P26 R10: (owner object id, sound event id) of sounds that ended by themselves this update.
+    /// EFSoundEvent_BC::SoundIsCompleted (0x00243260) / EFSoundContainer (EFSoundContainer.cpp:248/273)
+    /// raise EFNotificationMgr::Notify(gameLogic, 0xf, owner+8, id, {owner id, id}, 1) when the
+    /// event still has its notify flag (+0xa8: set at init, cleared by StopSound/KillSound) and is
+    /// not looping (descr +0x30). The runtime drains this into the logic notification queue.
+    pub completed: Vec<(u32, u32)>,
+    /// P26 R23 debug: UpdateWith calls (GAME_SNDSTAT=N headless dump period)
+    pub updates: u32,
+    /// P36: last `Voice::serial` handed out
+    pub next_serial: u32,
 }
 
 impl EFNewAudioMgr {
@@ -201,10 +215,15 @@ impl EFNewAudioMgr {
     pub fn IsSoundPlaying(&self, h: u32) -> bool { self.valid(h) && self.voices.iter().any(|v| v.handle == h) }
     pub fn SoundCanBeKilled(&self, h: u32) -> bool { self.valid(h) }
     pub fn StopSoundHandle(&mut self, h: u32) { if self.valid(h) { self.KillVoices(h); } }
+    /// EFNewAudioMgr_BC::SetSoundPitch (0x0023f9d0) -> EFSoundEvent_BC::SetPitch (0x00243b80, only the
+    /// playing instance +0x5c) -> EFNewSound_SP::SetPitch (0x00245640): SOUND_GetFinalPitchOfSample(
+    /// sample pitch, p) = rate * 2^(p/12), `p` in SEMITONES, replacing the random pitch; not kept for
+    /// later plays. P32 R1: was stored as a raw speed ratio on the handle (Tome sucking sound 0x2e
+    /// p = 0.1..12 played at 0.1x..12x, negative p -> ~0 speed: the voice never completed).
     pub fn SetSoundPitch(&mut self, h: u32, p: f32) {
         if !self.valid(h) { return; }
-        self.handles[h as usize].pitch = p;
-        self.voices.iter_mut().filter(|v| v.handle == h).for_each(|v| v.pitch = p);
+        let r = 2f32.powf(p / 12.0);
+        self.voices.iter_mut().filter(|v| v.handle == h).for_each(|v| v.pitch = r);
     }
     pub fn ParentSoundToJoint(&mut self, h: u32, joint: u32) { if self.valid(h) { self.handles[h as usize].joint = Some(joint); } }
     fn KillVoices(&mut self, h: u32) {
@@ -285,13 +304,20 @@ impl EFNewAudioMgr {
     fn play_sample(&mut self, h: u32, root: u32, ev: u32, id: u32, owner: u32, gvol: f32) {
         let bank = bank_of(id);
         let hp = self.handles[h as usize].pitch;
+        self.next_serial = self.next_serial.wrapping_add(1);
         let mut v = Voice {
             handle: h, event_id: root, owner, source_event: ev, bank, playback: index_of(id), sample: 0, stream: None, sample_rate: 0,
             volume: gvol, pan: 0.0, left: 0.0, right: 0.0, pitch: hp, delay: 0.0, adsr: 0, channel: None, looped: false, paused: false, virt: false,
-            time: 0.0, inst: EventInst::default(),
+            time: 0.0, inst: EventInst::default(), serial: self.next_serial,
         };
         if let Some(b) = self.banks.get(bank as usize).and_then(|b| b.as_ref()) {
-            let Some(p) = b.sbh.playbacks.get(index_of(id) as usize).cloned() else { return };
+            let Some(p) = b.sbh.playbacks.get(index_of(id) as usize).cloned() else {
+                if sndlog() { eprintln!("snd: MISSING playback {id:#x} (bank {bank}, {} playbacks) ev {ev:#x} owner {owner:#x}", b.sbh.playbacks.len()); }
+                return;
+            };
+            if sndlog() && !b.sbh.is_stream() && !b.pcm.get(p.sample as usize).is_some_and(|x| x.is_some()) {
+                eprintln!("snd: MISSING pcm sample {} of {id:#x} (bank {bank}) ev {ev:#x} owner {owner:#x}", p.sample);
+            }
             let s = b.sample(p.sample).cloned().unwrap_or_default();
             v.stream = b.sbh.is_stream().then(|| stream_path(&s.name));
             v.looped = b.pcm.get(p.sample as usize).and_then(|x| x.as_ref()).map_or(false, |x| x.looped);
@@ -319,6 +345,7 @@ impl EFNewAudioMgr {
             }
         } else {
             // bank not loaded: descriptor-less voice so callers can still track the handle
+            if sndlog() { eprintln!("snd: MISSING bank {bank} for {id:#x} ev {ev:#x} owner {owner:#x}"); }
             v.inst.base_vol = 0x3fff;
         }
         self.mix(&mut v, gvol, None);
@@ -358,6 +385,8 @@ impl EFNewAudioMgr {
     /// Update reading object/joint LTMs each frame through `geo` (EFSoundEvent_BC::ComputeVolumeAndPan
     /// reads the owner's frame / joint matrix every update).
     pub fn UpdateWith(&mut self, dt: f32, len_of: &dyn Fn(&Voice) -> Option<f32>, geo: Option<&dyn GeometryProvider>) {
+        self.updates += 1;
+        self.debug_stat();
         for i in 0..self.voices.len() {
             if self.voices[i].virt && self.voices[i].stream.is_none() {
                 if let Some(c) = self.alloc_channel() { self.voices[i].channel = Some(c); self.voices[i].virt = false; }
@@ -375,7 +404,38 @@ impl EFNewAudioMgr {
         });
         self.voices = vs;
         for (_, c) in &done { if let Some(c) = c { self.spu[*c as usize] = false; } }
-        for (h, _) in done { if !self.IsSoundPlaying(h) { self.SoundIsCompleted(h); } }
+        let mut hs: Vec<u32> = done.into_iter().map(|(h, _)| h).collect();
+        hs.sort_unstable();
+        hs.dedup();
+        for h in hs {
+            if !self.IsSoundPlaying(h) {
+                // ended by itself (StopSound/KillSound remove the voices without reaching here,
+                // as they clear +0xa8); orphan events have no owner game object (+0x98 = 0)
+                if let Some(hd) = self.handles.get(h as usize).filter(|x| x.used && !x.orphan && x.owner != 0) {
+                    if std::env::var_os("GAME_SNDLOG").is_some() {
+                        eprintln!("snd: completed obj {:#x} id {:#x} -> notify 0xf", hd.owner, hd.event_id);
+                    }
+                    self.completed.push((hd.owner, hd.event_id));
+                }
+                self.SoundIsCompleted(h);
+            }
+        }
+    }
+    /// P26 R23 debug: GAME_SNDSTAT_MGR=N dumps the manager every N updates (headless silence hunts).
+    fn debug_stat(&self) {
+        let Some(n) = std::env::var("GAME_SNDSTAT_MGR").ok().and_then(|v| v.parse::<u32>().ok()).filter(|&n| n > 0) else { return };
+        let bad = |v: &Voice| !(v.left.is_finite() && v.right.is_finite() && v.pitch.is_finite());
+        let nonfinite = self.voices.iter().any(bad);
+        if self.updates % n != 0 && !nonfinite { return; }
+        let c = |f: &dyn Fn(&Voice) -> bool| self.voices.iter().filter(|v| f(v)).count();
+        eprintln!("snd: mstat u{} vol g{} fx{} st{} voices {} paused {} virt {} looped {} nonfinite {} spu {}/48 handles {}",
+            self.updates, self.global_volume, self.fx_volume, self.stream_volume, self.voices.len(), c(&|v| v.paused), c(&|v| v.virt), c(&|v| v.looped), c(&bad),
+            self.spu.iter().filter(|x| **x).count(), self.handles.iter().filter(|h| h.used).count());
+        for v in self.voices.iter().filter(|v| v.paused || v.looped || v.virt || v.stream.is_some() || bad(v)) {
+            eprintln!("snd:   h{} obj {:#x} ev {:#x} src {:#x} paused {} virt {} looped {} pitch {} l {:.3} r {:.3} pan {} stream {:?}", v.handle, v.owner, v.event_id, v.source_event, v.paused, v.virt, v.looped, v.pitch, v.left, v.right, v.inst.pan_cur, v.stream);
+        }
+        let gv: Vec<_> = self.group_volume.iter().enumerate().filter(|(_, x)| **x != 1.0).collect();
+        if !gv.is_empty() { eprintln!("snd:   group volumes != 1: {gv:?}"); }
     }
     /// Handle finished: auto-release / orphan handles are released; owned ones go through
     /// EFNewSoundMgr::SoundIsCompleted (released unless parented to a joint).
@@ -487,6 +547,11 @@ impl EFNewAudioMgr {
     /// EFNewAudioMgr_BC::SetVolumeByGroup (0x0023f530): `group` is a bit mask, every set bit i of the
     /// low 32 sets group volume i (N1: was indexed by the mask value, so the options' music/FX/movie
     /// volumes 0xa8/0x17/0x300 never applied).
+    /// P36 R5: data group (+0x28, the GetGroupVolume mask of ComputeVolumeAndPan) of a voice's
+    /// source event; the original Options sliders are groups 0xa8 music, 0x17 FX, 0x300 movies.
+    pub fn voice_group(&self, v: &Voice) -> Option<u32> {
+        self.tse.get(bank_of(v.source_event) as usize).and_then(|t| t.data.get(index_of(v.source_event) as usize)).map(|d| d.word(0x28))
+    }
     pub fn SetVolumeByGroup(&mut self, group: u32, v: f32) {
         for i in 0..32 { if group >> i & 1 != 0 { self.group_volume[i] = v; } }
     }
@@ -531,4 +596,28 @@ impl EFNewAudioMgr {
         }
         n
     }
+}
+
+#[cfg(test)]
+mod p36_tests {
+    use super::*;
+
+    /// P36 R6: voice-limit overflow as SOUND_FindFreeSPUChannelBalanceLoad: 48 SPU2 channels balanced
+    /// over the two cores, no stealing (the 49th voice gets none = virtual), a freed channel is reused.
+    #[test]
+    fn p36_spu_channel_overflow() {
+        let mut m = EFNewAudioMgr::new();
+        let chans: Vec<u8> = (0..SPU_CHANNELS).map(|_| m.alloc_channel().expect("48 channels")).collect();
+        assert_eq!(chans[..4], [24, 0, 25, 1], "tie -> core 1, then the emptier core");
+        assert_eq!(m.alloc_channel(), None, "no stealing: 49th voice stays virtual");
+        m.spu[7] = false;
+        assert_eq!(m.alloc_channel(), Some(7), "a freed channel goes to the next (virtual) voice");
+        assert_eq!(m.alloc_channel(), None);
+    }
+}
+
+/// P36 R13: GAME_SNDLOG debug log switch (cached)
+fn sndlog() -> bool {
+    static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *ON.get_or_init(|| std::env::var_os("GAME_SNDLOG").is_some())
 }

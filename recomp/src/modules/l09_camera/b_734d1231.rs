@@ -2318,7 +2318,7 @@ pub fn Camera_BaseFUNC_Create_Game(e: &mut Engine) -> LResult<()> {
     let mut pfVar1: u32 = 0;
     let mut fVar2: f32 = 0.0;
     pfVar1 = e.r32(g(e, 0x10280));
-    { let a0 = e.r32(g(e, 0x10280)); e.w32(a0, 0) };
+    { let a0 = e.r32(g(e, 0x10280)); e.wf(a0, 0.75) }; // P26 R16 fix: camera_base.c `*pLocalDataCameraBase = 0.75` (was emitted as int 0 -> view window x 0, SetFOV -> y = inf, nothing drawn)
     e.wf((pfVar1).wrapping_add((1u32).wrapping_mul(4)), 0.5625);
     let _ = { let a1 = e.r32((pfVar1).wrapping_add((50u32).wrapping_mul(4)) /* V1 fix: int handle in the float-typed array (Ghidra cast, no cvt in the binary) */); let a2 = e.rf(pfVar1); let a3 = e.rf((pfVar1).wrapping_add((1u32).wrapping_mul(4))); APIcamera::SetViewWindow(e, a1, a2, a3) };
     if (e.rf((pfVar1).wrapping_add((78u32).wrapping_mul(4))) == 0.0) {
@@ -2537,10 +2537,10 @@ pub fn Camera_BaseFUNC_GetCameraMode(e: &mut Engine) -> LResult<u32> {
     e.w32((frame + 0x10), 0xbf800000u32);
     iVar3 = ((APIphysic::CheckRayIntersection(e, (frame + 0x0), (frame + 0x30))) as i32);
     if (iVar3 == 2i32) {
-        { let a0 = g(e, 0x10220); let a1 = ((e.r64((frame + 0x4c))) as u32); e.w32(a0, a1) };
-        { let a0 = g(e, 0x10230); let a1 = ((e.r64((frame + 0x5c))) as u32); e.w32(a0, a1) };
-        { let a0 = g(e, 0x10238); let a1 = ((e.r64((frame + 0x64))) as u32); e.w32(a0, a1) };
-        { let a0 = g(e, 0x10228); let a1 = ((((e.r64((frame + 0x54))) as i32)) as u32); e.w32(a0, a1) };
+        { let a0 = g(e, 0x10220); let a1 = e.r64((frame + 0x4c)); /* P32 R36: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
+        { let a0 = g(e, 0x10230); let a1 = e.r64((frame + 0x5c)); /* P32 R36: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
+        { let a0 = g(e, 0x10238); let a1 = e.r64((frame + 0x64)); /* P32 R36: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
+        { let a0 = g(e, 0x10228); let a1 = e.r64((frame + 0x54)); /* P32 R36: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
         uVar2 = e.r64((frame + 0x54));
         { let a0 = (e.r32(e.r32(g(e, 0x10284)))).wrapping_add(100u32); let a1 = ((e.r32(g(e, 0x10228))) as i32); e.wi32(a0, a1) };
         { let a0 = g(e, 0x10228); e.w64(a0, (uVar2) as u64) };

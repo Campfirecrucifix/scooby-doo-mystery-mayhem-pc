@@ -35,7 +35,8 @@ enum Local {
 /// Per-build constants (all builds share Ghost_Lock_Base.c, WP-L10).
 struct Build {
     sha8: &'static str,
-    /// TmpGhostLockMap {object id, GB2+0xc bit}
+    /// TmpGhostLockMap {object id, GB2+0xc bit} (= the first .text words of the carved .o; WP-P17: the
+    /// single-entry builds had bit 0, so their lock never set/tested its door bit)
     map: &'static [(u32, u32)],
     /// msg 0x54 target (level camera)
     cam: u32,
@@ -58,12 +59,12 @@ const fn b(sha8: &'static str, map: &'static [(u32, u32)], cam: u32, vis: [u32; 
 static BUILDS: [Build; 10] = [
     b("cf7d0bf2", &[(0x2a0000e5, 0x2000), (0x2a0000e6, 0x4000)], 0x2a00004a, [0x2a0000ef, 0x2a0000f0], 0x2a0000ed, 3, 4, 2, 1, Local::L03a),
     b("3415d130", &[(0x2a000125, 0x20000), (0x2a000126, 0x10000), (0x2a000127, 0x8000)], 0x2a000020, [0x2a000083, 0x2a000084], 0x2a000087, 2, 3, 1, 4, Local::None),
-    b("1d6c6630", &[(0x2a000025, 0)], 0x2a000027, [0x2a00004d, 0x2a00004c], 0x2a00004f, 3, 4, 2, 1, Local::None),
-    b("c20b6677", &[(0x2a000136, 0)], 0x2a000037, [0x2a00004c, 0x2a00004b], 0x2a000050, 2, 3, 1, 4, Local::L01c),
-    b("635b7f3b", &[(0x2a000103, 0)], 0x2a0000b3, [0x2a0000ab, 0x2a0000aa], 0x2a0000af, 2, 3, 1, 4, Local::None),
-    b("1e7007c9", &[(0x2a0000f0, 0)], 0x2a00001e, [0x2a00002c, 0x2a00002b], 0x2a000030, 2, 3, 1, 4, Local::None),
-    b("8907fa5b", &[(0x2a000138, 0)], 0x2a000017, [0x2a00002d, 0x2a00002c], 0x2a000031, 2, 3, 1, 4, Local::None),
-    b("086cdde6", &[(0x2a00013d, 0)], 0x2a000004, [0x2a000026, 0x2a000025], 0x2a00002a, 3, 4, 2, 1, Local::None),
+    b("1d6c6630", &[(0x2a000025, 0x1000000)], 0x2a000027, [0x2a00004d, 0x2a00004c], 0x2a00004f, 3, 4, 2, 1, Local::None),
+    b("c20b6677", &[(0x2a000136, 0x8000)], 0x2a000037, [0x2a00004c, 0x2a00004b], 0x2a000050, 2, 3, 1, 4, Local::L01c),
+    b("635b7f3b", &[(0x2a000103, 0x40000)], 0x2a0000b3, [0x2a0000ab, 0x2a0000aa], 0x2a0000af, 2, 3, 1, 4, Local::None),
+    b("1e7007c9", &[(0x2a0000f0, 0x200000)], 0x2a00001e, [0x2a00002c, 0x2a00002b], 0x2a000030, 2, 3, 1, 4, Local::None),
+    b("8907fa5b", &[(0x2a000138, 0x80000)], 0x2a000017, [0x2a00002d, 0x2a00002c], 0x2a000031, 2, 3, 1, 4, Local::None),
+    b("086cdde6", &[(0x2a00013d, 0x4000)], 0x2a000004, [0x2a000026, 0x2a000025], 0x2a00002a, 3, 4, 2, 1, Local::None),
     b("041f00a7", &[(0x2a0001c3, 0x10000), (0x2a0001c4, 0x20000), (0x2a0001c5, 0x80000), (0x2a0001c6, 0x100000), (0x2a0001c7, 0x200000), (0x2a0001c8, 0x8000000)], 0x2a00001f, [0x2a000036, 0x2a000035], 0x2a00003a, 2, 3, 1, 4, Local::L04a),
     b("43e3f9f6", &[(0x2a000140, 0x400000), (0x2a000141, 0x800000), (0x2a000142, 0x1000000), (0x2a000143, 0x80000000)], 0x2a00005c, [0x2a00007b, 0x2a00007a], 0x2a00007f, 2, 1, 3, 4, Local::None),
 ];

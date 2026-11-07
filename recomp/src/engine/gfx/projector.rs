@@ -131,6 +131,14 @@ impl ProjectorOccurence {
     /// The projected-texture pass geometry: the hit sectors' triangles clipped to the near/far
     /// planes and to the texture square (GS clamp), as (positions, uvs) triangle list.
     pub fn mesh(&self, w: &RpWorld) -> (Vec<[f32; 3]>, Vec<[f32; 2]>) {
+        self.mesh_sub(w, if self.parallel { 1 } else { SUB })
+    }
+    /// P37 R3: [`Self::mesh`] without the perspective UV split (the clipped fan triangles as they are, UVs
+    /// per vertex): for materials that project per fragment from the world position (the shadow pass)
+    pub fn mesh_flat(&self, w: &RpWorld) -> (Vec<[f32; 3]>, Vec<[f32; 2]>) {
+        self.mesh_sub(w, 1)
+    }
+    fn mesh_sub(&self, w: &RpWorld, sub: usize) -> (Vec<[f32; 3]>, Vec<[f32; 2]>) {
         let (mut pos, mut uvs) = (Vec::new(), Vec::new());
         let (c, r) = self.sphere();
         for si in self.sectors(w) {
@@ -151,7 +159,7 @@ impl ProjectorOccurence {
                     if d2 > r * r {
                         continue;
                     }
-                    self.clip_tri(tri, &mut pos, &mut uvs);
+                    self.clip_tri(tri, &mut pos, &mut uvs, sub);
                 }
             }
         }
@@ -162,54 +170,90 @@ impl ProjectorOccurence {
     pub fn mesh_tris(&self, tris: impl Iterator<Item = [[f32; 3]; 3]>) -> (Vec<[f32; 3]>, Vec<[f32; 2]>) {
         let (mut pos, mut uvs) = (Vec::new(), Vec::new());
         for t in tris {
-            self.clip_tri(t, &mut pos, &mut uvs);
+            self.clip_tri(t, &mut pos, &mut uvs, if self.parallel { 1 } else { SUB });
         }
         (pos, uvs)
     }
-    fn clip_tri(&self, tri: [[f32; 3]; 3], pos: &mut Vec<[f32; 3]>, uvs: &mut Vec<[f32; 2]>) {
-        // polygon of (position, uv)
-        let mut poly: Vec<([f32; 3], [f32; 2])> = tri.iter().map(|&p| (p, [0.0; 2])).collect();
-        let n = self.near;
-        let f = self.far_plane;
-        let planes: [Box<dyn Fn(&([f32; 3], [f32; 2])) -> f32>; 2] = [
-            Box::new(move |v| dot([n[0], n[1], n[2]], v.0) + n[3]),
-            Box::new(move |v| dot([f[0], f[1], f[2]], v.0) + f[3]),
-        ];
-        for pl in &planes {
-            poly = clip(&poly, |v| pl(v));
-            if poly.is_empty() {
-                return;
-            }
-        }
-        // texture square: |x| <= vw s, |y| <= vh s (s = z, or 1 parallel): linear in position
-        let m = self.ltm;
-        let (vw, vh, par) = (self.view_window[0], self.view_window[1], self.parallel);
-        for k in 0..4 {
-            poly = clip(&poly, |v| {
-                let d: [f32; 3] = std::array::from_fn(|i| v.0[i] - m.pos[i]);
-                let s = if par { 1.0 } else { dot(d, m.at) };
+    /// P37 R8: clip plane k of the occurrence: 0 near, 1 far, 2..5 the texture square (the arithmetic
+    /// of the former per-plane closures, unchanged)
+    fn plane_d(&self, k: usize, p: [f32; 3]) -> f32 {
+        match k {
+            0 => dot([self.near[0], self.near[1], self.near[2]], p) + self.near[3],
+            1 => dot([self.far_plane[0], self.far_plane[1], self.far_plane[2]], p) + self.far_plane[3],
+            _ => {
+                let m = &self.ltm;
+                let (vw, vh) = (self.view_window[0], self.view_window[1]);
+                let d: [f32; 3] = std::array::from_fn(|i| p[i] - m.pos[i]);
+                let s = if self.parallel { 1.0 } else { dot(d, m.at) };
                 match k {
-                    0 => vw * s - dot(d, m.right),
-                    1 => vw * s + dot(d, m.right),
-                    2 => vh * s - dot(d, m.up),
+                    2 => vw * s - dot(d, m.right),
+                    3 => vw * s + dot(d, m.right),
+                    4 => vh * s - dot(d, m.up),
                     _ => vh * s + dot(d, m.up),
                 }
-            });
+            }
+        }
+    }
+    fn clip_tri(&self, tri: [[f32; 3]; 3], pos: &mut Vec<[f32; 3]>, uvs: &mut Vec<[f32; 2]>, sub: usize) {
+        // P37 R8: whole-triangle early out before any polygon Vec. Sutherland-Hodgman (`clip`) of a
+        // polygon whose vertices are all outside a plane (!(d >= 0), NaN included) is empty, and of
+        // one whose vertices are all inside is the same polygon; so while the raw triangle is wholly
+        // inside the planes so far, a plane that has it wholly outside rejects it with exactly the
+        // result of the full path (same plane arithmetic, `plane_d`).
+        for k in 0..6 {
+            let inside = tri.map(|p| self.plane_d(k, p) >= 0.0);
+            if inside == [false; 3] {
+                return;
+            }
+            if inside != [true; 3] {
+                break;
+            }
+        }
+        // polygon of (position, uv)
+        let mut poly: Vec<([f32; 3], [f32; 2])> = tri.iter().map(|&p| (p, [0.0; 2])).collect();
+        // near, far, then the texture square |x| <= vw s, |y| <= vh s (s = z, or 1 parallel): linear in position
+        for k in 0..6 {
+            poly = clip(&poly, |v| self.plane_d(k, v.0));
             if poly.is_empty() {
                 return;
             }
         }
-        for v in poly.iter_mut() {
-            v.1 = self.uv(v.0);
-        }
-        for i in 1..poly.len() - 1 {
-            for v in [poly[0], poly[i], poly[i + 1]] {
-                pos.push(v.0);
-                uvs.push(v.1);
+        // P26 R22: the GS maps the projected texture with STQ (perspective-correct q = 1/z); the
+        // mesh carries plain affine UVs, so a perspective projector's polygon (the frustum footprint,
+        // strongly oblique on the EP4/L02A water) put the spot at the affine centre of the trapezoid,
+        // too far and too big. Each fan triangle is split into SUB x SUB triangles with exact
+        // per-vertex projection UVs, so the affine error per sub-triangle is small.
+        // (sub = SUB, or 1 for parallel projectors / mesh_flat; the constant is module level, P37 R3)
+        let n = sub;
+        let lerp = |a: [f32; 3], b: [f32; 3], c: [f32; 3], i: usize, j: usize| -> [f32; 3] {
+            let (u, v) = (i as f32 / n as f32, j as f32 / n as f32);
+            std::array::from_fn(|k| a[k] + (b[k] - a[k]) * u + (c[k] - a[k]) * v)
+        };
+        for t in 1..poly.len() - 1 {
+            let (a, b, c) = (poly[0].0, poly[t].0, poly[t + 1].0);
+            for i in 0..n {
+                for j in 0..n - i {
+                    // P37 R7: pushed in place (was a Vec per sub-triangle); same vertices, same order
+                    let mut put = |p: [f32; 3]| {
+                        pos.push(p);
+                        uvs.push(self.uv(p));
+                    };
+                    put(lerp(a, b, c, i, j));
+                    put(lerp(a, b, c, i + 1, j));
+                    put(lerp(a, b, c, i, j + 1));
+                    if i + j + 1 < n {
+                        put(lerp(a, b, c, i + 1, j));
+                        put(lerp(a, b, c, i + 1, j + 1));
+                        put(lerp(a, b, c, i, j + 1));
+                    }
+                }
             }
         }
     }
 }
+
+/// per-edge split of a perspective projector's fan triangles (P26 R22, see clip_tri)
+const SUB: usize = 8;
 
 /// Sutherland-Hodgman against `d(v) >= 0`, linear in position and uv
 fn clip(poly: &[([f32; 3], [f32; 2])], d: impl Fn(&([f32; 3], [f32; 2])) -> f32) -> Vec<([f32; 3], [f32; 2])> {
@@ -229,4 +273,52 @@ fn clip(poly: &[([f32; 3], [f32; 2])], d: impl Fn(&([f32; 3], [f32; 2])) -> f32)
         }
     }
     out
+}
+
+#[cfg(test)]
+mod p37_tests {
+    use super::*;
+
+    fn area(p: &[[f32; 3]]) -> f32 {
+        p.chunks_exact(3)
+            .map(|t| {
+                let (a, b): ([f32; 3], [f32; 3]) = (std::array::from_fn(|i| t[1][i] - t[0][i]), std::array::from_fn(|i| t[2][i] - t[0][i]));
+                let c = [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+                0.5 * dot(c, c).sqrt()
+            })
+            .sum()
+    }
+
+    /// P37 R3: the shadow pass's flat receiver (n = 1) covers exactly the surface of the subdivided one
+    /// (n = SUB) of a perspective (point-light) projector, with 1/SUB^2 of the triangles; its vertex UVs
+    /// are the exact projection (shadow.wgsl projects per fragment anyway).
+    #[test]
+    fn p37_flat_receiver_same_surface() {
+        let m = DTMatrix { right: [1.0, 0.0, 0.0], up: [0.0, 0.0, 1.0], at: [0.0, -1.0, 0.0], pos: [0.3, 3.0, -0.2] };
+        let o = ProjectorOccurence {
+            near: [0.0, -1.0, 0.0, 3.0],
+            far_plane: [0.0, 1.0, 0.0, 2.0],
+            pos: m.pos,
+            far: [0.3, -2.0, -0.2],
+            color: [0.5; 4],
+            texture: String::new(),
+            ltm: m,
+            view_window: [0.6, 0.6],
+            parallel: false,
+            blend: 0,
+            reach: 5.0,
+        };
+        let floor = [[-5.0, 0.0, -5.0], [5.0, 0.0, -5.0], [0.0, 0.0, 5.0]];
+        let (mut ps, mut us, mut pf, mut uf) = (Vec::new(), Vec::new(), Vec::new(), Vec::new());
+        o.clip_tri(floor, &mut ps, &mut us, SUB);
+        o.clip_tri(floor, &mut pf, &mut uf, 1);
+        assert!(!pf.is_empty());
+        assert_eq!(ps.len(), pf.len() * SUB * SUB);
+        let (a, b) = (area(&ps), area(&pf));
+        assert!((a - b).abs() < 1e-3 * b && b > 1.0, "{a} {b}");
+        for (p, u) in pf.iter().zip(&uf) {
+            assert_eq!(*u, o.uv(*p));
+            assert!(u.iter().all(|c| (-1e-4..=1.0001).contains(c)), "{u:?}");
+        }
+    }
 }

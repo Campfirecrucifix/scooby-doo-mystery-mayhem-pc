@@ -1,7 +1,27 @@
 [package]
 name = "scooby_recomp"
-version = "0.1.0"
+version = "1.0.0-rc.2"
 edition = "2024"
+
+# P37 R1: distribution build (tools/make_dist.sh): `cargo build --profile dist`. A separate profile so the lanes'
+# `--release` test/gate builds keep their speed. thin LTO (fat LTO + codegen-units=1 doubles a 20 min build for a
+# few % on a GPU-bound game); panic = unwind (the crash log's panic hook, Bevy's task pools and catch_unwind keep
+# working; abort would turn every panic into a record-less fast-fail); line tables + game.pdb keep
+# crash-log backtraces symbolized (file:line); nothing stripped (MSVC keeps symbols in the PDB, not the exe).
+# P37 R3: line tables only for our own crate (game.pdb was 573 MB with them for every dependency); the
+# dependencies keep their function names in the PDB (public symbols), so backtraces still name every frame
+# and give file:line for the port's code. make_dist ships the PDB in a separate symbols zip.
+[profile.dist]
+inherits = "release"
+lto = "thin"
+debug = 0
+panic = "unwind"
+[profile.dist.package.scooby_recomp]
+debug = "line-tables-only"
+
+# P32 R67: the lib has no doc tests; rustdoc's doc-test phase hit a rustc ICE (thin-vec capacity overflow, R65 gate)
+[lib]
+doctest = false
 
 [dependencies]
 bevy_ecs = "0.19.1"
@@ -13,12 +33,19 @@ sha1_smol = "1.0.1"
 na_mpeg2_decoder = { path = "vendor/na_mpeg2_decoder" }
 
 [features]
+# P34: settings launcher (src/bin/launcher.rs, native Win32, no GUI framework)
+launcher = ["dep:windows-sys"]
 viewer = ["bevy_render", "dep:bevy"]
 # WP-J5: playable build (src/bin/game.rs)
 game = ["viewer", "bevy_audio"]
+# P37 R2: shipped build (tools/make_dist.sh): game.exe is a windows-subsystem app (no console window); its
+# stdout/stderr go to %LOCALAPPDATA%\ScoobyMM\logs\game.log when started without a console (crashlog)
+ship = ["game"]
 bevy_audio = ["dep:bevy_audio", "dep:bevy_asset"]
 # WP-G1: optional `--rt` lighting path (Solari not applicable, see GFX_G1.md); default build unchanged
 rt = ["game"]
+# P22: opt-in Solari raytraced GI (GAME_RTGI=1), see engine::gfx::rtgi; never default
+solari = ["viewer", "dep:bevy_solari"]
 # WP-C2: Bevy render adapter (gfx::bevy_adapter): RW meshes/textures -> Bevy Mesh/Image/StandardMaterial
 bevy_render = ["dep:bevy_camera", "dep:bevy_asset", "dep:bevy_mesh", "dep:bevy_image", "dep:bevy_pbr", "dep:bevy_transform", "dep:bevy_color", "dep:bevy_math", "dep:bevy_material", "dep:wgpu-types"]
 
@@ -53,6 +80,11 @@ optional = true
 version = "29.0.3"
 optional = true
 default-features = false
+[target.'cfg(windows)'.dependencies.windows-sys]
+version = "0.60"
+optional = true
+features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_System_LibraryLoader", "Win32_UI_Controls", "Win32_UI_WindowsAndMessaging", "Win32_UI_Input_KeyboardAndMouse", "Win32_Storage_Xps", "Win32_UI_HiDpi", "Win32_UI_Input_XboxController", "Win32_UI_Controls_Dialogs"]
+
 [dependencies.bevy_audio]
 version = "0.19.1"
 optional = true
@@ -69,6 +101,10 @@ optional = true
 default-features = false
 features = ["default_app", "bevy_gilrs", "3d_bevy_render", "bevy_winit", "bevy_window", "std", "multi_threaded", "png", "tonemapping_luts", "zstd_rust"]
 
+[dependencies.bevy_solari]
+version = "0.19.1"
+optional = true
+
 [[bin]]
 name = "viewer"
 path = "src/bin/viewer.rs"
@@ -78,3 +114,12 @@ required-features = ["viewer"]
 name = "game"
 path = "src/bin/game.rs"
 required-features = ["game"]
+
+[[bin]]
+name = "launcher"
+path = "src/bin/launcher.rs"
+required-features = ["launcher"]
+
+# P36 R5: bevy_audio 0.19.1 + public AudioOutput with device-loss detection / reopen
+[patch.crates-io]
+bevy_audio = { path = "vendor/bevy_audio" }

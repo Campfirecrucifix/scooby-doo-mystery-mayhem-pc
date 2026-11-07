@@ -125,7 +125,7 @@ pub fn inv_racecontrollerCB_TIMER_RACE(e: &mut Engine, ep1: u32) -> LResult<u64>
         let _ = APIgameobj::SendMessageTo(e, 0x2a00002du32, NULL, 0x136u32, 1u32, NULL);
         let _ = APIgameobj::SendMessageTo(e, 0x2a00002cu32, NULL, 0x136u32, 1u32, NULL);
         let _ = { let a2 = e.r32((e.r32(g(e, 0x10024))).wrapping_add(80u32)); APIextra::TimerUnregisterNotify(e, 0x2a000000u32, a2) };
-        { let a0 = (e.r32((e.r32(g(e, 0x10028))).wrapping_add((1u32).wrapping_mul(4)))).wrapping_add(12u32); let a1 = (e.r32((e.r32((e.r32(g(e, 0x10028))).wrapping_add((1u32).wrapping_mul(4)))).wrapping_add(12u32)) | g(e, 0x10000)); e.w32(a0, a1) };
+        { let a0 = (e.r32((e.r32(g(e, 0x10028))).wrapping_add((1u32).wrapping_mul(4)))).wrapping_add(12u32); let a1 = (e.r32((e.r32((e.r32(g(e, 0x10028))).wrapping_add((1u32).wrapping_mul(4)))).wrapping_add(12u32)) | 0x10000u32); e.w32(a0, a1) };
         let _ = APIgameobj::SetGroupID(e, 0x2a000000u32, 6u32);
         let _ = LIBMiscFunc::MiscFunc_ChangeClipping(e, 0x2a000114u32, 2u32, NULL, 0u32);
         e.wf(((frame + 0x0)).wrapping_add(0), 0.0);

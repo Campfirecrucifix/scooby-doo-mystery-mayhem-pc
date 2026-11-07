@@ -227,3 +227,29 @@ pub(crate) fn unported_shape(e: &Engine, f: &str, gi: usize) -> ! {
     let b = &builds::BUILDS[e.rt.cur_build()];
     panic!("{f}: code shape group {} of build {} is not ported yet", b.g[gi], b.sha8)
 }
+
+/// P33 R10: every shape group of every disc build reaches a ported arm of the functions that panic
+/// with `unported_shape` (the `<absent>` group = function not in that build, never dispatched).
+#[cfg(test)]
+#[test]
+fn p33_r10_hero_shape_groups_covered() {
+    use builds::*;
+    // (group index, highest ported group, absent group)
+    let lim = [
+        (G_heroInit_Action, 2, Some(3)),
+        (G_heroFUNC_UpdateBlend_Scooby, 1, Some(2)),
+        (G_heroFUNC_StartBlend, 3, None),
+        (G_heroFUNC_UpdateBlend_Others, 1, Some(2)),
+        (G_heroInit_FollowIdle, 4, None),
+        (G_heroST_Unhook_Loop, 5, None),
+        (G_heroFUNC_SelectScoobyRun2Stand, 5, None),
+        (G_heroST_Tome_Loop, 1, None),
+        (G_heroST_TomeTrack_Loop, 3, None),
+    ];
+    for b in BUILDS.iter() {
+        for &(gi, max, absent) in &lim {
+            let v = b.g[gi];
+            assert!(v <= max || Some(v) == absent, "build {} group index {gi}: group {v} not ported", b.sha8);
+        }
+    }
+}

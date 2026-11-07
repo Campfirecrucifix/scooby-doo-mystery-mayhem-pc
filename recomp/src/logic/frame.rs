@@ -6,7 +6,7 @@
 //! Frame order of the original main loop, which [`crate::plugin`] reproduces with Bevy system sets:
 //! 1. ComputeDeltaTime ([`FrameClock::ComputeDeltaTime`]), input (platform: raises input notifications)
 //! 2. [`Engine::GameLogicUpdate`]: NotifyAll(0x14), timers, every object's logic, NotifyAll(0x15)
-//! 3. cut-scene player (not ported)
+//! 3. cut-scene player (engine::script::EFCutScenePlayer)
 //! 4. EFWorld::Update: animation (platform), [`Engine::FlushNotification`], physics and particles
 //!    (platform), [`Engine::ProcessKillList`], PrepareRender (platform clipping, then
 //!    [`Engine::PrepareRender_Logic`])
@@ -172,7 +172,9 @@ impl Engine {
             let t = self.rt.stack.top;
             self.rt.stack.objects[t] = Some(h);
             let dt = self.rt.logic_dt;
+            let prev = crate::crashlog::OBJ.swap(self.rt.obj(h).id, std::sync::atomic::Ordering::Relaxed);
             self.Run(h, dt);
+            crate::crashlog::OBJ.store(prev, std::sync::atomic::Ordering::Relaxed);
         } else {
             self.DestroyObject(h);
         }
@@ -257,3 +259,61 @@ impl Engine {
 
 /// DTMap<unsigned int, EFGameTimer*> at EFGameLogicMgr + 0x250
 pub type TimerMap = DTMap<GameTimer>;
+
+/// P39 R5: the real-time pacing of game.exe (bin/game.rs step_runtime): the original's MainLoop runs ONE
+/// input + logic + render pass per flip (no catch-up loop); a pass that missed n vsync periods is measured as
+/// n periods (EFTimer::Update) and [`FrameClock::ComputeDeltaTime`] clamps it to 0.05 s. `acc` (the wall time
+/// not yet consumed) is capped at 0.25 s, so a long stall (window minimized, display asleep, a breakpoint, a
+/// slow USB read) is one pass with raw dt <= 0.25 s, never a burst of catch-up steps.
+/// Returns the new `acc` and `Some(raw dt)` when a pass is due this update.
+pub fn vsync_pace(acc: f32, delta: f32, period: f32, slack: f32) -> (f32, Option<f32>) {
+    let acc = (acc + delta.max(0.0)).min(0.25);
+    if acc + slack < period {
+        return (acc, None);
+    }
+    let n = ((acc + slack) / period).floor().max(1.0);
+    ((acc - n * period).max(-slack), Some(n * period))
+}
+
+#[cfg(test)]
+mod p39_tests {
+    use super::*;
+
+    /// P39 R5: an hour minimized / the display asleep, then normal frames: one pass with a clamped raw dt,
+    /// the logic step stays 1/20 s at most, and no catch-up burst follows
+    #[test]
+    fn p39_long_stall_no_catch_up() {
+        let (period, slack) = (2.0 * 1001.0 / 60000.0, 0.002);
+        let mut clock = FrameClock::default();
+        let (mut acc, mut passes) = (0.0f32, 0);
+        // steady 60 Hz updates: a pass every other update
+        for _ in 0..120 {
+            let (a, r) = vsync_pace(acc, 1.0 / 60.0, period, slack);
+            acc = a;
+            if let Some(r) = r {
+                passes += 1;
+                assert!((r - period).abs() < 1e-4, "{r}");
+                clock.ComputeDeltaTime(r);
+            }
+        }
+        assert!((55..=62).contains(&passes), "{passes}");
+        // the stall: one update with 3600 s (and a NaN-free absurd value)
+        for stall in [3600.0f32, f32::MAX, -5.0] {
+            let (a, r) = vsync_pace(acc, stall, period, slack);
+            acc = a;
+            if let Some(r) = r {
+                assert!(r <= 0.25 + 1e-6, "{r}");
+                assert!(clock.ComputeDeltaTime(r) <= 0.05 + 1e-6);
+            }
+            assert!(acc <= 0.25 && acc >= -slack, "{acc}");
+        }
+        // afterwards: back to one pass per two updates at once (no burst)
+        let mut burst = 0;
+        for _ in 0..4 {
+            let (a, r) = vsync_pace(acc, 1.0 / 60.0, period, slack);
+            acc = a;
+            burst += r.is_some() as u32;
+        }
+        assert!(burst <= 3, "{burst}");
+    }
+}

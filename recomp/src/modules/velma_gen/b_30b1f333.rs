@@ -572,7 +572,7 @@ pub fn velma_baseConstructor(e: &mut Engine, mut api: Ptr, mut param_2: i32) -> 
     uVar2 = APIextra::TimerCreate(e);
     { let a0 = (e.r32(g(e, 0x10044))).wrapping_add(0x134u32); e.w32(a0, uVar2) };
     pAVar1 = e.r32(g(e, 0x10014));
-    let _ = APIextra::TimerGetTime(e, 0x90000000u32);
+    fVar3 = APIextra::TimerGetTime(e, 0x90000000u32);
     let _ = APIstdlib::srand(e, ((((fVar3) as i32)) as u32));
     uVar2 = APIgameobj::GetID(e, 0x2a000000u32, NULL);
     { let a0 = (e.r32(g(e, 0x10044))).wrapping_add(0x100u32); e.w32(a0, uVar2) };

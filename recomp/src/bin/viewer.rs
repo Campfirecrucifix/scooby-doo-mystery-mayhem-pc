@@ -59,7 +59,7 @@ fn hex(s: Option<String>) -> Option<u32> {
 
 fn parse_args() -> Args {
     let mut a = Args { level: "EP1/L01".into(), model: None, anim: None, time: 0.2, particles: false, screenshot: None, iso: String::new() };
-    let mut it = std::env::args().skip(1);
+    let mut it = scooby_recomp::crashlog::args().into_iter();
     while let Some(s) = it.next() {
         match s.as_str() {
             "--screenshot" => a.screenshot = it.next(),
@@ -257,6 +257,10 @@ fn main() {
             }));
         }
     }
+    #[cfg(feature = "solari")]
+    if scooby_recomp::engine::gfx::rtgi::requested() {
+        app.add_plugins(scooby_recomp::engine::gfx::rtgi::RtgiPlugin);
+    }
     if a.particles {
         let fs = IsoFs::open(&a.iso).expect("ISO");
         let (mut e, mut rt) = EngineRuntime::new_with_engine();
@@ -322,6 +326,10 @@ fn setup(world: &mut World) {
     e.insert(Projection::Perspective(PerspectiveProjection { fov: 60f32.to_radians(), near: 0.1, far: 2000.0, ..default() }));
     if let Some(h) = target {
         e.insert(RenderTarget::Image(h.into()));
+    }
+    #[cfg(feature = "solari")]
+    if scooby_recomp::engine::gfx::rtgi::requested() {
+        e.insert(scooby_recomp::engine::gfx::rtgi::camera());
     }
 }
 

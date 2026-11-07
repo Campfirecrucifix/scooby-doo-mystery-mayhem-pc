@@ -22,7 +22,8 @@ pub static MODULE: ModuleDef = ModuleDef {
 /// Per-build constants (WP-L8; all 32 builds share EnmySpot.c): camera object, HUD object of msg 0x1c,
 /// the two "blue" ids tested in the 0xe9 handler (NONE = 0x7ffffffe), and whether BASICMOVE
 /// uses the transformed y (1) instead of z (0) as the radar's vertical axis.
-struct B {
+#[derive(Debug)]
+pub struct B {
     sha8: &'static str,
     cam: u32,
     hud: u32,
@@ -32,40 +33,24 @@ struct B {
 const fn b(sha8: &'static str, cam: u32, hud: u32, blue: [u32; 2], y: u32) -> B {
     B { sha8, cam, hud, blue, use_y: y != 0 }
 }
-const BUILDS: [B; 32] = [
-    b("07b12697", 0x2a00_0025, 0x2a10_0006, [NONE,NONE], 0),
-    b("0d6649c3", 0x2a00_0248, 0x2a10_001f, [NONE,NONE], 0),
-    b("103be7a3", 0x2a00_000e, 0x2a10_0006, [NONE,NONE], 0),
-    b("1b5a60be", 0x2a00_0247, 0x2a10_001f, [NONE,NONE], 0),
-    b("1bbef259", 0x2a00_00b3, 0x2a10_0006, [NONE,NONE], 0),
-    b("243d4c19", 0x2a00_00dd, 0x2a10_0006, [NONE,NONE], 0),
-    b("2d6e54ff", 0x2a00_0004, 0x2a10_001f, [NONE,NONE], 0),
-    b("37de4250", 0x2a00_0017, 0x2a10_0006, [NONE,NONE], 0),
-    b("4ab217e2", 0x2a00_000c, 0x2a10_0006, [NONE,NONE], 0),
-    b("4f41fcaa", 0x2a00_0045, 0x2a10_0000, [NONE,NONE], 0),
-    b("53e8a602", 0x2a00_001f, 0x2a10_0006, [NONE,NONE], 0),
-    b("5c9d5a63", 0x2a00_0027, 0x2a10_0013, [NONE,NONE], 0),
-    b("67dc9dcc", 0x2a00_008f, 0x2a10_0006, [NONE,NONE], 0),
-    b("6b42f421", 0x2a00_005c, 0x2a10_0006, [NONE,NONE], 0),
-    b("75fbfb01", 0x2a00_002a, 0x2a10_0000, [0x2a00_0034,NONE], 1),
-    b("7b0c03cd", 0x2a00_0020, 0x2a10_0006, [NONE,NONE], 0),
-    b("7d4ca0f7", 0x2a00_0012, 0x2a10_0006, [NONE,NONE], 0),
-    b("87465f5e", 0x2a00_0052, 0x2a10_0006, [0x2a00_0012,0x2a00_000c], 0),
-    b("8aa87f92", 0x2a00_0004, 0x2a10_0006, [0x2a00_00bc,NONE], 0),
-    b("90504888", 0x2a00_0004, 0x2a10_0006, [0x2a00_00c6,0x2a00_00c0], 0),
-    b("948fb5a9", 0x2a00_0027, 0x2a10_0000, [0x2a00_0033,NONE], 0),
-    b("95847430", 0x2a00_0027, 0x2a10_0006, [NONE,NONE], 0),
-    b("a009f532", 0x2a00_0037, 0x2a10_0006, [0x2a00_0010,NONE], 0),
-    b("b506e9eb", 0x2a00_001e, 0x2a10_0006, [NONE,NONE], 0),
-    b("c22276d8", 0x2a00_000f, 0x2a10_0006, [NONE,NONE], 0),
-    b("ca2097b8", 0x2a00_0004, 0x2a10_0006, [0x2a00_00c4,NONE], 0),
-    b("cd07996f", 0x2a00_0030, 0x2a10_0006, [NONE,NONE], 0),
-    b("cf6473cb", 0x2a00_0006, 0x2a10_0000, [NONE,NONE], 0),
-    b("d360a6c6", 0x2a00_0006, 0x2a10_0006, [0x2a00_009d,NONE], 0),
-    b("efac9fa4", 0x2a00_0004, 0x2a10_0006, [NONE,NONE], 0),
-    b("f91df4c1", 0x2a00_004a, 0x2a10_0000, [NONE,NONE], 0),
-    b("fffa8012", 0x2a00_0026, 0x2a10_0006, [NONE,NONE], 0),
-];
+pub static BUILDS: Table<B> = Table::new(&BUILDS_K, builds_row);
+const BUILDS_G: [u8; 32] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 3, 2, 3, 0, 3, 0, 0, 3, 0, 0, 3, 0, 0, 0];
+fn builds_row(k: &TRow) -> B {
+    match BUILDS_G[k.1] {
+        0 => b(k.0.builds[k.1], k.v(0), k.v(1), [NONE,NONE], 0),
+        1 => b(k.0.builds[k.1], k.v(2), k.v(3), [k.v(4),NONE], 1),
+        2 => b(k.0.builds[k.1], k.v(2), k.v(5), [k.v(4),k.v(6)], 0),
+        3 => b(k.0.builds[k.1], k.v(0), k.v(1), [k.v(4),NONE], 0),
+        _ => unreachable!(),
+    }
+}
+static BUILDS_K: TSpec = TSpec {
+    builds: &["07b12697", "0d6649c3", "103be7a3", "1b5a60be", "1bbef259", "243d4c19", "2d6e54ff", "37de4250", "4ab217e2", "4f41fcaa", "53e8a602", "5c9d5a63", "67dc9dcc", "6b42f421", "75fbfb01", "7b0c03cd", "7d4ca0f7", "87465f5e", "8aa87f92", "90504888", "948fb5a9", "95847430", "a009f532", "b506e9eb", "c22276d8", "ca2097b8", "cd07996f", "cf6473cb", "d360a6c6", "efac9fa4", "f91df4c1", "fffa8012"],
+    fns: &["enmyspotST_BASICMOVE", "enmyspotFUNC_MessageHandler"],
+    entries: &[
+        TE::M(&[KLoc(0, 0xf5deea48, 255, 3, 101, 1), KLoc(0, 0xbcb7e7d0, 255, 3, 101, 1)]), TE::M(&[KLoc(0, 0xf5deea48, 255, 3, 164, 1), KLoc(0, 0xbcb7e7d0, 255, 2, 164, 0)]), TE::L(0, 3, 101, 1), TE::L(0, 2, 164, 0), TE::L(1, 3, 45, 1), TE::L(0, 3, 164, 1), TE::L(1, 3, 45, 8),
+    ],
+};
 
 pub fn build_index(key: &str) -> Option<usize> {
     BUILDS.iter().position(|b| b.sha8 == key)
@@ -236,3 +221,6 @@ pub fn enmyspotDestructor(e: &mut Engine, instanceCount: i32) -> LResult<()> {
     }
     Ok(())
 }
+
+#[allow(unused_imports)]
+use crate::engine::gamedata::{KLoc, TRow, TSpec, Table, TE};

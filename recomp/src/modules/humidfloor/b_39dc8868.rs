@@ -30,9 +30,9 @@ pub fn HumidFloorST_FADE_In(e: &mut Engine, ep1: u32) -> LResult<u64> {
 
 /// 0x00010e10
 pub fn HumidFloorST_FADE_Execute(e: &mut Engine, ep1: u32) -> LResult<u64> {
-    let _ = { let a6 = ((e.r32(e.r32(g(e, 0x10020)))) as f32); APIgraphics::SetGameObjBlendColor(e, 0x2a000000u32, 0u32, 1.0, 1.0, 1.0, a6) };
-    { let a0 = e.r32(g(e, 0x10020)); let a1 = (((((e.r32(e.r32(g(e, 0x10020)))) as f32) - 0.005)) as i64 as u32); e.w32(a0, a1) };
-    if (((e.r32(e.r32(g(e, 0x10020)))) as f32) <= 0.0) {
+    let _ = { let a6 = f32::from_bits(e.r32(e.r32(g(e, 0x10020)))); APIgraphics::SetGameObjBlendColor(e, 0x2a000000u32, 0u32, 1.0, 1.0, 1.0, a6) };
+    { let a0 = e.r32(g(e, 0x10020)); let a1 = (((f32::from_bits(e.r32(e.r32(g(e, 0x10020)))) - 0.005)).to_bits()); e.w32(a0, a1) };
+    if (f32::from_bits(e.r32(e.r32(g(e, 0x10020)))) <= 0.0) {
         let _ = APIgameobj::SetNextState(e, 0x2a000000u32, 1u32);
     }
     return Ok(0u64);

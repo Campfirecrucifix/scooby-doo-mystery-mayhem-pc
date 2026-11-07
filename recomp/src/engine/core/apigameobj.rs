@@ -52,9 +52,35 @@ pub fn GetCurrentStateID(e: &mut Engine, a0: u32) -> u32 {
 pub fn SendMessageTo(e: &mut Engine, a0: u32, a1: Ptr, a2: u32, a3: u32, a4: Ptr) -> u32 {
     // debug: GAME_MSGLOG=1 logs every logic message (target, msg, param)
     if std::env::var_os("GAME_MSGLOG").is_some() && a2 != 0x1d {
-        eprintln!("msg: -> {a0:#x} msg {a2:#x} p {a3:#x}");
+        let from = e.rt.current_object().map_or(0, |h| e.rt.obj(h).id);
+        // P32 R35: hero 0x78 (CB_SCARED relay) carries the scarer id at *a4
+        let src = if a2 == 0x78 && a4 != NULL { e.mem.r32(a4) } else { 0 };
+        eprintln!("msg: t{:.3} {from:#x} -> {a0:#x} msg {a2:#x} p {a3:#x} src {src:#x}", e.clock.total);
     }
     e.SendLogicMessageTo(a0, a2, a3, a4, a1) as u32
+}
+/// AddChild (EFApi_GameObj.cpp 0x001ee250) -> EFPosData::AddChild 0x00209e10 / AddChildFrame 0x0020a0c0. The frame
+/// link, flag 1/8 and flag 0x10 (child copies the parent's clipping params + SetMyCurrentClipping(child, parent
+/// +0x138)) are the host's (runtime.rs APIgameobj_AddChild). P32 R82 (P33 table B #3): the attach messages, sent
+/// after the link as C: flag 2 -> SendLogicMessageTo(parent, 0x10000001, child id), flag 4 ->
+/// SendLogicMessageTo(child, 0x10000002, parent id). No module passes 2/4/0x10 (all 1786 call sites use 1 or 9).
+pub fn AddChild(e: &mut Engine, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 {
+    let r = {
+        let _b = crate::logic::LogicBind::new(&mut e.rt);
+        e.host.APIgameobj_AddChild(&mut e.mem, a0, a1, a2, a3)
+    };
+    if a3 & 6 != 0 {
+        let id = |e: &mut Engine, u: u32| e.get_game_object(u, NULL).map(|h| e.rt.obj(h).id);
+        if let (Some(p), Some(c)) = (id(e, a0), id(e, a2)) {
+            if a3 & 2 != 0 {
+                e.SendLogicMessageTo(p, 0x1000_0001, c, NULL, NULL);
+            }
+            if a3 & 4 != 0 {
+                e.SendLogicMessageTo(c, 0x1000_0002, p, NULL, NULL);
+            }
+        }
+    }
+    r
 }
 /// slot +0x40: id of the object (0x7ffffffe if none)
 pub fn GetID(e: &mut Engine, a0: u32, a1: Ptr) -> u32 {

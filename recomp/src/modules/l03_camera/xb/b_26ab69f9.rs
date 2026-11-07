@@ -335,7 +335,7 @@ pub fn CheckWall(e: &mut Engine, mut param_1: u64, mut param_2: u64, mut param_3
     { let a1 = (e.rf(g(e, 0x101d0)) * 1.5); e.wf((frame + 0x20), a1) };
     { let a1 = (e.rf(g(e, 0x101d4)) * 1.5); e.wf((frame + 0x24), a1) };
     { let a1 = (e.rf(g(e, 0x101d8)) * 1.5); e.wf((frame + 0x28), a1) };
-    { let a0 = g(e, 0x1057c); let a1 = ((((((e.rf((frame + 0x4))).to_bits()) as u64) << 32 | (((e.rf((frame + 0x0))).to_bits()) as u64))) as u32); e.w32(a0, a1) };
+    { let a0 = g(e, 0x1057c); let a1 = ((((((e.rf((frame + 0x4))).to_bits()) as u64) << 32 | (((e.rf((frame + 0x0))).to_bits()) as u64))) as u64); /* P32 R37: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
     { let a0 = g(e, 0x10570); e.w64(a0, (uVar3) as u64) };
     { let a0 = g(e, 0x10578); e.w32(a0, ((fVar1).to_bits())) };
     { let a0 = g(e, 0x10584); let a1 = ((e.rf((frame + 0x8))).to_bits()); e.w32(a0, a1) };
@@ -347,7 +347,7 @@ pub fn CheckWall(e: &mut Engine, mut param_1: u64, mut param_2: u64, mut param_3
         { let a1 = (e.rf(g(e, 0x105a4)) - e.rf((frame + 0x34))); e.wf((frame + 0x4), a1) };
         { let a1 = (e.rf(g(e, 0x105a8)) - fVar1); e.wf((frame + 0x8), a1) };
     }
-    { let a0 = g(e, 0x1057c); let a1 = ((((((e.rf((frame + 0x14))).to_bits()) as u64) << 32 | (((e.rf((frame + 0x10))).to_bits()) as u64))) as u32); e.w32(a0, a1) };
+    { let a0 = g(e, 0x1057c); let a1 = ((((((e.rf((frame + 0x14))).to_bits()) as u64) << 32 | (((e.rf((frame + 0x10))).to_bits()) as u64))) as u64); /* P32 R37: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
     { let a0 = g(e, 0x10584); let a1 = ((e.rf((frame + 0x18))).to_bits()); e.w32(a0, a1) };
     iVar2 = (({ let a1 = g(e, 0x10570); let a2 = g(e, 0x105a0); APIphysic::CheckRayIntersection(e, a1, a2) }) as i32);
     if (iVar2 != 0i32) {
@@ -355,7 +355,7 @@ pub fn CheckWall(e: &mut Engine, mut param_1: u64, mut param_2: u64, mut param_3
         { let a1 = (e.rf(g(e, 0x105a4)) - e.rf((frame + 0x34))); e.wf((frame + 0x14), a1) };
         { let a1 = (e.rf(g(e, 0x105a8)) - fVar1); e.wf((frame + 0x18), a1) };
     }
-    { let a0 = g(e, 0x1057c); let a1 = ((((((e.rf((frame + 0x24))).to_bits()) as u64) << 32 | (((e.rf((frame + 0x20))).to_bits()) as u64))) as u32); e.w32(a0, a1) };
+    { let a0 = g(e, 0x1057c); let a1 = ((((((e.rf((frame + 0x24))).to_bits()) as u64) << 32 | (((e.rf((frame + 0x20))).to_bits()) as u64))) as u64); /* P32 R37: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
     { let a0 = g(e, 0x10584); let a1 = ((e.rf((frame + 0x28))).to_bits()); e.w32(a0, a1) };
     iVar2 = (({ let a1 = g(e, 0x10570); let a2 = g(e, 0x105a0); APIphysic::CheckRayIntersection(e, a1, a2) }) as i32);
     if (iVar2 != 0i32) {
@@ -743,12 +743,12 @@ pub fn ResetCamera(e: &mut Engine) -> LResult<u32> {
     let _ = SetLastFollow(e, ((frame + 0x0)).wrapping_add(0))?;
     { let a0 = g(e, 0x10330); e.w32(a0, 0u32) };
     { let a0 = g(e, 0x10334); e.w32(a0, 0x40666666u32) };
-    { let a0 = g(e, 0x1032c); e.w32(a0, 3) };
+    { let a0 = g(e, 0x1032c); e.wf(a0, 3.6) }; // WP-P20: float global (c2rs truncated 3.6 to int)
     { let a0 = g(e, 0x10324); let a1 = ((GetVHauteur(e, 3.6)?).to_bits()); e.w32(a0, a1) };
     { let a0 = g(e, 0x1033c); e.w32(a0, 0x3f99999au32) };
     { let a0 = g(e, 0x10338); e.w32(a0, 0x3f99999au32) };
     e.wf(((frame + 0x10)).wrapping_add(0), 0.0);
-    { let a1 = (((e.r32(g(e, 0x1032c))).wrapping_neg()) as f32); e.wf(((frame + 0x10)).wrapping_add(8), a1) };
+    { let a1 = (-e.rf(g(e, 0x1032c))); e.wf(((frame + 0x10)).wrapping_add(8), a1) };
     { let a0 = g(e, 0x10328); let a1 = e.r32(g(e, 0x10324)); e.w32(a0, a1) };
     { let a1 = e.rf(g(e, 0x10324)); e.wf(((frame + 0x10)).wrapping_add(4), a1) };
     let _ = { let a1 = e.r32(g(e, 0x105dc)); APIgameobj::TransformVector(e, a1, (frame + 0x10), (frame + 0x10)) };
@@ -797,8 +797,8 @@ pub fn RotateCameraAroundTargetWithJoy(e: &mut Engine, mut param_1: f32, mut par
         fVar4 = APImath::myfabs(e, fVar3);
         if (0.015 < fVar4) {
             let _ = APIgameobj::GetPosition(e, 0x2a000000u32, 0x7fffffffu32, (frame + 0x0));
-            { let a1 = (e.rf(((frame + 0x0)).wrapping_add(0)) - ((((e.r32(g(e, 0x10308))).wrapping_add(e.r32(g(e, 0x10348)))).wrapping_add(e.r32(g(e, 0x10348)))) as f32)); e.wf((frame + 0x10), a1) };
-            { let a1 = (e.rf(((frame + 0x0)).wrapping_add(8)) - ((((e.r32(g(e, 0x10310))).wrapping_add(e.r32(g(e, 0x10350)))).wrapping_add(e.r32(g(e, 0x10350)))) as f32)); e.wf((frame + 0x18), a1) };
+            { let a1 = (e.rf(((frame + 0x0)).wrapping_add(0)) - ((e.rf(g(e, 0x10308)) + e.rf(g(e, 0x10348))) + e.rf(g(e, 0x10348)))); e.wf((frame + 0x10), a1) };
+            { let a1 = (e.rf(((frame + 0x0)).wrapping_add(8)) - ((e.rf(g(e, 0x10310)) + e.rf(g(e, 0x10350))) + e.rf(g(e, 0x10350)))); e.wf((frame + 0x18), a1) };
             e.wf((frame + 0x14), 0.0);
             if ((((e.rf((frame + 0x10)) * e.rf((frame + 0x10))) + 0.0) + (e.rf((frame + 0x18)) * e.rf((frame + 0x18)))) < 4.0) {
                 if (((((e.rf((frame + 0x10))).to_bits()) | ((e.rf((frame + 0x18))).to_bits())) & 0x7fffffffu32) == 0u32) {
@@ -856,13 +856,14 @@ pub fn IsSomethingBetwinCamAndTarget(e: &mut Engine, mut param_1: f32, mut param
     let mut fVar4: f32 = 0.0;
     let mut fVar5: f32 = 0.0;
     let frame = e.alloca(0x110);
-    { let a0 = g(e, 0x1057c); let a1 = ((e.r64(param_4)) as u32); e.w32(a0, a1) };
+    { let a0 = g(e, 0x1057c); let a1 = e.r64(param_4); /* P32 R36: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
     { let a0 = g(e, 0x10584); let a1 = ((e.rf((param_4).wrapping_add((((1i32) as u32)).wrapping_mul(8)))).to_bits()); e.w32(a0, a1) };
     { let a0 = g(e, 0x10570); let a1 = (e.r64(param_5)) as u64; e.w64(a0, a1) };
     { let a0 = g(e, 0x10578); let a1 = ((e.rf((param_5).wrapping_add((((1i32) as u32)).wrapping_mul(8)))).to_bits()); e.w32(a0, a1) };
     iVar1 = (({ let a1 = g(e, 0x10570); APIphysic::CheckRayIntersection(e, a1, (frame + 0x40)) }) as i32);
-    { let a0 = g(e, 0x1057c); let a1 = ((((((e.r32((g(e, 0x1057c)).wrapping_add(4))).wrapping_neg()) as u64) << 32 | ((((-e.rf(g(e, 0x1057c)))).to_bits()) as u64))) as u32); e.w32(a0, a1) };
-    { let a0 = g(e, 0x10584); let a1 = (e.r32(g(e, 0x10584))).wrapping_neg(); e.w32(a0, a1) };
+    { let a0 = g(e, 0x1057c); let a1 = -e.rf(a0); e.wf(a0, a1) }; /* P32 R37: neg.s x,y,z (was int neg / u32 truncation) */
+    { let a0 = g(e, 0x10580); let a1 = -e.rf(a0); e.wf(a0, a1) };
+    { let a0 = g(e, 0x10584); let a1 = -e.rf(a0); e.wf(a0, a1) };
     { let a0 = g(e, 0x10570); let a1 = (e.r64(param_7)) as u64; e.w64(a0, a1) };
     { let a0 = g(e, 0x10578); let a1 = ((e.rf((param_7).wrapping_add((2u32).wrapping_mul(4)))).to_bits()); e.w32(a0, a1) };
     iVar2 = (({ let a1 = g(e, 0x10570); APIphysic::CheckRayIntersection(e, a1, (frame + 0x0)) }) as i32);
@@ -966,7 +967,7 @@ pub fn ChangeCameraDistanceFromTargetWithJoy(e: &mut Engine, mut param_1: f32, m
             if (0.5 < fVar2) {
                 { let a0 = g(e, 0x10334); let a1 = (((e.rf(g(e, 0x10334)) + ((e.rf((frame + 0x0)) * param_1) * 1.5))).to_bits()); e.w32(a0, a1) };
                 if (e.rf(g(e, 0x10334)) < 2.5) {
-                    { let a0 = g(e, 0x10334); e.w32(a0, 2) };
+                    { let a0 = g(e, 0x10334); e.wf(a0, 2.5) }; // WP-P20: float (was int 2)
                 } else if (f32::from_bits(e.r32((g(e, 0x10180)).wrapping_add(40))) < e.rf(g(e, 0x10334))) {
                     { let a0 = g(e, 0x10334); let a1 = ((f32::from_bits(e.r32((g(e, 0x10180)).wrapping_add(40)))).to_bits()); e.w32(a0, a1) };
                 }
@@ -981,7 +982,7 @@ pub fn ChangeCameraDistanceFromTargetWithJoy(e: &mut Engine, mut param_1: f32, m
             }
         } else {
             { let a0 = g(e, 0x10334); let a1 = ((f32::from_bits(e.r32((g(e, 0x10180)).wrapping_add(40)))).to_bits()); e.w32(a0, a1) };
-            { let a0 = g(e, 0x101e8); e.w32(a0, 2) };
+            { let a0 = g(e, 0x101e8); e.wf(a0, 2.0) }; // WP-P20: float (was int)
         }
         if (0.0 < e.rf(g(e, 0x101e8))) {
             { let a0 = g(e, 0x101e8); let a1 = (((e.rf(g(e, 0x101e8)) - param_1)).to_bits()); e.w32(a0, a1) };
@@ -1117,7 +1118,7 @@ pub fn cameraST_CAMERA_FOLLOW(e: &mut Engine) -> LResult<u64> {
                 { let a1 = { let a1 = (((e.rf(((frame + 0x90)).wrapping_add(0)) * e.rf(((frame + 0x90)).wrapping_add(0))) + 0.0) + (e.rf(((frame + 0x90)).wrapping_add(8)) * e.rf(((frame + 0x90)).wrapping_add(8)))); APImath::sqrtf(e, a1) }; e.wf((frame + 0xb4), a1) };
                 { let a0 = g(e, 0x1017c); let a1 = ((e.rf((frame + 0xb0))).to_bits()); e.w32(a0, a1) };
                 if (5.4 < e.rf((frame + 0xb0))) {
-                    { let a0 = g(e, 0x1017c); e.w32(a0, 5) };
+                    { let a0 = g(e, 0x1017c); e.wf(a0, 5.4) }; // WP-P20: float (was int 5)
                 }
                 { let a0 = g(e, 0x1017c); let a1 = (((e.rf(g(e, 0x1017c)) / 5.4)).to_bits()); e.w32(a0, a1) };
                 { let a0 = g(e, 0x10168); let a1 = (e.r32(g(e, 0x10168)) & 0xfffffdffu32); e.w32(a0, a1) };
@@ -1149,7 +1150,7 @@ pub fn cameraST_CAMERA_FOLLOW(e: &mut Engine) -> LResult<u64> {
                         if ((e.r32(g(e, 0x10168)) & 4u32) != 0u32) {
                             e.wf((frame + 0xf0), 10.0);
                         }
-                        { let a0 = g(e, 0x1032c); let a1 = (((e.rf(g(e, 0x1032c)) - (((((e.r32(g(e, 0x1032c))).wrapping_sub((e.r32(g(e, 0x10334))).wrapping_sub(e.r32(g(e, 0x10330))))) as f32) * e.rf((frame + 0xf0))) * in_f0))).to_bits()); e.w32(a0, a1) };
+                        { let a0 = g(e, 0x1032c); let a1 = (((e.rf(g(e, 0x1032c)) - (((e.rf(g(e, 0x1032c)) - (e.rf(g(e, 0x10334)) - e.rf(g(e, 0x10330)))) * e.rf((frame + 0xf0))) * in_f0))).to_bits()); e.w32(a0, a1) };
                     }
                 } else {
                     { let a0 = g(e, 0x1032c); let a1 = (((e.rf(g(e, 0x1032c)) - (((e.rf(g(e, 0x1032c)) - e.rf((frame + 0xd0))) * in_f0) * 3.0))).to_bits()); e.w32(a0, a1) };
@@ -1163,9 +1164,9 @@ pub fn cameraST_CAMERA_FOLLOW(e: &mut Engine) -> LResult<u64> {
                     { let a1 = (e.rf(((frame + 0xe0)).wrapping_add(0)) * e.rf((frame + 0xf0))); e.wf(((frame + 0xe0)).wrapping_add(0), a1) };
                     { let a1 = (e.rf(((frame + 0xe0)).wrapping_add(8)) * e.rf((frame + 0xf0))); e.wf(((frame + 0xe0)).wrapping_add(8), a1) };
                 }
-                { let a1 = (((e.r32(g(e, 0x10328))).wrapping_neg()) as f32); e.wf(((frame + 0xe0)).wrapping_add(4), a1) };
+                { let a1 = (-e.rf(g(e, 0x10328))); e.wf(((frame + 0xe0)).wrapping_add(4), a1) };
                 { let a1 = (e.rf(((frame + 0xc0)).wrapping_add(0)) - e.rf(((frame + 0xe0)).wrapping_add(0))); e.wf(((frame + 0xc0)).wrapping_add(0), a1) };
-                { let a1 = (e.rf(((frame + 0xc0)).wrapping_add(4)) - (((e.r32(g(e, 0x10328))).wrapping_neg()) as f32)); e.wf(((frame + 0xc0)).wrapping_add(4), a1) };
+                { let a1 = (e.rf(((frame + 0xc0)).wrapping_add(4)) - (-e.rf(g(e, 0x10328)))); e.wf(((frame + 0xc0)).wrapping_add(4), a1) };
                 { let a1 = (e.rf(((frame + 0xc0)).wrapping_add(8)) - e.rf(((frame + 0xe0)).wrapping_add(8))); e.wf(((frame + 0xc0)).wrapping_add(8), a1) };
                 if (0.0 < e.rf(g(e, 0x102c4))) {
                     { let a1 = { let a1 = (((e.rf(((frame + 0xc0)).wrapping_add(0)) * e.rf(((frame + 0xc0)).wrapping_add(0))) + (e.rf(((frame + 0xc0)).wrapping_add(4)) * e.rf(((frame + 0xc0)).wrapping_add(4)))) + (e.rf(((frame + 0xc0)).wrapping_add(8)) * e.rf(((frame + 0xc0)).wrapping_add(8)))); APImath::sqrtf(e, a1) }; e.wf((frame + 0xf4), a1) };
@@ -1252,7 +1253,7 @@ pub fn cameraST_CAMERA_FOLLOW(e: &mut Engine) -> LResult<u64> {
                 { let a1 = { let a1 = (((e.rf(((frame + 0x90)).wrapping_add(0)) * e.rf(((frame + 0x90)).wrapping_add(0))) + 0.0) + (e.rf(((frame + 0x90)).wrapping_add(8)) * e.rf(((frame + 0x90)).wrapping_add(8)))); APImath::sqrtf(e, a1) }; e.wf((frame + 0xb4), a1) };
                 { let a0 = g(e, 0x1017c); let a1 = ((e.rf((frame + 0xb0))).to_bits()); e.w32(a0, a1) };
                 if (5.4 < e.rf((frame + 0xb0))) {
-                    { let a0 = g(e, 0x1017c); e.w32(a0, 5) };
+                    { let a0 = g(e, 0x1017c); e.wf(a0, 5.4) }; // WP-P20: float (was int 5)
                 }
                 { let a0 = g(e, 0x1017c); let a1 = (((e.rf(g(e, 0x1017c)) / 5.4)).to_bits()); e.w32(a0, a1) };
                 { let a0 = g(e, 0x10168); let a1 = (e.r32(g(e, 0x10168)) & 0xfffffdffu32); e.w32(a0, a1) };
@@ -1284,7 +1285,7 @@ pub fn cameraST_CAMERA_FOLLOW(e: &mut Engine) -> LResult<u64> {
                         if ((e.r32(g(e, 0x10168)) & 4u32) != 0u32) {
                             e.wf((frame + 0xf0), 10.0);
                         }
-                        { let a0 = g(e, 0x1032c); let a1 = (((e.rf(g(e, 0x1032c)) - (((((e.r32(g(e, 0x1032c))).wrapping_sub((e.r32(g(e, 0x10334))).wrapping_sub(e.r32(g(e, 0x10330))))) as f32) * e.rf((frame + 0xf0))) * in_f0))).to_bits()); e.w32(a0, a1) };
+                        { let a0 = g(e, 0x1032c); let a1 = (((e.rf(g(e, 0x1032c)) - (((e.rf(g(e, 0x1032c)) - (e.rf(g(e, 0x10334)) - e.rf(g(e, 0x10330)))) * e.rf((frame + 0xf0))) * in_f0))).to_bits()); e.w32(a0, a1) };
                     }
                 } else {
                     { let a0 = g(e, 0x1032c); let a1 = (((e.rf(g(e, 0x1032c)) - (((e.rf(g(e, 0x1032c)) - e.rf((frame + 0xd0))) * in_f0) * 3.0))).to_bits()); e.w32(a0, a1) };
@@ -1298,9 +1299,9 @@ pub fn cameraST_CAMERA_FOLLOW(e: &mut Engine) -> LResult<u64> {
                     { let a1 = (e.rf(((frame + 0xe0)).wrapping_add(0)) * e.rf((frame + 0xf0))); e.wf(((frame + 0xe0)).wrapping_add(0), a1) };
                     { let a1 = (e.rf(((frame + 0xe0)).wrapping_add(8)) * e.rf((frame + 0xf0))); e.wf(((frame + 0xe0)).wrapping_add(8), a1) };
                 }
-                { let a1 = (((e.r32(g(e, 0x10328))).wrapping_neg()) as f32); e.wf(((frame + 0xe0)).wrapping_add(4), a1) };
+                { let a1 = (-e.rf(g(e, 0x10328))); e.wf(((frame + 0xe0)).wrapping_add(4), a1) };
                 { let a1 = (e.rf(((frame + 0xc0)).wrapping_add(0)) - e.rf(((frame + 0xe0)).wrapping_add(0))); e.wf(((frame + 0xc0)).wrapping_add(0), a1) };
-                { let a1 = (e.rf(((frame + 0xc0)).wrapping_add(4)) - (((e.r32(g(e, 0x10328))).wrapping_neg()) as f32)); e.wf(((frame + 0xc0)).wrapping_add(4), a1) };
+                { let a1 = (e.rf(((frame + 0xc0)).wrapping_add(4)) - (-e.rf(g(e, 0x10328)))); e.wf(((frame + 0xc0)).wrapping_add(4), a1) };
                 { let a1 = (e.rf(((frame + 0xc0)).wrapping_add(8)) - e.rf(((frame + 0xe0)).wrapping_add(8))); e.wf(((frame + 0xc0)).wrapping_add(8), a1) };
                 if (0.0 < e.rf(g(e, 0x102c4))) {
                     { let a1 = { let a1 = (((e.rf(((frame + 0xc0)).wrapping_add(0)) * e.rf(((frame + 0xc0)).wrapping_add(0))) + (e.rf(((frame + 0xc0)).wrapping_add(4)) * e.rf(((frame + 0xc0)).wrapping_add(4)))) + (e.rf(((frame + 0xc0)).wrapping_add(8)) * e.rf(((frame + 0xc0)).wrapping_add(8)))); APImath::sqrtf(e, a1) }; e.wf((frame + 0xf4), a1) };
@@ -1658,9 +1659,9 @@ pub fn cameraST_CAMERA_FOLLOW(e: &mut Engine) -> LResult<u64> {
             4u32 => {
                 { let a0 = g(e, 0x103e4); let a1 = (((e.rf(g(e, 0x102c4)) * 0.25)).to_bits()); e.w32(a0, a1) };
                 if (1.0 < e.rf(g(e, 0x103e4))) {
-                    { let a0 = g(e, 0x103e4); e.w32(a0, 1) };
+                    { let a0 = g(e, 0x103e4); e.wf(a0, 1.0) }; // WP-P20: float (was int)
                 }
-                { let a0 = g(e, 0x103e0); let a1 = (e.r32(g(e, 0x102c4))).wrapping_sub(e.r32(g(e, 0x103e4))); e.w32(a0, a1) };
+                { let a0 = g(e, 0x103e0); let a1 = e.rf(g(e, 0x102c4)) - e.rf(g(e, 0x103e4)); e.wf(a0, a1) };
                 let _ = { let a1 = e.r32(g(e, 0x105dc)); let a2 = e.r32(g(e, 0x10174)); APIgameobj::GetPosition(e, a1, a2, (frame + 0x190)) };
                 let _ = SetLastFollow(e, ((frame + 0x190)).wrapping_add(0))?;
                 let _ = UpdateLastFollow(e, in_f0, ((frame + 0x190)).wrapping_add(0))?;
@@ -1677,9 +1678,9 @@ pub fn cameraST_CAMERA_FOLLOW(e: &mut Engine) -> LResult<u64> {
         }
     }
     if (e.ri32((e.r32(e.r32(g(e, 0x102a4)))).wrapping_add(48u32)) == 0i32) {
-        { let a0 = g(e, 0x10340); e.w32(a0, 0) };
+        { let a0 = g(e, 0x10340); e.wf(a0, 0.75) }; // WP-P20: float (was int 0)
     } else {
-        { let a0 = g(e, 0x10340); e.w32(a0, 0) };
+        { let a0 = g(e, 0x10340); e.wf(a0, 0.95) }; // WP-P20: float (was int 0)
     }
     { let a0 = g(e, 0x10178); let a1 = (((e.rf(g(e, 0x10178)) - ((e.rf(g(e, 0x10178)) - e.rf(g(e, 0x10340))) /* R4: lwc1-only globals */ * 0.1))).to_bits()); e.w32(a0, a1) };
     let _ = { let a1 = e.r32((e.r32(g(e, 0x102a0))).wrapping_add(200u32)); let a2 = e.rf(g(e, 0x10178)); let a3 = (e.rf(g(e, 0x10178)) * 0.75); APIcamera::SetViewWindow(e, a1, a2, a3) };
@@ -2373,7 +2374,7 @@ pub fn Camera_BaseFUNC_Create_Game(e: &mut Engine) -> LResult<()> {
     let mut pfVar1: u32 = 0;
     let mut fVar2: f32 = 0.0;
     pfVar1 = e.r32(g(e, 0x102a0));
-    { let a0 = e.r32(g(e, 0x102a0)); e.w32(a0, 0) };
+    { let a0 = e.r32(g(e, 0x102a0)); e.wf(a0, 0.75) }; // P26 R16 fix: camera_base.c `*pLocalDataCameraBase = 0.75` (was emitted as int 0)
     e.wf((pfVar1).wrapping_add((1u32).wrapping_mul(4)), 0.5625);
     let _ = { let a1 = e.r32((pfVar1).wrapping_add((50u32).wrapping_mul(4)) /* V1 fix: int handle in the float-typed array (Ghidra cast, no cvt in the binary) */); let a2 = e.rf(pfVar1); let a3 = e.rf((pfVar1).wrapping_add((1u32).wrapping_mul(4))); APIcamera::SetViewWindow(e, a1, a2, a3) };
     if (e.rf((pfVar1).wrapping_add((78u32).wrapping_mul(4))) == 0.0) {
@@ -2592,10 +2593,10 @@ pub fn Camera_BaseFUNC_GetCameraMode(e: &mut Engine) -> LResult<u32> {
     e.w32((frame + 0x10), 0xbf800000u32);
     iVar3 = ((APIphysic::CheckRayIntersection(e, (frame + 0x0), (frame + 0x30))) as i32);
     if (iVar3 == 2i32) {
-        { let a0 = g(e, 0x10240); let a1 = ((e.r64((frame + 0x4c))) as u32); e.w32(a0, a1) };
-        { let a0 = g(e, 0x10250); let a1 = ((e.r64((frame + 0x5c))) as u32); e.w32(a0, a1) };
-        { let a0 = g(e, 0x10258); let a1 = ((e.r64((frame + 0x64))) as u32); e.w32(a0, a1) };
-        { let a0 = g(e, 0x10248); let a1 = ((((e.r64((frame + 0x54))) as i32)) as u32); e.w32(a0, a1) };
+        { let a0 = g(e, 0x10240); let a1 = e.r64((frame + 0x4c)); /* P32 R36: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
+        { let a0 = g(e, 0x10250); let a1 = e.r64((frame + 0x5c)); /* P32 R36: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
+        { let a0 = g(e, 0x10258); let a1 = e.r64((frame + 0x64)); /* P32 R36: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
+        { let a0 = g(e, 0x10248); let a1 = e.r64((frame + 0x54)); /* P32 R36: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
         uVar2 = e.r64((frame + 0x54));
         { let a0 = (e.r32(e.r32(g(e, 0x102a4)))).wrapping_add(100u32); let a1 = ((e.r32(g(e, 0x10248))) as i32); e.wi32(a0, a1) };
         { let a0 = g(e, 0x10248); e.w64(a0, (uVar2) as u64) };

@@ -46,11 +46,16 @@ pub fn spawn_voice_lr(commands: &mut Commands, sources: &mut Assets<AudioSource>
 }
 
 /// J7: per-frame VOLL/VOLR update of the playing split voices: `gains(handle)` -> (left, right).
-pub fn update_voice_gains(sinks: &mut Query<(&VoiceHandle, &VoiceSide, &mut bevy_audio::AudioSink)>, gains: &dyn Fn(u32) -> Option<(f32, f32)>) {
+/// P32 R1: + the live pitch (EFNewSound_SP::SetPitch -> SOUND_SetChannelPitch on the playing voice;
+/// the speed was only set at spawn).
+pub fn update_voice_gains(sinks: &mut Query<(&VoiceHandle, &VoiceSide, &mut bevy_audio::AudioSink)>, gains: &dyn Fn(u32) -> Option<(f32, f32, f32)>) {
     for (h, side, mut sink) in sinks.iter_mut() {
-        if let Some((l, r)) = gains(h.0) {
+        if let Some((l, r, pitch)) = gains(h.0) {
             let g = if side.0 == 0 { l } else { r };
             bevy_audio::AudioSinkPlayback::set_volume(&mut *sink, Volume::Linear(g.clamp(0.0, 1.0)));
+            if bevy_audio::AudioSinkPlayback::speed(&*sink) != pitch {
+                bevy_audio::AudioSinkPlayback::set_speed(&mut *sink, pitch);
+            }
         }
     }
 }

@@ -50,23 +50,23 @@ pub fn WeightPuzzleST_UPDATEARROW_SET(e: &mut Engine, ep1: u32) -> LResult<u64> 
     { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((38u32).wrapping_mul(4)); e.w32(a0, 0u32) };
     { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((39u32).wrapping_mul(4)); e.w32(a0, 0u32) };
     if (e.r32((e.r32(g(e, 0x10044))).wrapping_add((8u32).wrapping_mul(4))) == 0x2a000172u32) {
-        if (20.0 <= ((e.r32((e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)))) as f32)) {
+        if (20.0 <= f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4))))) {
             { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)); e.w32(a0, 0x41a00000u32) };
-        } else if (((e.r32((e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)))) as f32) <= 0.0) {
+        } else if (f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)))) <= 0.0) {
             { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)); e.w32(a0, 0u32) };
         }
-        { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((37u32).wrapping_mul(4)); let a1 = (((((((e.r32((e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)))) as f32) / 20.0)) as i32)) as u32); e.w32(a0, a1) };
+        { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((37u32).wrapping_mul(4)); let a1 = (f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)))) / 20.0).to_bits(); e.w32(a0, a1) };
     } else if (e.r32((e.r32(g(e, 0x10044))).wrapping_add((8u32).wrapping_mul(4))) == 0x2a000173u32) {
-        if (20.0 <= ((e.r32((e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)))) as f32)) {
+        if (20.0 <= f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4))))) {
             { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)); e.w32(a0, 0x41a00000u32) };
-        } else if (((e.r32((e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)))) as f32) <= 0.0) {
+        } else if (f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)))) <= 0.0) {
             { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)); e.w32(a0, 0u32) };
         }
-        { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((37u32).wrapping_mul(4)); let a1 = (((((((e.r32((e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)))) as f32) / 20.0)) as i32)) as u32); e.w32(a0, a1) };
+        { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((37u32).wrapping_mul(4)); let a1 = (f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)))) / 20.0).to_bits(); e.w32(a0, a1) };
     }
-    if (1.0 <= ((e.r32((e.r32(g(e, 0x10044))).wrapping_add((37u32).wrapping_mul(4)))) as f32)) {
+    if (1.0 <= f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((37u32).wrapping_mul(4))))) {
         { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((37u32).wrapping_mul(4)); e.w32(a0, 0x3f800000u32) };
-    } else if (((e.r32((e.r32(g(e, 0x10044))).wrapping_add((37u32).wrapping_mul(4)))) as f32) <= 0.0) {
+    } else if (f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((37u32).wrapping_mul(4)))) <= 0.0) {
         { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((37u32).wrapping_mul(4)); e.w32(a0, 0u32) };
     }
     let _ = { let a5 = (e.r32(g(e, 0x10044))).wrapping_add((((35i32) as u32)).wrapping_mul(4)); APIanim::PlayBlendConnect(e, 0x2a000000u32, 2u32, 1u32, 6u32, a5) };
@@ -138,7 +138,7 @@ pub fn WeightPuzzleCB_INPUTACTION_X(e: &mut Engine, ep1: u32) -> LResult<u64> {
             { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((10u32).wrapping_mul(4)); e.w32(a0, 0x40800000u32) };
         }
     }
-    { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)); let a1 = (((((((e.r32((e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)))) as f32) + ((e.r32((e.r32(g(e, 0x10044))).wrapping_add((10u32).wrapping_mul(4)))) as f32))) as i32)) as u32); e.w32(a0, a1) };
+    { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)); let a1 = (f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((9u32).wrapping_mul(4)))) + f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((10u32).wrapping_mul(4))))).to_bits(); e.w32(a0, a1) };
     let _ = { let a1 = ((e.r32(e.r32(g(e, 0x10044)))) as i32); APIinput::InputConfigActivate(e, a1, 0i32) };
     if (e.r32(g(e, 0x10014)) != 0u32) {
         let _ = { let a1 = e.cstr("WeightPuzzle"); let a2 = e.cstr("InputConfigActivate - FALSE"); LIBdebug::PrintDebugInfo(e, a1, a2) };
@@ -220,9 +220,9 @@ pub fn WeightPuzzleCB_TIMER(e: &mut Engine, ep1: u32) -> LResult<u64> {
     } else {
         if (((param_1) as u32) == e.r32((e.r32(g(e, 0x10044))).wrapping_add((41u32).wrapping_mul(4)))) {
             if (e.r32((e.r32(g(e, 0x10044))).wrapping_add((8u32).wrapping_mul(4))) == 0x2a000172u32) {
-                if (((e.r32((e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)))) as f32) < 1.0) {
-                    { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)); let a1 = (((((((e.r32((e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)))) as f32) + 0.1)) as i32)) as u32); e.w32(a0, a1) };
-                    if (1.0 < ((e.r32((e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)))) as f32)) {
+                if (f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)))) < 1.0) {
+                    { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)); let a1 = (f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)))) + 0.1).to_bits(); e.w32(a0, a1) };
+                    if (1.0 < f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4))))) {
                         { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)); e.w32(a0, 0x3f800000u32) };
                     }
                     let _ = { let a1 = e.r32((e.r32(g(e, 0x10044))).wrapping_add((41u32).wrapping_mul(4))); APIextra::TimerReset(e, a1) };
@@ -238,9 +238,9 @@ pub fn WeightPuzzleCB_TIMER(e: &mut Engine, ep1: u32) -> LResult<u64> {
                 }
             }
             if (e.r32((e.r32(g(e, 0x10044))).wrapping_add((8u32).wrapping_mul(4))) == 0x2a000173u32) {
-                if (((e.r32((e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)))) as f32) < 1.0) {
-                    { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)); let a1 = (((((((e.r32((e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)))) as f32) + 0.1)) as i32)) as u32); e.w32(a0, a1) };
-                    if (1.0 < ((e.r32((e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)))) as f32)) {
+                if (f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)))) < 1.0) {
+                    { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)); let a1 = (f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)))) + 0.1).to_bits(); e.w32(a0, a1) };
+                    if (1.0 < f32::from_bits(e.r32((e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4))))) {
                         { let a0 = (e.r32(g(e, 0x10044))).wrapping_add((43u32).wrapping_mul(4)); e.w32(a0, 0x3f800000u32) };
                     }
                     let _ = { let a1 = e.r32((e.r32(g(e, 0x10044))).wrapping_add((41u32).wrapping_mul(4))); APIextra::TimerReset(e, a1) };

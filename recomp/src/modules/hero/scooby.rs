@@ -79,6 +79,7 @@ pub fn scoobyFUNC_Create_Local(e: &mut Engine) -> LResult<()> {
 
 fn prim_bits(e: &mut Engine, set: bool, attr: u32, bits: u32) {
     let prim = e.r32(L(e) + 0x18c);
+    if std::env::var_os("GAME_TOWERLOG").is_some() { eprintln!("PRIMBITS hero {:#x} set {set} attr {attr} bits {bits:#x}", APIgameobj::GetID(e, SELF, 0)); }
     if set {
         APIphysic::PrimSetIntAttribBits(e, SELF, prim, attr, bits);
     } else {

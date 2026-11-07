@@ -141,7 +141,7 @@ pub fn Camera_BaseFUNC_MessageHandler(e: &mut Engine, param_1: u32, param_2: u32
             APIinput::InputConfigActivate(e, 4, 1);
         }
         0xc6 => {}
-        0xc1 => FloorEventForceState(e, 5),
+        0xc1 => FloorEventForceState(e, 5)?,
         0x97 => {
             e.w32(l + 0xe8, 5);
             if param_3 != NULL && e.r32(param_3) != 0 && e.r32(gb0) != 0 && e.r32(gb0) != e.r32(gb0 + 4) {
@@ -236,7 +236,7 @@ pub fn Camera_BaseFUNC_MessageHandler(e: &mut Engine, param_1: u32, param_2: u32
 }
 
 /// 0x0001f930 l01_cameraDestructor -> Ep1_CameraFUNC_Destructor -> Camera_BaseFUNC_Destructor
-/// (FloorEventDestructor is called by Ep1's destructor).
+/// (FloorEventDestructor is a module entry without a caller in the C).
 pub fn Camera_BaseFUNC_Destructor(e: &mut Engine, instanceCount: i32) {
     let l = LB(e);
     let c = e.r32(l + 200);

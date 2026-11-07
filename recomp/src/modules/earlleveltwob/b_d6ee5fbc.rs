@@ -269,7 +269,7 @@ pub fn earlmilton_baseConstructor(e: &mut Engine, mut api: Ptr, mut param_2: i32
     uVar3 = APIextra::TimerCreate(e);
     { let a0 = e.r32(g(e, 0x10034)); e.w32(a0, uVar3) };
     pAVar1 = e.r32(g(e, 0x10014));
-    let _ = APIextra::TimerGetTime(e, 0x90000000u32);
+    fVar4 = APIextra::TimerGetTime(e, 0x90000000u32);
     let _ = APIstdlib::srand(e, ((((fVar4) as i32)) as u32));
     let _ = { let a2 = e.r32((e.r32(e.r32(g(e, 0x10038)))).wrapping_add(8u32)); LIBMiscFunc::MiscFunc_SetClipping(e, 0x2a000000u32, a2, 0i32) };
     uVar3 = APIgameobj::GetID(e, 0x2a000000u32, NULL);

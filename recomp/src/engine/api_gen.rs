@@ -60,33 +60,33 @@ pub trait APIcamera {
     fn DestroyCamera(&mut self, a0: u32) -> u32;
 }
 impl APIcamera for Engine {
-    fn CreateCamera(&mut self, a0: u32) -> u32 { self.host.APIcamera_CreateCamera(&mut self.mem, a0) }
-    fn Activate(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIcamera_Activate(&mut self.mem, a0, a1) }
-    fn SetPriority(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIcamera_SetPriority(&mut self.mem, a0, a1) }
-    fn GetPriority(&mut self, a0: u32) -> u32 { self.host.APIcamera_GetPriority(&mut self.mem, a0) }
-    fn SetFarClipPlane(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIcamera_SetFarClipPlane(&mut self.mem, a0, a1) }
-    fn SetNearClipPlane(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIcamera_SetNearClipPlane(&mut self.mem, a0, a1) }
-    fn SetClearColor(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIcamera_SetClearColor(&mut self.mem, a0, a1) }
-    fn SetClearMode(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIcamera_SetClearMode(&mut self.mem, a0, a1) }
-    fn SetProjection(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIcamera_SetProjection(&mut self.mem, a0, a1) }
-    fn GetViewWindow(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u32 { self.host.APIcamera_GetViewWindow(&mut self.mem, a0, a1, a2) }
-    fn SetViewWindow(&mut self, a0: u32, a1: f32, a2: f32) -> u32 { self.host.APIcamera_SetViewWindow(&mut self.mem, a0, a1, a2) }
-    fn SetDisplayArea(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIcamera_SetDisplayArea(&mut self.mem, a0, a1) }
-    fn GetDisplayArea(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIcamera_GetDisplayArea(&mut self.mem, a0, a1) }
-    fn SetRenderFlag(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIcamera_SetRenderFlag(&mut self.mem, a0, a1) }
-    fn SetFOV(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIcamera_SetFOV(&mut self.mem, a0, a1) }
-    fn TakeSnapShot(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIcamera_TakeSnapShot(&mut self.mem, a0, a1) }
-    fn ProjectOntoFrustum(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u8 { self.host.APIcamera_ProjectOntoFrustum(&mut self.mem, a0, a1, a2) }
-    fn IsSphereInFrustrum(&mut self, a0: u32, a1: Ptr, a2: f32) -> u32 { self.host.APIcamera_IsSphereInFrustrum(&mut self.mem, a0, a1, a2) }
-    fn EnableFog(&mut self, a0: u32, a1: i32) -> u32 { self.host.APIcamera_EnableFog(&mut self.mem, a0, a1) }
-    fn SetFogType(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIcamera_SetFogType(&mut self.mem, a0, a1) }
-    fn GetFogType(&mut self, a0: u32) -> u32 { self.host.APIcamera_GetFogType(&mut self.mem, a0) }
-    fn SetFogColor(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIcamera_SetFogColor(&mut self.mem, a0, a1) }
-    fn SetFogDensity(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIcamera_SetFogDensity(&mut self.mem, a0, a1) }
-    fn GetFogDensity(&mut self, a0: u32) -> u32 { self.host.APIcamera_GetFogDensity(&mut self.mem, a0) }
-    fn SetFogDistance(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIcamera_SetFogDistance(&mut self.mem, a0, a1) }
-    fn GetFogDistance(&mut self, a0: u32) -> u32 { self.host.APIcamera_GetFogDistance(&mut self.mem, a0) }
-    fn DestroyCamera(&mut self, a0: u32) -> u32 { self.host.APIcamera_DestroyCamera(&mut self.mem, a0) }
+    fn CreateCamera(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_CreateCamera(&mut self.mem, a0) }
+    fn Activate(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_Activate(&mut self.mem, a0, a1) }
+    fn SetPriority(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_SetPriority(&mut self.mem, a0, a1) }
+    fn GetPriority(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_GetPriority(&mut self.mem, a0) }
+    fn SetFarClipPlane(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_SetFarClipPlane(&mut self.mem, a0, a1) }
+    fn SetNearClipPlane(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_SetNearClipPlane(&mut self.mem, a0, a1) }
+    fn SetClearColor(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_SetClearColor(&mut self.mem, a0, a1) }
+    fn SetClearMode(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_SetClearMode(&mut self.mem, a0, a1) }
+    fn SetProjection(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_SetProjection(&mut self.mem, a0, a1) }
+    fn GetViewWindow(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_GetViewWindow(&mut self.mem, a0, a1, a2) }
+    fn SetViewWindow(&mut self, a0: u32, a1: f32, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_SetViewWindow(&mut self.mem, a0, a1, a2) }
+    fn SetDisplayArea(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_SetDisplayArea(&mut self.mem, a0, a1) }
+    fn GetDisplayArea(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_GetDisplayArea(&mut self.mem, a0, a1) }
+    fn SetRenderFlag(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_SetRenderFlag(&mut self.mem, a0, a1) }
+    fn SetFOV(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_SetFOV(&mut self.mem, a0, a1) }
+    fn TakeSnapShot(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_TakeSnapShot(&mut self.mem, a0, a1) }
+    fn ProjectOntoFrustum(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_ProjectOntoFrustum(&mut self.mem, a0, a1, a2) }
+    fn IsSphereInFrustrum(&mut self, a0: u32, a1: Ptr, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_IsSphereInFrustrum(&mut self.mem, a0, a1, a2) }
+    fn EnableFog(&mut self, a0: u32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_EnableFog(&mut self.mem, a0, a1) }
+    fn SetFogType(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_SetFogType(&mut self.mem, a0, a1) }
+    fn GetFogType(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_GetFogType(&mut self.mem, a0) }
+    fn SetFogColor(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_SetFogColor(&mut self.mem, a0, a1) }
+    fn SetFogDensity(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_SetFogDensity(&mut self.mem, a0, a1) }
+    fn GetFogDensity(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_GetFogDensity(&mut self.mem, a0) }
+    fn SetFogDistance(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_SetFogDistance(&mut self.mem, a0, a1) }
+    fn GetFogDistance(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_GetFogDistance(&mut self.mem, a0) }
+    fn DestroyCamera(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIcamera_DestroyCamera(&mut self.mem, a0) }
 }
 
 pub trait APIgame {
@@ -123,20 +123,20 @@ pub trait APIgame {
 }
 impl APIgame for Engine {
     fn Pause(&mut self, a0: u32) -> u32 { super::host::game::Pause(self, a0) }
-    fn LoadLevel(&mut self, a0: Ptr, a1: Ptr, a2: Ptr) -> Ptr { self.host.APIgame_LoadLevel(&mut self.mem, a0, a1, a2) }
-    fn PlayCutScene(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgame_PlayCutScene(&mut self.mem, a0, a1) }
-    fn PlugNPlayCutScene(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { self.host.APIgame_PlugNPlayCutScene(&mut self.mem, a0, a1, a2) }
-    fn StopCutScene(&mut self) -> u32 { self.host.APIgame_StopCutScene(&mut self.mem) }
-    fn SkipCutScene(&mut self) -> u32 { self.host.APIgame_SkipCutScene(&mut self.mem) }
-    fn SetCutSceneVolume(&mut self, a0: f32) -> u32 { self.host.APIgame_SetCutSceneVolume(&mut self.mem, a0) }
-    fn SetGameLanguage(&mut self, a0: Ptr) -> Ptr { self.host.APIgame_SetGameLanguage(&mut self.mem, a0) }
-    fn GetGameLanguage(&mut self) -> i32 { self.host.APIgame_GetGameLanguage(&mut self.mem) }
+    fn LoadLevel(&mut self, a0: Ptr, a1: Ptr, a2: Ptr) -> Ptr { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgame_LoadLevel(&mut self.mem, a0, a1, a2) }
+    fn PlayCutScene(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgame_PlayCutScene(&mut self.mem, a0, a1) }
+    fn PlugNPlayCutScene(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgame_PlugNPlayCutScene(&mut self.mem, a0, a1, a2) }
+    fn StopCutScene(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgame_StopCutScene(&mut self.mem) }
+    fn SkipCutScene(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgame_SkipCutScene(&mut self.mem) }
+    fn SetCutSceneVolume(&mut self, a0: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgame_SetCutSceneVolume(&mut self.mem, a0) }
+    fn SetGameLanguage(&mut self, a0: Ptr) -> Ptr { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgame_SetGameLanguage(&mut self.mem, a0) }
+    fn GetGameLanguage(&mut self) -> i32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgame_GetGameLanguage(&mut self.mem) }
     fn GetFrameDeltaTime(&mut self) -> f32 { super::core::apigame::GetFrameDeltaTime(self) }
-    fn GetExternalFileData(&mut self, a0: Ptr, a1: Ptr) -> u32 { self.host.APIgame_GetExternalFileData(&mut self.mem, a0, a1) }
-    fn DoesLevelFileExist(&mut self, a0: Ptr, a1: Ptr) -> u32 { self.host.APIgame_DoesLevelFileExist(&mut self.mem, a0, a1) }
-    fn QuitGame(&mut self) -> u32 { self.host.APIgame_QuitGame(&mut self.mem) }
-    fn GetDemoLaunchData(&mut self) -> u32 { self.host.APIgame_GetDemoLaunchData(&mut self.mem) }
-    fn GetSystemRegion(&mut self) -> u32 { self.host.APIgame_GetSystemRegion(&mut self.mem) }
+    fn GetExternalFileData(&mut self, a0: Ptr, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgame_GetExternalFileData(&mut self.mem, a0, a1) }
+    fn DoesLevelFileExist(&mut self, a0: Ptr, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgame_DoesLevelFileExist(&mut self.mem, a0, a1) }
+    fn QuitGame(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgame_QuitGame(&mut self.mem) }
+    fn GetDemoLaunchData(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgame_GetDemoLaunchData(&mut self.mem) }
+    fn GetSystemRegion(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgame_GetSystemRegion(&mut self.mem) }
 }
 
 pub trait APIcons {
@@ -263,19 +263,19 @@ pub trait APIstdlib {
     fn strtoul(&mut self, a0: Ptr, a1: Ptr, a2: i32) -> u64;
 }
 impl APIstdlib for Engine {
-    fn abs(&mut self, a0: i32) -> i32 { self.host.APIstdlib_abs(&mut self.mem, a0) }
-    fn atof(&mut self, a0: Ptr) -> f64 { self.host.APIstdlib_atof(&mut self.mem, a0) }
-    fn atoi(&mut self, a0: Ptr) -> i32 { self.host.APIstdlib_atoi(&mut self.mem, a0) }
-    fn atol(&mut self, a0: Ptr) -> i64 { self.host.APIstdlib_atol(&mut self.mem, a0) }
-    fn div(&mut self, a0: i32, a1: i32) -> u64 { self.host.APIstdlib_div(&mut self.mem, a0, a1) }
-    fn labs(&mut self, a0: i64) -> i64 { self.host.APIstdlib_labs(&mut self.mem, a0) }
-    fn ldiv(&mut self, a0: Ptr, a1: i64, a2: i64) -> Ptr { self.host.APIstdlib_ldiv(&mut self.mem, a0, a1, a2) }
-    fn mblen(&mut self, a0: Ptr, a1: u32) -> i32 { self.host.APIstdlib_mblen(&mut self.mem, a0, a1) }
-    fn MyRand(&mut self) -> u32 { self.host.APIstdlib_MyRand(&mut self.mem) }
-    fn srand(&mut self, a0: u32) -> u32 { self.host.APIstdlib_srand(&mut self.mem, a0) }
-    fn strtod(&mut self, a0: Ptr, a1: Ptr) -> f64 { self.host.APIstdlib_strtod(&mut self.mem, a0, a1) }
-    fn strtol(&mut self, a0: Ptr, a1: Ptr, a2: i32) -> i64 { self.host.APIstdlib_strtol(&mut self.mem, a0, a1, a2) }
-    fn strtoul(&mut self, a0: Ptr, a1: Ptr, a2: i32) -> u64 { self.host.APIstdlib_strtoul(&mut self.mem, a0, a1, a2) }
+    fn abs(&mut self, a0: i32) -> i32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIstdlib_abs(&mut self.mem, a0) }
+    fn atof(&mut self, a0: Ptr) -> f64 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIstdlib_atof(&mut self.mem, a0) }
+    fn atoi(&mut self, a0: Ptr) -> i32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIstdlib_atoi(&mut self.mem, a0) }
+    fn atol(&mut self, a0: Ptr) -> i64 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIstdlib_atol(&mut self.mem, a0) }
+    fn div(&mut self, a0: i32, a1: i32) -> u64 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIstdlib_div(&mut self.mem, a0, a1) }
+    fn labs(&mut self, a0: i64) -> i64 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIstdlib_labs(&mut self.mem, a0) }
+    fn ldiv(&mut self, a0: Ptr, a1: i64, a2: i64) -> Ptr { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIstdlib_ldiv(&mut self.mem, a0, a1, a2) }
+    fn mblen(&mut self, a0: Ptr, a1: u32) -> i32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIstdlib_mblen(&mut self.mem, a0, a1) }
+    fn MyRand(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIstdlib_MyRand(&mut self.mem) }
+    fn srand(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIstdlib_srand(&mut self.mem, a0) }
+    fn strtod(&mut self, a0: Ptr, a1: Ptr) -> f64 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIstdlib_strtod(&mut self.mem, a0, a1) }
+    fn strtol(&mut self, a0: Ptr, a1: Ptr, a2: i32) -> i64 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIstdlib_strtol(&mut self.mem, a0, a1, a2) }
+    fn strtoul(&mut self, a0: Ptr, a1: Ptr, a2: i32) -> u64 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIstdlib_strtoul(&mut self.mem, a0, a1, a2) }
 }
 
 pub trait APIhud {
@@ -353,42 +353,42 @@ pub trait APIhud {
     fn TextWindowSetString(&mut self, a0: u32, a1: Ptr, a2: u32) -> u32;
 }
 impl APIhud for Engine {
-    fn WindowAdd(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { self.host.APIhud_WindowAdd(&mut self.mem, a0, a1, a2, a3) }
-    fn WindowDelete(&mut self, a0: u32) -> u32 { self.host.APIhud_WindowDelete(&mut self.mem, a0) }
-    fn WindowSetFlags(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIhud_WindowSetFlags(&mut self.mem, a0, a1) }
-    fn WindowResetFlags(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIhud_WindowResetFlags(&mut self.mem, a0, a1) }
-    fn WindowGetFlags(&mut self, a0: u32) -> u32 { self.host.APIhud_WindowGetFlags(&mut self.mem, a0) }
-    fn WindowSetTimer(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIhud_WindowSetTimer(&mut self.mem, a0, a1) }
-    fn WindowSetPos(&mut self, a0: u32, a1: f32, a2: f32) -> u32 { self.host.APIhud_WindowSetPos(&mut self.mem, a0, a1, a2) }
-    fn WindowSetDims(&mut self, a0: u32, a1: f32, a2: f32) -> u32 { self.host.APIhud_WindowSetDims(&mut self.mem, a0, a1, a2) }
-    fn WindowSetGrid(&mut self, a0: u32, a1: u32, a2: u32, a3: u32, a4: u32, a5: u32, a6: u32) -> u32 { self.host.APIhud_WindowSetGrid(&mut self.mem, a0, a1, a2, a3, a4, a5, a6) }
-    fn WindowSetBackGround(&mut self, a0: u32, a1: u32, a2: f32, a3: f32) -> u32 { self.host.APIhud_WindowSetBackGround(&mut self.mem, a0, a1, a2, a3) }
-    fn WindowSetName(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIhud_WindowSetName(&mut self.mem, a0, a1) }
-    fn WindowFind(&mut self, a0: u32) -> u32 { self.host.APIhud_WindowFind(&mut self.mem, a0) }
-    fn WindowSetID(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIhud_WindowSetID(&mut self.mem, a0, a1) }
-    fn WindowGetNextSibling(&mut self, a0: u32) -> u32 { self.host.APIhud_WindowGetNextSibling(&mut self.mem, a0) }
-    fn WindowGetFirstChild(&mut self, a0: u32) -> u32 { self.host.APIhud_WindowGetFirstChild(&mut self.mem, a0) }
-    fn WindowGetParent(&mut self, a0: u32) -> u32 { self.host.APIhud_WindowGetParent(&mut self.mem, a0) }
-    fn WindowGetPos(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u32 { self.host.APIhud_WindowGetPos(&mut self.mem, a0, a1, a2) }
-    fn WindowGetDims(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u32 { self.host.APIhud_WindowGetDims(&mut self.mem, a0, a1, a2) }
-    fn WindowSaveAll(&mut self, a0: Ptr) -> u32 { self.host.APIhud_WindowSaveAll(&mut self.mem, a0) }
-    fn Window2DSetTexture(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIhud_Window2DSetTexture(&mut self.mem, a0, a1) }
-    fn Window2DSetTiling(&mut self, a0: u32, a1: f32, a2: f32) -> u32 { self.host.APIhud_Window2DSetTiling(&mut self.mem, a0, a1, a2) }
-    fn Window2DSetColor(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIhud_Window2DSetColor(&mut self.mem, a0, a1) }
-    fn Window3DSetObj(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { self.host.APIhud_Window3DSetObj(&mut self.mem, a0, a1, a2) }
-    fn TextWindowSetText(&mut self, a0: u32, a1: u32, a2: &[u32]) -> u32 { self.host.APIhud_TextWindowSetText(&mut self.mem, a0, a1, a2) }
-    fn TextWindowSetMargins(&mut self, a0: u32, a1: f32, a2: f32, a3: f32, a4: f32) -> u32 { self.host.APIhud_TextWindowSetMargins(&mut self.mem, a0, a1, a2, a3, a4) }
-    fn TextWindowSetStringToDisplay(&mut self, a0: u32, a1: Ptr, a2: &[u32]) -> u32 { self.host.APIhud_TextWindowSetStringToDisplay(&mut self.mem, a0, a1, a2) }
-    fn TextWindowSetColor(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIhud_TextWindowSetColor(&mut self.mem, a0, a1) }
-    fn TextWindowSetFont(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIhud_TextWindowSetFont(&mut self.mem, a0, a1) }
-    fn TextSetCurrentLanguage(&mut self, a0: u32) -> u32 { self.host.APIhud_TextSetCurrentLanguage(&mut self.mem, a0) }
-    fn TextGetCurrentLanguage(&mut self) -> u32 { self.host.APIhud_TextGetCurrentLanguage(&mut self.mem) }
-    fn ColorCopy(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { self.host.APIhud_ColorCopy(&mut self.mem, a0, a1, a2, a3) }
-    fn ColorBlend(&mut self, a0: u32, a1: u32, a2: u32, a3: u32, a4: f32, a5: u32) -> u32 { self.host.APIhud_ColorBlend(&mut self.mem, a0, a1, a2, a3, a4, a5) }
-    fn ColorFadeStart(&mut self, a0: u32, a1: u32, a2: u32, a3: u32, a4: f32, a5: u32) -> u32 { self.host.APIhud_ColorFadeStart(&mut self.mem, a0, a1, a2, a3, a4, a5) }
-    fn ColorFadeStop(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIhud_ColorFadeStop(&mut self.mem, a0, a1) }
-    fn ColorIsFading(&mut self, a0: u32, a1: u32) -> u8 { self.host.APIhud_ColorIsFading(&mut self.mem, a0, a1) }
-    fn TextWindowSetString(&mut self, a0: u32, a1: Ptr, a2: u32) -> u32 { self.host.APIhud_TextWindowSetString(&mut self.mem, a0, a1, a2) }
+    fn WindowAdd(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowAdd(&mut self.mem, a0, a1, a2, a3) }
+    fn WindowDelete(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowDelete(&mut self.mem, a0) }
+    fn WindowSetFlags(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowSetFlags(&mut self.mem, a0, a1) }
+    fn WindowResetFlags(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowResetFlags(&mut self.mem, a0, a1) }
+    fn WindowGetFlags(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowGetFlags(&mut self.mem, a0) }
+    fn WindowSetTimer(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowSetTimer(&mut self.mem, a0, a1) }
+    fn WindowSetPos(&mut self, a0: u32, a1: f32, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowSetPos(&mut self.mem, a0, a1, a2) }
+    fn WindowSetDims(&mut self, a0: u32, a1: f32, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowSetDims(&mut self.mem, a0, a1, a2) }
+    fn WindowSetGrid(&mut self, a0: u32, a1: u32, a2: u32, a3: u32, a4: u32, a5: u32, a6: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowSetGrid(&mut self.mem, a0, a1, a2, a3, a4, a5, a6) }
+    fn WindowSetBackGround(&mut self, a0: u32, a1: u32, a2: f32, a3: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowSetBackGround(&mut self.mem, a0, a1, a2, a3) }
+    fn WindowSetName(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowSetName(&mut self.mem, a0, a1) }
+    fn WindowFind(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowFind(&mut self.mem, a0) }
+    fn WindowSetID(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowSetID(&mut self.mem, a0, a1) }
+    fn WindowGetNextSibling(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowGetNextSibling(&mut self.mem, a0) }
+    fn WindowGetFirstChild(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowGetFirstChild(&mut self.mem, a0) }
+    fn WindowGetParent(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowGetParent(&mut self.mem, a0) }
+    fn WindowGetPos(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowGetPos(&mut self.mem, a0, a1, a2) }
+    fn WindowGetDims(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowGetDims(&mut self.mem, a0, a1, a2) }
+    fn WindowSaveAll(&mut self, a0: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_WindowSaveAll(&mut self.mem, a0) }
+    fn Window2DSetTexture(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_Window2DSetTexture(&mut self.mem, a0, a1) }
+    fn Window2DSetTiling(&mut self, a0: u32, a1: f32, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_Window2DSetTiling(&mut self.mem, a0, a1, a2) }
+    fn Window2DSetColor(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_Window2DSetColor(&mut self.mem, a0, a1) }
+    fn Window3DSetObj(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_Window3DSetObj(&mut self.mem, a0, a1, a2) }
+    fn TextWindowSetText(&mut self, a0: u32, a1: u32, a2: &[u32]) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_TextWindowSetText(&mut self.mem, a0, a1, a2) }
+    fn TextWindowSetMargins(&mut self, a0: u32, a1: f32, a2: f32, a3: f32, a4: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_TextWindowSetMargins(&mut self.mem, a0, a1, a2, a3, a4) }
+    fn TextWindowSetStringToDisplay(&mut self, a0: u32, a1: Ptr, a2: &[u32]) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_TextWindowSetStringToDisplay(&mut self.mem, a0, a1, a2) }
+    fn TextWindowSetColor(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_TextWindowSetColor(&mut self.mem, a0, a1) }
+    fn TextWindowSetFont(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_TextWindowSetFont(&mut self.mem, a0, a1) }
+    fn TextSetCurrentLanguage(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_TextSetCurrentLanguage(&mut self.mem, a0) }
+    fn TextGetCurrentLanguage(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_TextGetCurrentLanguage(&mut self.mem) }
+    fn ColorCopy(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_ColorCopy(&mut self.mem, a0, a1, a2, a3) }
+    fn ColorBlend(&mut self, a0: u32, a1: u32, a2: u32, a3: u32, a4: f32, a5: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_ColorBlend(&mut self.mem, a0, a1, a2, a3, a4, a5) }
+    fn ColorFadeStart(&mut self, a0: u32, a1: u32, a2: u32, a3: u32, a4: f32, a5: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_ColorFadeStart(&mut self.mem, a0, a1, a2, a3, a4, a5) }
+    fn ColorFadeStop(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_ColorFadeStop(&mut self.mem, a0, a1) }
+    fn ColorIsFading(&mut self, a0: u32, a1: u32) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_ColorIsFading(&mut self.mem, a0, a1) }
+    fn TextWindowSetString(&mut self, a0: u32, a1: Ptr, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIhud_TextWindowSetString(&mut self.mem, a0, a1, a2) }
 }
 
 pub trait APIgraphics {
@@ -454,36 +454,36 @@ pub trait APIgraphics {
     fn DoStupidXboxShadowHack(&mut self, a0: u8) -> u32;
 }
 impl APIgraphics for Engine {
-    fn SpriteAddGroup(&mut self) -> u32 { self.host.APIgraphics_SpriteAddGroup(&mut self.mem) }
-    fn SpriteRemoveGroup(&mut self, a0: u32) -> u32 { self.host.APIgraphics_SpriteRemoveGroup(&mut self.mem, a0) }
-    fn SpriteSetGroupFlags(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgraphics_SpriteSetGroupFlags(&mut self.mem, a0, a1) }
-    fn SpriteGetGroupFlags(&mut self, a0: u32) -> u32 { self.host.APIgraphics_SpriteGetGroupFlags(&mut self.mem, a0) }
-    fn SpriteSetGroupTexture(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIgraphics_SpriteSetGroupTexture(&mut self.mem, a0, a1) }
-    fn SpriteSetGroupBlendMode(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgraphics_SpriteSetGroupBlendMode(&mut self.mem, a0, a1) }
-    fn SpriteSetGroupColor(&mut self, a0: u32, a1: f32, a2: f32, a3: f32, a4: f32) -> u32 { self.host.APIgraphics_SpriteSetGroupColor(&mut self.mem, a0, a1, a2, a3, a4) }
-    fn SpriteGroupAddSprite(&mut self, a0: u32, a1: u32, a2: u32, a3: f32) -> u32 { self.host.APIgraphics_SpriteGroupAddSprite(&mut self.mem, a0, a1, a2, a3) }
-    fn SpriteGroupRemoveSprite(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgraphics_SpriteGroupRemoveSprite(&mut self.mem, a0, a1) }
-    fn StartPaletteTransition(&mut self, a0: Ptr) -> u32 { self.host.APIgraphics_StartPaletteTransition(&mut self.mem, a0) }
-    fn TexFaderPlay(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIgraphics_TexFaderPlay(&mut self.mem, a0, a1) }
-    fn MTCreateSystem(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { self.host.APIgraphics_MTCreateSystem(&mut self.mem, a0, a1, a2) }
-    fn MTDestroySystem(&mut self, a0: u32) -> u32 { self.host.APIgraphics_MTDestroySystem(&mut self.mem, a0) }
-    fn MTSetFrequency(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIgraphics_MTSetFrequency(&mut self.mem, a0, a1) }
-    fn MTSetLifeSpan(&mut self, a0: u32, a1: u32, a2: f32) -> u32 { self.host.APIgraphics_MTSetLifeSpan(&mut self.mem, a0, a1, a2) }
-    fn MTSetJoint(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { self.host.APIgraphics_MTSetJoint(&mut self.mem, a0, a1, a2, a3) }
-    fn MTSetPosition(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32 { self.host.APIgraphics_MTSetPosition(&mut self.mem, a0, a1, a2) }
-    fn MTSetRGB(&mut self, a0: u32, a1: u32, a2: f32, a3: f32, a4: f32) -> u32 { self.host.APIgraphics_MTSetRGB(&mut self.mem, a0, a1, a2, a3, a4) }
-    fn MTStart(&mut self, a0: u32) -> u32 { self.host.APIgraphics_MTStart(&mut self.mem, a0) }
-    fn MTStopTracking(&mut self, a0: u32) -> u32 { self.host.APIgraphics_MTStopTracking(&mut self.mem, a0) }
-    fn MTStopDraw(&mut self, a0: u32) -> u32 { self.host.APIgraphics_MTStopDraw(&mut self.mem, a0) }
-    fn LensFlareActivate(&mut self, a0: u8) -> u32 { self.host.APIgraphics_LensFlareActivate(&mut self.mem, a0) }
-    fn LensFlareSetSunPosition(&mut self, a0: Ptr) -> u32 { self.host.APIgraphics_LensFlareSetSunPosition(&mut self.mem, a0) }
-    fn LensFlareAttachSunPositionToObject(&mut self, a0: u32) -> u32 { self.host.APIgraphics_LensFlareAttachSunPositionToObject(&mut self.mem, a0) }
-    fn LensFlareSetParams(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgraphics_LensFlareSetParams(&mut self.mem, a0, a1) }
-    fn SetGameObjBlendColor(&mut self, a0: u32, a1: u32, a2: f32, a3: f32, a4: f32, a5: f32) -> u32 { self.host.APIgraphics_SetGameObjBlendColor(&mut self.mem, a0, a1, a2, a3, a4, a5) }
-    fn DrawLines(&mut self, a0: Ptr) -> u32 { self.host.APIgraphics_DrawLines(&mut self.mem, a0) }
-    fn TexFaderPause(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgraphics_TexFaderPause(&mut self.mem, a0, a1) }
-    fn DoCrappyXboxSpewHackThingy(&mut self, a0: u32, a1: u32, a2: u8) -> u32 { self.host.APIgraphics_DoCrappyXboxSpewHackThingy(&mut self.mem, a0, a1, a2) }
-    fn DoStupidXboxShadowHack(&mut self, a0: u8) -> u32 { self.host.APIgraphics_DoStupidXboxShadowHack(&mut self.mem, a0) }
+    fn SpriteAddGroup(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_SpriteAddGroup(&mut self.mem) }
+    fn SpriteRemoveGroup(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_SpriteRemoveGroup(&mut self.mem, a0) }
+    fn SpriteSetGroupFlags(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_SpriteSetGroupFlags(&mut self.mem, a0, a1) }
+    fn SpriteGetGroupFlags(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_SpriteGetGroupFlags(&mut self.mem, a0) }
+    fn SpriteSetGroupTexture(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_SpriteSetGroupTexture(&mut self.mem, a0, a1) }
+    fn SpriteSetGroupBlendMode(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_SpriteSetGroupBlendMode(&mut self.mem, a0, a1) }
+    fn SpriteSetGroupColor(&mut self, a0: u32, a1: f32, a2: f32, a3: f32, a4: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_SpriteSetGroupColor(&mut self.mem, a0, a1, a2, a3, a4) }
+    fn SpriteGroupAddSprite(&mut self, a0: u32, a1: u32, a2: u32, a3: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_SpriteGroupAddSprite(&mut self.mem, a0, a1, a2, a3) }
+    fn SpriteGroupRemoveSprite(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_SpriteGroupRemoveSprite(&mut self.mem, a0, a1) }
+    fn StartPaletteTransition(&mut self, a0: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_StartPaletteTransition(&mut self.mem, a0) }
+    fn TexFaderPlay(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_TexFaderPlay(&mut self.mem, a0, a1) }
+    fn MTCreateSystem(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_MTCreateSystem(&mut self.mem, a0, a1, a2) }
+    fn MTDestroySystem(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_MTDestroySystem(&mut self.mem, a0) }
+    fn MTSetFrequency(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_MTSetFrequency(&mut self.mem, a0, a1) }
+    fn MTSetLifeSpan(&mut self, a0: u32, a1: u32, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_MTSetLifeSpan(&mut self.mem, a0, a1, a2) }
+    fn MTSetJoint(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_MTSetJoint(&mut self.mem, a0, a1, a2, a3) }
+    fn MTSetPosition(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_MTSetPosition(&mut self.mem, a0, a1, a2) }
+    fn MTSetRGB(&mut self, a0: u32, a1: u32, a2: f32, a3: f32, a4: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_MTSetRGB(&mut self.mem, a0, a1, a2, a3, a4) }
+    fn MTStart(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_MTStart(&mut self.mem, a0) }
+    fn MTStopTracking(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_MTStopTracking(&mut self.mem, a0) }
+    fn MTStopDraw(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_MTStopDraw(&mut self.mem, a0) }
+    fn LensFlareActivate(&mut self, a0: u8) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_LensFlareActivate(&mut self.mem, a0) }
+    fn LensFlareSetSunPosition(&mut self, a0: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_LensFlareSetSunPosition(&mut self.mem, a0) }
+    fn LensFlareAttachSunPositionToObject(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_LensFlareAttachSunPositionToObject(&mut self.mem, a0) }
+    fn LensFlareSetParams(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_LensFlareSetParams(&mut self.mem, a0, a1) }
+    fn SetGameObjBlendColor(&mut self, a0: u32, a1: u32, a2: f32, a3: f32, a4: f32, a5: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_SetGameObjBlendColor(&mut self.mem, a0, a1, a2, a3, a4, a5) }
+    fn DrawLines(&mut self, a0: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_DrawLines(&mut self.mem, a0) }
+    fn TexFaderPause(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_TexFaderPause(&mut self.mem, a0, a1) }
+    fn DoCrappyXboxSpewHackThingy(&mut self, a0: u32, a1: u32, a2: u8) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_DoCrappyXboxSpewHackThingy(&mut self.mem, a0, a1, a2) }
+    fn DoStupidXboxShadowHack(&mut self, a0: u8) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgraphics_DoStupidXboxShadowHack(&mut self.mem, a0) }
 }
 
 pub trait APIlight {
@@ -517,20 +517,20 @@ pub trait APIlight {
     fn GetName(&mut self, a0: u32, a1: Ptr) -> u32;
 }
 impl APIlight for Engine {
-    fn CreateLight(&mut self, a0: u32) -> u32 { self.host.APIlight_CreateLight(&mut self.mem, a0) }
-    fn SetFlag(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIlight_SetFlag(&mut self.mem, a0, a1) }
-    fn GetFlag(&mut self, a0: u32) -> u8 { self.host.APIlight_GetFlag(&mut self.mem, a0) }
-    fn SetColor(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIlight_SetColor(&mut self.mem, a0, a1) }
-    fn GetColor(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIlight_GetColor(&mut self.mem, a0, a1) }
-    fn SetRadius(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIlight_SetRadius(&mut self.mem, a0, a1) }
-    fn GetRadius(&mut self, a0: u32) -> u32 { self.host.APIlight_GetRadius(&mut self.mem, a0) }
-    fn SetConeAngle(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIlight_SetConeAngle(&mut self.mem, a0, a1) }
-    fn GetConeAngle(&mut self, a0: u32) -> u32 { self.host.APIlight_GetConeAngle(&mut self.mem, a0) }
-    fn SetVisible(&mut self, a0: u32, a1: i32) -> u32 { self.host.APIlight_SetVisible(&mut self.mem, a0, a1) }
-    fn IsVisible(&mut self, a0: u32) -> u32 { self.host.APIlight_IsVisible(&mut self.mem, a0) }
-    fn DestroyLight(&mut self, a0: u32) -> u32 { self.host.APIlight_DestroyLight(&mut self.mem, a0) }
-    fn SetName(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIlight_SetName(&mut self.mem, a0, a1) }
-    fn GetName(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIlight_GetName(&mut self.mem, a0, a1) }
+    fn CreateLight(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIlight_CreateLight(&mut self.mem, a0) }
+    fn SetFlag(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIlight_SetFlag(&mut self.mem, a0, a1) }
+    fn GetFlag(&mut self, a0: u32) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIlight_GetFlag(&mut self.mem, a0) }
+    fn SetColor(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIlight_SetColor(&mut self.mem, a0, a1) }
+    fn GetColor(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIlight_GetColor(&mut self.mem, a0, a1) }
+    fn SetRadius(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIlight_SetRadius(&mut self.mem, a0, a1) }
+    fn GetRadius(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIlight_GetRadius(&mut self.mem, a0) }
+    fn SetConeAngle(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIlight_SetConeAngle(&mut self.mem, a0, a1) }
+    fn GetConeAngle(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIlight_GetConeAngle(&mut self.mem, a0) }
+    fn SetVisible(&mut self, a0: u32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIlight_SetVisible(&mut self.mem, a0, a1) }
+    fn IsVisible(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIlight_IsVisible(&mut self.mem, a0) }
+    fn DestroyLight(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIlight_DestroyLight(&mut self.mem, a0) }
+    fn SetName(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIlight_SetName(&mut self.mem, a0, a1) }
+    fn GetName(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIlight_GetName(&mut self.mem, a0, a1) }
 }
 
 pub trait APIphysic {
@@ -626,51 +626,51 @@ pub trait APIphysic {
     fn PrimSetOffsetFromJoint(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32;
 }
 impl APIphysic for Engine {
-    fn CreatePhysic(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIphysic_CreatePhysic(&mut self.mem, a0, a1) }
-    fn SetFlags(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIphysic_SetFlags(&mut self.mem, a0, a1) }
-    fn ResetFlags(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIphysic_ResetFlags(&mut self.mem, a0, a1) }
-    fn GetFlags(&mut self, a0: u32) -> u32 { self.host.APIphysic_GetFlags(&mut self.mem, a0) }
-    fn GetPhysicState(&mut self, a0: u32) -> u32 { self.host.APIphysic_GetPhysicState(&mut self.mem, a0) }
-    fn SetFallingSpeed(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIphysic_SetFallingSpeed(&mut self.mem, a0, a1) }
-    fn SetFallingDelay(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIphysic_SetFallingDelay(&mut self.mem, a0, a1) }
-    fn SetStateChangeNotifyBits(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIphysic_SetStateChangeNotifyBits(&mut self.mem, a0, a1) }
-    fn ResetStateChangeNotifyBits(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIphysic_ResetStateChangeNotifyBits(&mut self.mem, a0, a1) }
-    fn SetStateChangeNotifyValue(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIphysic_SetStateChangeNotifyValue(&mut self.mem, a0, a1) }
-    fn SetFriction(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIphysic_SetFriction(&mut self.mem, a0, a1) }
-    fn GetFloorAttribs(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIphysic_GetFloorAttribs(&mut self.mem, a0, a1) }
-    fn GetFloorNormal(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIphysic_GetFloorNormal(&mut self.mem, a0, a1) }
-    fn SetHardness(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIphysic_SetHardness(&mut self.mem, a0, a1) }
-    fn SetRebound(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIphysic_SetRebound(&mut self.mem, a0, a1) }
-    fn SetPriority(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIphysic_SetPriority(&mut self.mem, a0, a1) }
-    fn SetWeight(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIphysic_SetWeight(&mut self.mem, a0, a1) }
-    fn Impulse(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIphysic_Impulse(&mut self.mem, a0, a1) }
-    fn SetVelocity(&mut self, a0: u32, a1: f32, a2: f32, a3: f32) -> u32 { self.host.APIphysic_SetVelocity(&mut self.mem, a0, a1, a2, a3) }
-    fn GetVelocity(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIphysic_GetVelocity(&mut self.mem, a0, a1) }
-    fn JumpOnCoor(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIphysic_JumpOnCoor(&mut self.mem, a0, a1) }
-    fn CheckRayIntersection(&mut self, a0: Ptr, a1: Ptr) -> u32 { self.host.APIphysic_CheckRayIntersection(&mut self.mem, a0, a1) }
-    fn GetDM(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { self.host.APIphysic_GetDM(&mut self.mem, a0, a1, a2) }
-    fn DMAdd(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIphysic_DMAdd(&mut self.mem, a0, a1) }
-    fn DMDoAction(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32 { self.host.APIphysic_DMDoAction(&mut self.mem, a0, a1, a2) }
-    fn DMGetData(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIphysic_DMGetData(&mut self.mem, a0, a1) }
-    fn DMGetParams(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIphysic_DMGetParams(&mut self.mem, a0, a1) }
-    fn DMSetParams(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIphysic_DMSetParams(&mut self.mem, a0, a1) }
-    fn DMSetContextMask(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIphysic_DMSetContextMask(&mut self.mem, a0, a1) }
-    fn DMSetActive(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIphysic_DMSetActive(&mut self.mem, a0, a1) }
-    fn DMIsActive(&mut self, a0: u32) -> u8 { self.host.APIphysic_DMIsActive(&mut self.mem, a0) }
-    fn DMGetState(&mut self, a0: u32) -> u32 { self.host.APIphysic_DMGetState(&mut self.mem, a0) }
-    fn DMSetStateChangeNotifyBits(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIphysic_DMSetStateChangeNotifyBits(&mut self.mem, a0, a1) }
-    fn DMResetStateChangeNotifyBits(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIphysic_DMResetStateChangeNotifyBits(&mut self.mem, a0, a1) }
-    fn DMSetStateBits(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIphysic_DMSetStateBits(&mut self.mem, a0, a1) }
-    fn DMResetStateBits(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIphysic_DMResetStateBits(&mut self.mem, a0, a1) }
-    fn SetPrimaryPrim(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIphysic_SetPrimaryPrim(&mut self.mem, a0, a1) }
-    fn SetSpherePrimaryVolume(&mut self, a0: u32, a1: f32, a2: f32, a3: f32, a4: f32) -> u32 { self.host.APIphysic_SetSpherePrimaryVolume(&mut self.mem, a0, a1, a2, a3, a4) }
-    fn PrimSetIntAttribBits(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { self.host.APIphysic_PrimSetIntAttribBits(&mut self.mem, a0, a1, a2, a3) }
-    fn PrimGetIntAttrib(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { self.host.APIphysic_PrimGetIntAttrib(&mut self.mem, a0, a1, a2) }
-    fn PrimResetIntAttribBits(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { self.host.APIphysic_PrimResetIntAttribBits(&mut self.mem, a0, a1, a2, a3) }
-    fn PrimSetIntAttribValue(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { self.host.APIphysic_PrimSetIntAttribValue(&mut self.mem, a0, a1, a2, a3) }
-    fn PrimUnlockIntAttrib(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { self.host.APIphysic_PrimUnlockIntAttrib(&mut self.mem, a0, a1, a2, a3) }
-    fn PrimGetOffsetFromJoint(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32 { self.host.APIphysic_PrimGetOffsetFromJoint(&mut self.mem, a0, a1, a2) }
-    fn PrimSetOffsetFromJoint(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32 { self.host.APIphysic_PrimSetOffsetFromJoint(&mut self.mem, a0, a1, a2) }
+    fn CreatePhysic(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_CreatePhysic(&mut self.mem, a0, a1) }
+    fn SetFlags(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_SetFlags(&mut self.mem, a0, a1) }
+    fn ResetFlags(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_ResetFlags(&mut self.mem, a0, a1) }
+    fn GetFlags(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_GetFlags(&mut self.mem, a0) }
+    fn GetPhysicState(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_GetPhysicState(&mut self.mem, a0) }
+    fn SetFallingSpeed(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_SetFallingSpeed(&mut self.mem, a0, a1) }
+    fn SetFallingDelay(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_SetFallingDelay(&mut self.mem, a0, a1) }
+    fn SetStateChangeNotifyBits(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_SetStateChangeNotifyBits(&mut self.mem, a0, a1) }
+    fn ResetStateChangeNotifyBits(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_ResetStateChangeNotifyBits(&mut self.mem, a0, a1) }
+    fn SetStateChangeNotifyValue(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_SetStateChangeNotifyValue(&mut self.mem, a0, a1) }
+    fn SetFriction(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_SetFriction(&mut self.mem, a0, a1) }
+    fn GetFloorAttribs(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_GetFloorAttribs(&mut self.mem, a0, a1) }
+    fn GetFloorNormal(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_GetFloorNormal(&mut self.mem, a0, a1) }
+    fn SetHardness(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_SetHardness(&mut self.mem, a0, a1) }
+    fn SetRebound(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_SetRebound(&mut self.mem, a0, a1) }
+    fn SetPriority(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_SetPriority(&mut self.mem, a0, a1) }
+    fn SetWeight(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_SetWeight(&mut self.mem, a0, a1) }
+    fn Impulse(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_Impulse(&mut self.mem, a0, a1) }
+    fn SetVelocity(&mut self, a0: u32, a1: f32, a2: f32, a3: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_SetVelocity(&mut self.mem, a0, a1, a2, a3) }
+    fn GetVelocity(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_GetVelocity(&mut self.mem, a0, a1) }
+    fn JumpOnCoor(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_JumpOnCoor(&mut self.mem, a0, a1) }
+    fn CheckRayIntersection(&mut self, a0: Ptr, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_CheckRayIntersection(&mut self.mem, a0, a1) }
+    fn GetDM(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_GetDM(&mut self.mem, a0, a1, a2) }
+    fn DMAdd(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_DMAdd(&mut self.mem, a0, a1) }
+    fn DMDoAction(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_DMDoAction(&mut self.mem, a0, a1, a2) }
+    fn DMGetData(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_DMGetData(&mut self.mem, a0, a1) }
+    fn DMGetParams(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_DMGetParams(&mut self.mem, a0, a1) }
+    fn DMSetParams(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_DMSetParams(&mut self.mem, a0, a1) }
+    fn DMSetContextMask(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_DMSetContextMask(&mut self.mem, a0, a1) }
+    fn DMSetActive(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_DMSetActive(&mut self.mem, a0, a1) }
+    fn DMIsActive(&mut self, a0: u32) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_DMIsActive(&mut self.mem, a0) }
+    fn DMGetState(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_DMGetState(&mut self.mem, a0) }
+    fn DMSetStateChangeNotifyBits(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_DMSetStateChangeNotifyBits(&mut self.mem, a0, a1) }
+    fn DMResetStateChangeNotifyBits(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_DMResetStateChangeNotifyBits(&mut self.mem, a0, a1) }
+    fn DMSetStateBits(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_DMSetStateBits(&mut self.mem, a0, a1) }
+    fn DMResetStateBits(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_DMResetStateBits(&mut self.mem, a0, a1) }
+    fn SetPrimaryPrim(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_SetPrimaryPrim(&mut self.mem, a0, a1) }
+    fn SetSpherePrimaryVolume(&mut self, a0: u32, a1: f32, a2: f32, a3: f32, a4: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_SetSpherePrimaryVolume(&mut self.mem, a0, a1, a2, a3, a4) }
+    fn PrimSetIntAttribBits(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_PrimSetIntAttribBits(&mut self.mem, a0, a1, a2, a3) }
+    fn PrimGetIntAttrib(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_PrimGetIntAttrib(&mut self.mem, a0, a1, a2) }
+    fn PrimResetIntAttribBits(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_PrimResetIntAttribBits(&mut self.mem, a0, a1, a2, a3) }
+    fn PrimSetIntAttribValue(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_PrimSetIntAttribValue(&mut self.mem, a0, a1, a2, a3) }
+    fn PrimUnlockIntAttrib(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_PrimUnlockIntAttrib(&mut self.mem, a0, a1, a2, a3) }
+    fn PrimGetOffsetFromJoint(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_PrimGetOffsetFromJoint(&mut self.mem, a0, a1, a2) }
+    fn PrimSetOffsetFromJoint(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIphysic_PrimSetOffsetFromJoint(&mut self.mem, a0, a1, a2) }
 }
 
 pub trait APIkaraoke {
@@ -700,18 +700,18 @@ pub trait APIkaraoke {
     fn GetHeadsetPlaybackVolume(&mut self, a0: u32) -> u32;
 }
 impl APIkaraoke for Engine {
-    fn AcquireMicrophone(&mut self, a0: u32) -> u32 { self.host.APIkaraoke_AcquireMicrophone(&mut self.mem, a0) }
-    fn ReleaseMicrophone(&mut self, a0: u32) -> u32 { self.host.APIkaraoke_ReleaseMicrophone(&mut self.mem, a0) }
-    fn ActivateMicrophone(&mut self, a0: u32) -> u32 { self.host.APIkaraoke_ActivateMicrophone(&mut self.mem, a0) }
-    fn DeactivateMicrophone(&mut self, a0: u32) -> u32 { self.host.APIkaraoke_DeactivateMicrophone(&mut self.mem, a0) }
-    fn GetAverageVolume(&mut self) -> u32 { self.host.APIkaraoke_GetAverageVolume(&mut self.mem) }
-    fn GetMaxVolume(&mut self) -> u32 { self.host.APIkaraoke_GetMaxVolume(&mut self.mem) }
-    fn SetTVOutputVolumeFromMicrophone(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIkaraoke_SetTVOutputVolumeFromMicrophone(&mut self.mem, a0, a1) }
-    fn GetTVOutputVolumeFromMicrophone(&mut self, a0: u32) -> u32 { self.host.APIkaraoke_GetTVOutputVolumeFromMicrophone(&mut self.mem, a0) }
-    fn SetMicrophoneRecordingVolume(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIkaraoke_SetMicrophoneRecordingVolume(&mut self.mem, a0, a1) }
-    fn GetMicrophoneRecordingVolume(&mut self, a0: u32) -> u32 { self.host.APIkaraoke_GetMicrophoneRecordingVolume(&mut self.mem, a0) }
-    fn SetHeadsetPlaybackVolume(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIkaraoke_SetHeadsetPlaybackVolume(&mut self.mem, a0, a1) }
-    fn GetHeadsetPlaybackVolume(&mut self, a0: u32) -> u32 { self.host.APIkaraoke_GetHeadsetPlaybackVolume(&mut self.mem, a0) }
+    fn AcquireMicrophone(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIkaraoke_AcquireMicrophone(&mut self.mem, a0) }
+    fn ReleaseMicrophone(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIkaraoke_ReleaseMicrophone(&mut self.mem, a0) }
+    fn ActivateMicrophone(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIkaraoke_ActivateMicrophone(&mut self.mem, a0) }
+    fn DeactivateMicrophone(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIkaraoke_DeactivateMicrophone(&mut self.mem, a0) }
+    fn GetAverageVolume(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIkaraoke_GetAverageVolume(&mut self.mem) }
+    fn GetMaxVolume(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIkaraoke_GetMaxVolume(&mut self.mem) }
+    fn SetTVOutputVolumeFromMicrophone(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIkaraoke_SetTVOutputVolumeFromMicrophone(&mut self.mem, a0, a1) }
+    fn GetTVOutputVolumeFromMicrophone(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIkaraoke_GetTVOutputVolumeFromMicrophone(&mut self.mem, a0) }
+    fn SetMicrophoneRecordingVolume(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIkaraoke_SetMicrophoneRecordingVolume(&mut self.mem, a0, a1) }
+    fn GetMicrophoneRecordingVolume(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIkaraoke_GetMicrophoneRecordingVolume(&mut self.mem, a0) }
+    fn SetHeadsetPlaybackVolume(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIkaraoke_SetHeadsetPlaybackVolume(&mut self.mem, a0, a1) }
+    fn GetHeadsetPlaybackVolume(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIkaraoke_GetHeadsetPlaybackVolume(&mut self.mem, a0) }
 }
 
 pub trait APIgameobj {
@@ -859,71 +859,71 @@ impl APIgameobj for Engine {
     fn SetNextState(&mut self, a0: u32, a1: u32) -> u32 { super::core::apigameobj::SetNextState(self, a0, a1) }
     fn Break(&mut self) -> LResult<u32> { super::core::apigameobj::Break(self) }
     fn Sleep(&mut self, a0: u32, a1: f32) -> u32 { super::core::apigameobj::Sleep(self, a0, a1) }
-    fn SetLogicFlag(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgameobj_SetLogicFlag(&mut self.mem, a0, a1) }
-    fn ResetLogicFlag(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgameobj_ResetLogicFlag(&mut self.mem, a0, a1) }
+    fn SetLogicFlag(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetLogicFlag(&mut self.mem, a0, a1) }
+    fn ResetLogicFlag(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_ResetLogicFlag(&mut self.mem, a0, a1) }
     fn LaunchLatant(&mut self, a0: u32) -> u32 { super::core::apigameobj::LaunchLatant(self, a0) }
-    fn SetGameObjectVisible(&mut self, a0: u32, a1: i32) -> u32 { self.host.APIgameobj_SetGameObjectVisible(&mut self.mem, a0, a1) }
-    fn IsGameObjectVisible(&mut self, a0: u32) -> u32 { self.host.APIgameobj_IsGameObjectVisible(&mut self.mem, a0) }
+    fn SetGameObjectVisible(&mut self, a0: u32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetGameObjectVisible(&mut self.mem, a0, a1) }
+    fn IsGameObjectVisible(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_IsGameObjectVisible(&mut self.mem, a0) }
     fn KillObject(&mut self, a0: u32) -> u32 { super::core::apigameobj::KillObject(self, a0) }
     fn GetGameBuffer(&mut self, a0: u32, a1: u32, a2: u32) -> Ptr { super::host::gameobj::GetGameBuffer(self, a0, a1, a2) }
     fn FreeGameBuffer(&mut self, a0: u32) -> u32 { super::host::gameobj::FreeGameBuffer(self, a0) }
-    fn SetContextFlag(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgameobj_SetContextFlag(&mut self.mem, a0, a1) }
-    fn GetContextFlag(&mut self, a0: u32) -> u32 { self.host.APIgameobj_GetContextFlag(&mut self.mem, a0) }
+    fn SetContextFlag(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetContextFlag(&mut self.mem, a0, a1) }
+    fn GetContextFlag(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetContextFlag(&mut self.mem, a0) }
     fn GetCurrentStateID(&mut self, a0: u32) -> u32 { super::core::apigameobj::GetCurrentStateID(self, a0) }
     fn SendMessageTo(&mut self, a0: u32, a1: Ptr, a2: u32, a3: u32, a4: Ptr) -> u32 { super::core::apigameobj::SendMessageTo(self, a0, a1, a2, a3, a4) }
     fn GetID(&mut self, a0: u32, a1: Ptr) -> u32 { super::core::apigameobj::GetID(self, a0, a1) }
-    fn GetMagicPreset(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgameobj_GetMagicPreset(&mut self.mem, a0, a1) }
+    fn GetMagicPreset(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetMagicPreset(&mut self.mem, a0, a1) }
     fn RegisterNotify(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { super::core::apigameobj::RegisterNotify(self, a0, a1, a2, a3) }
     fn UnregisterNotify(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { super::core::apigameobj::UnregisterNotify(self, a0, a1, a2) }
     fn UnregisterAllNotify(&mut self, a0: u32) -> u32 { super::core::apigameobj::UnregisterAllNotify(self, a0) }
-    fn AddChild(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { self.host.APIgameobj_AddChild(&mut self.mem, a0, a1, a2, a3) }
-    fn LeaveParent(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgameobj_LeaveParent(&mut self.mem, a0, a1) }
-    fn RemoveAllChildren(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgameobj_RemoveAllChildren(&mut self.mem, a0, a1) }
-    fn GetPosition(&mut self, a0: u32, a1: u32, a2: Ptr) -> Ptr { self.host.APIgameobj_GetPosition(&mut self.mem, a0, a1, a2) }
-    fn GetLookAt(&mut self, a0: u32, a1: u32, a2: Ptr) -> Ptr { self.host.APIgameobj_GetLookAt(&mut self.mem, a0, a1, a2) }
-    fn GetLookUp(&mut self, a0: u32, a1: u32, a2: Ptr) -> Ptr { self.host.APIgameobj_GetLookUp(&mut self.mem, a0, a1, a2) }
-    fn GetLookRight(&mut self, a0: u32, a1: u32, a2: Ptr) -> Ptr { self.host.APIgameobj_GetLookRight(&mut self.mem, a0, a1, a2) }
-    fn Translate(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIgameobj_Translate(&mut self.mem, a0, a1) }
-    fn SetTranslation(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIgameobj_SetTranslation(&mut self.mem, a0, a1) }
-    fn Rotate(&mut self, a0: u32, a1: Ptr, a2: f32) -> u32 { self.host.APIgameobj_Rotate(&mut self.mem, a0, a1, a2) }
-    fn RotateAround(&mut self, a0: u32, a1: Ptr, a2: f32, a3: Ptr) -> u32 { self.host.APIgameobj_RotateAround(&mut self.mem, a0, a1, a2, a3) }
-    fn SetRotation(&mut self, a0: u32, a1: Ptr, a2: f32) -> u32 { self.host.APIgameobj_SetRotation(&mut self.mem, a0, a1, a2) }
-    fn AlignAtWith(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIgameobj_AlignAtWith(&mut self.mem, a0, a1) }
-    fn LookAtAlignUp(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u32 { self.host.APIgameobj_LookAtAlignUp(&mut self.mem, a0, a1, a2) }
-    fn LookUpAlignAt(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u32 { self.host.APIgameobj_LookUpAlignAt(&mut self.mem, a0, a1, a2) }
-    fn TakeOrientation(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { self.host.APIgameobj_TakeOrientation(&mut self.mem, a0, a1, a2) }
-    fn SetIdentity(&mut self, a0: u32) -> u32 { self.host.APIgameobj_SetIdentity(&mut self.mem, a0) }
-    fn TransformVector(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u32 { self.host.APIgameobj_TransformVector(&mut self.mem, a0, a1, a2) }
-    fn InvertTransformVector(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u32 { self.host.APIgameobj_InvertTransformVector(&mut self.mem, a0, a1, a2) }
-    fn GetBoundingSphereRadius(&mut self, a0: u32) -> u32 { self.host.APIgameobj_GetBoundingSphereRadius(&mut self.mem, a0) }
-    fn GetPhysicBSphereRadius(&mut self, a0: u32) -> u32 { self.host.APIgameobj_GetPhysicBSphereRadius(&mut self.mem, a0) }
-    fn GetRenderBSphere(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> f32 { self.host.APIgameobj_GetRenderBSphere(&mut self.mem, a0, a1, a2) }
-    fn SetRenderBSphere(&mut self, a0: u32, a1: Ptr, a2: f32) -> u32 { self.host.APIgameobj_SetRenderBSphere(&mut self.mem, a0, a1, a2) }
-    fn SetGroupBitMask(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgameobj_SetGroupBitMask(&mut self.mem, a0, a1) }
-    fn SetGroupID(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgameobj_SetGroupID(&mut self.mem, a0, a1) }
-    fn GetGroupBitMask(&mut self, a0: u32) -> u32 { self.host.APIgameobj_GetGroupBitMask(&mut self.mem, a0) }
-    fn GetGroupID(&mut self, a0: u32) -> u32 { self.host.APIgameobj_GetGroupID(&mut self.mem, a0) }
-    fn EnableClipping(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { self.host.APIgameobj_EnableClipping(&mut self.mem, a0, a1, a2) }
-    fn EnableObject(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgameobj_EnableObject(&mut self.mem, a0, a1) }
-    fn GetClippingParams(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIgameobj_GetClippingParams(&mut self.mem, a0, a1) }
-    fn SetClippingParams(&mut self, a0: u32, a1: Ptr, a2: u32) -> u32 { self.host.APIgameobj_SetClippingParams(&mut self.mem, a0, a1, a2) }
-    fn GetProximityClippingParams(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIgameobj_GetProximityClippingParams(&mut self.mem, a0, a1) }
-    fn SetProximityClippingParams(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIgameobj_SetProximityClippingParams(&mut self.mem, a0, a1) }
-    fn SetShadowParams(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIgameobj_SetShadowParams(&mut self.mem, a0, a1) }
-    fn GetShadowParams(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIgameobj_GetShadowParams(&mut self.mem, a0, a1) }
-    fn DisplayInfo(&mut self, a0: u32, a1: Ptr, a2: u32, a3: u32) -> u32 { self.host.APIgameobj_DisplayInfo(&mut self.mem, a0, a1, a2, a3) }
-    fn SetTranslationSafe(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIgameobj_SetTranslationSafe(&mut self.mem, a0, a1) }
-    fn SetLMat(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIgameobj_SetLMat(&mut self.mem, a0, a1) }
-    fn GetLMat(&mut self, a0: u32) -> i32 { self.host.APIgameobj_GetLMat(&mut self.mem, a0) }
-    fn GetWMat(&mut self, a0: u32) -> u32 { self.host.APIgameobj_GetWMat(&mut self.mem, a0) }
-    fn SetBoneLMat(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32 { self.host.APIgameobj_SetBoneLMat(&mut self.mem, a0, a1, a2) }
-    fn GetBoneLMat(&mut self, a0: u32, a1: u32) -> i32 { self.host.APIgameobj_GetBoneLMat(&mut self.mem, a0, a1) }
-    fn GetBoneWMat(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgameobj_GetBoneWMat(&mut self.mem, a0, a1) }
-    fn SetTransparentPriority(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { self.host.APIgameobj_SetTransparentPriority(&mut self.mem, a0, a1, a2) }
-    fn GetTransparentPriority(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgameobj_GetTransparentPriority(&mut self.mem, a0, a1) }
-    fn IsInCutScene(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIgameobj_IsInCutScene(&mut self.mem, a0, a1) }
-    fn GetNbJoints(&mut self, a0: u32) -> u32 { self.host.APIgameobj_GetNbJoints(&mut self.mem, a0) }
-    fn SetTransparentType(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { self.host.APIgameobj_SetTransparentType(&mut self.mem, a0, a1, a2) }
+    fn AddChild(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { super::core::apigameobj::AddChild(self, a0, a1, a2, a3) }
+    fn LeaveParent(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_LeaveParent(&mut self.mem, a0, a1) }
+    fn RemoveAllChildren(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_RemoveAllChildren(&mut self.mem, a0, a1) }
+    fn GetPosition(&mut self, a0: u32, a1: u32, a2: Ptr) -> Ptr { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetPosition(&mut self.mem, a0, a1, a2) }
+    fn GetLookAt(&mut self, a0: u32, a1: u32, a2: Ptr) -> Ptr { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetLookAt(&mut self.mem, a0, a1, a2) }
+    fn GetLookUp(&mut self, a0: u32, a1: u32, a2: Ptr) -> Ptr { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetLookUp(&mut self.mem, a0, a1, a2) }
+    fn GetLookRight(&mut self, a0: u32, a1: u32, a2: Ptr) -> Ptr { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetLookRight(&mut self.mem, a0, a1, a2) }
+    fn Translate(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_Translate(&mut self.mem, a0, a1) }
+    fn SetTranslation(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetTranslation(&mut self.mem, a0, a1) }
+    fn Rotate(&mut self, a0: u32, a1: Ptr, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_Rotate(&mut self.mem, a0, a1, a2) }
+    fn RotateAround(&mut self, a0: u32, a1: Ptr, a2: f32, a3: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_RotateAround(&mut self.mem, a0, a1, a2, a3) }
+    fn SetRotation(&mut self, a0: u32, a1: Ptr, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetRotation(&mut self.mem, a0, a1, a2) }
+    fn AlignAtWith(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_AlignAtWith(&mut self.mem, a0, a1) }
+    fn LookAtAlignUp(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_LookAtAlignUp(&mut self.mem, a0, a1, a2) }
+    fn LookUpAlignAt(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_LookUpAlignAt(&mut self.mem, a0, a1, a2) }
+    fn TakeOrientation(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_TakeOrientation(&mut self.mem, a0, a1, a2) }
+    fn SetIdentity(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetIdentity(&mut self.mem, a0) }
+    fn TransformVector(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_TransformVector(&mut self.mem, a0, a1, a2) }
+    fn InvertTransformVector(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_InvertTransformVector(&mut self.mem, a0, a1, a2) }
+    fn GetBoundingSphereRadius(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetBoundingSphereRadius(&mut self.mem, a0) }
+    fn GetPhysicBSphereRadius(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetPhysicBSphereRadius(&mut self.mem, a0) }
+    fn GetRenderBSphere(&mut self, a0: u32, a1: Ptr, a2: Ptr) -> f32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetRenderBSphere(&mut self.mem, a0, a1, a2) }
+    fn SetRenderBSphere(&mut self, a0: u32, a1: Ptr, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetRenderBSphere(&mut self.mem, a0, a1, a2) }
+    fn SetGroupBitMask(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetGroupBitMask(&mut self.mem, a0, a1) }
+    fn SetGroupID(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetGroupID(&mut self.mem, a0, a1) }
+    fn GetGroupBitMask(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetGroupBitMask(&mut self.mem, a0) }
+    fn GetGroupID(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetGroupID(&mut self.mem, a0) }
+    fn EnableClipping(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_EnableClipping(&mut self.mem, a0, a1, a2) }
+    fn EnableObject(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_EnableObject(&mut self.mem, a0, a1) }
+    fn GetClippingParams(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetClippingParams(&mut self.mem, a0, a1) }
+    fn SetClippingParams(&mut self, a0: u32, a1: Ptr, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetClippingParams(&mut self.mem, a0, a1, a2) }
+    fn GetProximityClippingParams(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetProximityClippingParams(&mut self.mem, a0, a1) }
+    fn SetProximityClippingParams(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetProximityClippingParams(&mut self.mem, a0, a1) }
+    fn SetShadowParams(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetShadowParams(&mut self.mem, a0, a1) }
+    fn GetShadowParams(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetShadowParams(&mut self.mem, a0, a1) }
+    fn DisplayInfo(&mut self, a0: u32, a1: Ptr, a2: u32, a3: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_DisplayInfo(&mut self.mem, a0, a1, a2, a3) }
+    fn SetTranslationSafe(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetTranslationSafe(&mut self.mem, a0, a1) }
+    fn SetLMat(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetLMat(&mut self.mem, a0, a1) }
+    fn GetLMat(&mut self, a0: u32) -> i32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetLMat(&mut self.mem, a0) }
+    fn GetWMat(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetWMat(&mut self.mem, a0) }
+    fn SetBoneLMat(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetBoneLMat(&mut self.mem, a0, a1, a2) }
+    fn GetBoneLMat(&mut self, a0: u32, a1: u32) -> i32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetBoneLMat(&mut self.mem, a0, a1) }
+    fn GetBoneWMat(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetBoneWMat(&mut self.mem, a0, a1) }
+    fn SetTransparentPriority(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetTransparentPriority(&mut self.mem, a0, a1, a2) }
+    fn GetTransparentPriority(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetTransparentPriority(&mut self.mem, a0, a1) }
+    fn IsInCutScene(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_IsInCutScene(&mut self.mem, a0, a1) }
+    fn GetNbJoints(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_GetNbJoints(&mut self.mem, a0) }
+    fn SetTransparentType(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIgameobj_SetTransparentType(&mut self.mem, a0, a1, a2) }
 }
 
 pub trait APIanim {
@@ -961,22 +961,22 @@ pub trait APIanim {
     fn IsAnimPlaying(&mut self, a0: u32, a1: u32) -> u8;
 }
 impl APIanim for Engine {
-    fn Play(&mut self, a0: u32, a1: u32, a2: u32, a3: f32) -> u32 { self.host.APIanim_Play(&mut self.mem, a0, a1, a2, a3) }
-    fn PlayBlend(&mut self, a0: u32, a1: u32, a2: u32, a3: f32, a4: Ptr) -> u32 { self.host.APIanim_PlayBlend(&mut self.mem, a0, a1, a2, a3, a4) }
-    fn ChangeBlendParams(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIanim_ChangeBlendParams(&mut self.mem, a0, a1) }
-    fn StopAnim(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIanim_StopAnim(&mut self.mem, a0, a1) }
-    fn StopAllAnim(&mut self, a0: u32) -> u32 { self.host.APIanim_StopAllAnim(&mut self.mem, a0) }
-    fn GetTime(&mut self, a0: u32, a1: u32) -> f32 { self.host.APIanim_GetTime(&mut self.mem, a0, a1) }
-    fn SetTime(&mut self, a0: u32, a1: u32, a2: f32) -> u32 { self.host.APIanim_SetTime(&mut self.mem, a0, a1, a2) }
-    fn GetSpeed(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIanim_GetSpeed(&mut self.mem, a0, a1) }
-    fn SetSpeed(&mut self, a0: u32, a1: u32, a2: f32) -> u32 { self.host.APIanim_SetSpeed(&mut self.mem, a0, a1, a2) }
-    fn GetDuration(&mut self, a0: u32, a1: u32) -> f32 { self.host.APIanim_GetDuration(&mut self.mem, a0, a1) }
-    fn Connect(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { self.host.APIanim_Connect(&mut self.mem, a0, a1, a2) }
-    fn GetGroup(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIanim_GetGroup(&mut self.mem, a0, a1) }
-    fn BeginTree(&mut self, a0: u32) -> u32 { self.host.APIanim_BeginTree(&mut self.mem, a0) }
-    fn PlayBlendConnect(&mut self, a0: u32, a1: u32, a2: u32, a3: u32, a4: Ptr) -> u32 { self.host.APIanim_PlayBlendConnect(&mut self.mem, a0, a1, a2, a3, a4) }
-    fn EndTree(&mut self, a0: u32) -> u32 { self.host.APIanim_EndTree(&mut self.mem, a0) }
-    fn IsAnimPlaying(&mut self, a0: u32, a1: u32) -> u8 { self.host.APIanim_IsAnimPlaying(&mut self.mem, a0, a1) }
+    fn Play(&mut self, a0: u32, a1: u32, a2: u32, a3: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_Play(&mut self.mem, a0, a1, a2, a3) }
+    fn PlayBlend(&mut self, a0: u32, a1: u32, a2: u32, a3: f32, a4: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_PlayBlend(&mut self.mem, a0, a1, a2, a3, a4) }
+    fn ChangeBlendParams(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_ChangeBlendParams(&mut self.mem, a0, a1) }
+    fn StopAnim(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_StopAnim(&mut self.mem, a0, a1) }
+    fn StopAllAnim(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_StopAllAnim(&mut self.mem, a0) }
+    fn GetTime(&mut self, a0: u32, a1: u32) -> f32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_GetTime(&mut self.mem, a0, a1) }
+    fn SetTime(&mut self, a0: u32, a1: u32, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_SetTime(&mut self.mem, a0, a1, a2) }
+    fn GetSpeed(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_GetSpeed(&mut self.mem, a0, a1) }
+    fn SetSpeed(&mut self, a0: u32, a1: u32, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_SetSpeed(&mut self.mem, a0, a1, a2) }
+    fn GetDuration(&mut self, a0: u32, a1: u32) -> f32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_GetDuration(&mut self.mem, a0, a1) }
+    fn Connect(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_Connect(&mut self.mem, a0, a1, a2) }
+    fn GetGroup(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_GetGroup(&mut self.mem, a0, a1) }
+    fn BeginTree(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_BeginTree(&mut self.mem, a0) }
+    fn PlayBlendConnect(&mut self, a0: u32, a1: u32, a2: u32, a3: u32, a4: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_PlayBlendConnect(&mut self.mem, a0, a1, a2, a3, a4) }
+    fn EndTree(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_EndTree(&mut self.mem, a0) }
+    fn IsAnimPlaying(&mut self, a0: u32, a1: u32) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIanim_IsAnimPlaying(&mut self.mem, a0, a1) }
 }
 
 pub trait APIparticle {
@@ -1044,37 +1044,37 @@ pub trait APIparticle {
     fn SetMaxNumBillboards(&mut self, a0: u32) -> u32;
 }
 impl APIparticle for Engine {
-    fn TypeConvertNameToID(&mut self, a0: Ptr) -> u32 { self.host.APIparticle_TypeConvertNameToID(&mut self.mem, a0) }
-    fn TypeCreate(&mut self) -> u32 { self.host.APIparticle_TypeCreate(&mut self.mem) }
-    fn TypeDestroy(&mut self, a0: i32) -> u32 { self.host.APIparticle_TypeDestroy(&mut self.mem, a0) }
-    fn TypeSetInter(&mut self, a0: i32, a1: u32, a2: f32, a3: f32, a4: f32, a5: f32) -> u32 { self.host.APIparticle_TypeSetInter(&mut self.mem, a0, a1, a2, a3, a4, a5) }
-    fn TypeSetInt(&mut self, a0: i32, a1: u32, a2: i32) -> u32 { self.host.APIparticle_TypeSetInt(&mut self.mem, a0, a1, a2) }
-    fn TypeGetInt(&mut self, a0: i32, a1: u32, a2: Ptr) -> u32 { self.host.APIparticle_TypeGetInt(&mut self.mem, a0, a1, a2) }
-    fn TypeSetFloat(&mut self, a0: i32, a1: u32, a2: f32) -> u32 { self.host.APIparticle_TypeSetFloat(&mut self.mem, a0, a1, a2) }
-    fn TypeSetVec(&mut self, a0: i32, a1: u32, a2: f32, a3: f32, a4: f32) -> u32 { self.host.APIparticle_TypeSetVec(&mut self.mem, a0, a1, a2, a3, a4) }
-    fn TypeSetTexture(&mut self, a0: i32, a1: Ptr) -> u32 { self.host.APIparticle_TypeSetTexture(&mut self.mem, a0, a1) }
-    fn TypeSetName(&mut self, a0: i32, a1: Ptr) -> u8 { self.host.APIparticle_TypeSetName(&mut self.mem, a0, a1) }
-    fn TypeGetName(&mut self, a0: i32, a1: Ptr) -> u8 { self.host.APIparticle_TypeGetName(&mut self.mem, a0, a1) }
-    fn EmitterConvertNameToID(&mut self, a0: Ptr, a1: u32) -> u32 { self.host.APIparticle_EmitterConvertNameToID(&mut self.mem, a0, a1) }
-    fn EmitterCreate(&mut self, a0: i32) -> u32 { self.host.APIparticle_EmitterCreate(&mut self.mem, a0) }
-    fn EmitterDestroy(&mut self, a0: i32) -> u32 { self.host.APIparticle_EmitterDestroy(&mut self.mem, a0) }
-    fn EmitterSetType(&mut self, a0: i32, a1: i32) -> u32 { self.host.APIparticle_EmitterSetType(&mut self.mem, a0, a1) }
-    fn EmitterStart(&mut self, a0: i32, a1: u32) -> u32 { self.host.APIparticle_EmitterStart(&mut self.mem, a0, a1) }
-    fn EmitterStartAt(&mut self, a0: i32, a1: u32, a2: f32) -> u32 { self.host.APIparticle_EmitterStartAt(&mut self.mem, a0, a1, a2) }
-    fn EmitterStop(&mut self, a0: i32) -> u32 { self.host.APIparticle_EmitterStop(&mut self.mem, a0) }
-    fn EmitterReset(&mut self, a0: i32) -> u32 { self.host.APIparticle_EmitterReset(&mut self.mem, a0) }
-    fn EmitterSetCollisionPlane(&mut self, a0: i32, a1: u32, a2: Ptr, a3: Ptr, a4: f32) -> u32 { self.host.APIparticle_EmitterSetCollisionPlane(&mut self.mem, a0, a1, a2, a3, a4) }
-    fn EmitterSetJoint(&mut self, a0: i32, a1: u32, a2: u32) -> u32 { self.host.APIparticle_EmitterSetJoint(&mut self.mem, a0, a1, a2) }
-    fn EmitterSetFlags(&mut self, a0: i32, a1: u32) -> u32 { self.host.APIparticle_EmitterSetFlags(&mut self.mem, a0, a1) }
-    fn EmitterGetFlags(&mut self, a0: i32, a1: Ptr) -> u32 { self.host.APIparticle_EmitterGetFlags(&mut self.mem, a0, a1) }
-    fn EmitterSetBox(&mut self, a0: i32, a1: Ptr, a2: Ptr) -> u32 { self.host.APIparticle_EmitterSetBox(&mut self.mem, a0, a1, a2) }
-    fn EmitterGetBBox(&mut self, a0: i32, a1: Ptr, a2: Ptr, a3: u32) -> u32 { self.host.APIparticle_EmitterGetBBox(&mut self.mem, a0, a1, a2, a3) }
-    fn EmitterSetBSphereRadius(&mut self, a0: i32, a1: f32) -> u32 { self.host.APIparticle_EmitterSetBSphereRadius(&mut self.mem, a0, a1) }
-    fn EmitterSetMessageHandlerID(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIparticle_EmitterSetMessageHandlerID(&mut self.mem, a0, a1) }
-    fn CreateBillboardGroup(&mut self, a0: u32, a1: Ptr, a2: u32, a3: Ptr, a4: Ptr, a5: Ptr, a6: Ptr) -> u32 { self.host.APIparticle_CreateBillboardGroup(&mut self.mem, a0, a1, a2, a3, a4, a5, a6) }
-    fn RenderBillboardGroup(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIparticle_RenderBillboardGroup(&mut self.mem, a0, a1) }
-    fn DestroyBillboardGroup(&mut self, a0: u32) -> u32 { self.host.APIparticle_DestroyBillboardGroup(&mut self.mem, a0) }
-    fn SetMaxNumBillboards(&mut self, a0: u32) -> u32 { self.host.APIparticle_SetMaxNumBillboards(&mut self.mem, a0) }
+    fn TypeConvertNameToID(&mut self, a0: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_TypeConvertNameToID(&mut self.mem, a0) }
+    fn TypeCreate(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_TypeCreate(&mut self.mem) }
+    fn TypeDestroy(&mut self, a0: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_TypeDestroy(&mut self.mem, a0) }
+    fn TypeSetInter(&mut self, a0: i32, a1: u32, a2: f32, a3: f32, a4: f32, a5: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_TypeSetInter(&mut self.mem, a0, a1, a2, a3, a4, a5) }
+    fn TypeSetInt(&mut self, a0: i32, a1: u32, a2: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_TypeSetInt(&mut self.mem, a0, a1, a2) }
+    fn TypeGetInt(&mut self, a0: i32, a1: u32, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_TypeGetInt(&mut self.mem, a0, a1, a2) }
+    fn TypeSetFloat(&mut self, a0: i32, a1: u32, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_TypeSetFloat(&mut self.mem, a0, a1, a2) }
+    fn TypeSetVec(&mut self, a0: i32, a1: u32, a2: f32, a3: f32, a4: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_TypeSetVec(&mut self.mem, a0, a1, a2, a3, a4) }
+    fn TypeSetTexture(&mut self, a0: i32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_TypeSetTexture(&mut self.mem, a0, a1) }
+    fn TypeSetName(&mut self, a0: i32, a1: Ptr) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_TypeSetName(&mut self.mem, a0, a1) }
+    fn TypeGetName(&mut self, a0: i32, a1: Ptr) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_TypeGetName(&mut self.mem, a0, a1) }
+    fn EmitterConvertNameToID(&mut self, a0: Ptr, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterConvertNameToID(&mut self.mem, a0, a1) }
+    fn EmitterCreate(&mut self, a0: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterCreate(&mut self.mem, a0) }
+    fn EmitterDestroy(&mut self, a0: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterDestroy(&mut self.mem, a0) }
+    fn EmitterSetType(&mut self, a0: i32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterSetType(&mut self.mem, a0, a1) }
+    fn EmitterStart(&mut self, a0: i32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterStart(&mut self.mem, a0, a1) }
+    fn EmitterStartAt(&mut self, a0: i32, a1: u32, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterStartAt(&mut self.mem, a0, a1, a2) }
+    fn EmitterStop(&mut self, a0: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterStop(&mut self.mem, a0) }
+    fn EmitterReset(&mut self, a0: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterReset(&mut self.mem, a0) }
+    fn EmitterSetCollisionPlane(&mut self, a0: i32, a1: u32, a2: Ptr, a3: Ptr, a4: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterSetCollisionPlane(&mut self.mem, a0, a1, a2, a3, a4) }
+    fn EmitterSetJoint(&mut self, a0: i32, a1: u32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterSetJoint(&mut self.mem, a0, a1, a2) }
+    fn EmitterSetFlags(&mut self, a0: i32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterSetFlags(&mut self.mem, a0, a1) }
+    fn EmitterGetFlags(&mut self, a0: i32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterGetFlags(&mut self.mem, a0, a1) }
+    fn EmitterSetBox(&mut self, a0: i32, a1: Ptr, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterSetBox(&mut self.mem, a0, a1, a2) }
+    fn EmitterGetBBox(&mut self, a0: i32, a1: Ptr, a2: Ptr, a3: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterGetBBox(&mut self.mem, a0, a1, a2, a3) }
+    fn EmitterSetBSphereRadius(&mut self, a0: i32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterSetBSphereRadius(&mut self.mem, a0, a1) }
+    fn EmitterSetMessageHandlerID(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_EmitterSetMessageHandlerID(&mut self.mem, a0, a1) }
+    fn CreateBillboardGroup(&mut self, a0: u32, a1: Ptr, a2: u32, a3: Ptr, a4: Ptr, a5: Ptr, a6: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_CreateBillboardGroup(&mut self.mem, a0, a1, a2, a3, a4, a5, a6) }
+    fn RenderBillboardGroup(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_RenderBillboardGroup(&mut self.mem, a0, a1) }
+    fn DestroyBillboardGroup(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_DestroyBillboardGroup(&mut self.mem, a0) }
+    fn SetMaxNumBillboards(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIparticle_SetMaxNumBillboards(&mut self.mem, a0) }
 }
 
 pub trait APIfbeffects {
@@ -1090,11 +1090,11 @@ pub trait APIfbeffects {
     fn GetParamsFB(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32;
 }
 impl APIfbeffects for Engine {
-    fn CreateFB(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIfbeffects_CreateFB(&mut self.mem, a0, a1) }
-    fn DestroyFB(&mut self, a0: u32) -> u32 { self.host.APIfbeffects_DestroyFB(&mut self.mem, a0) }
-    fn EnableFB(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIfbeffects_EnableFB(&mut self.mem, a0, a1) }
-    fn SetParamsFB(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32 { self.host.APIfbeffects_SetParamsFB(&mut self.mem, a0, a1, a2) }
-    fn GetParamsFB(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32 { self.host.APIfbeffects_GetParamsFB(&mut self.mem, a0, a1, a2) }
+    fn CreateFB(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIfbeffects_CreateFB(&mut self.mem, a0, a1) }
+    fn DestroyFB(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIfbeffects_DestroyFB(&mut self.mem, a0) }
+    fn EnableFB(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIfbeffects_EnableFB(&mut self.mem, a0, a1) }
+    fn SetParamsFB(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIfbeffects_SetParamsFB(&mut self.mem, a0, a1, a2) }
+    fn GetParamsFB(&mut self, a0: u32, a1: u32, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIfbeffects_GetParamsFB(&mut self.mem, a0, a1, a2) }
 }
 
 pub trait APIconsole {
@@ -1104,8 +1104,8 @@ pub trait APIconsole {
     fn GetPrimDisplayFlag(&mut self) -> u32;
 }
 impl APIconsole for Engine {
-    fn SetPrimDisplayFlag(&mut self, a0: u32) -> u32 { self.host.APIconsole_SetPrimDisplayFlag(&mut self.mem, a0) }
-    fn GetPrimDisplayFlag(&mut self) -> u32 { self.host.APIconsole_GetPrimDisplayFlag(&mut self.mem) }
+    fn SetPrimDisplayFlag(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIconsole_SetPrimDisplayFlag(&mut self.mem, a0) }
+    fn GetPrimDisplayFlag(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIconsole_GetPrimDisplayFlag(&mut self.mem) }
 }
 
 pub trait APIprojector {
@@ -1129,15 +1129,15 @@ pub trait APIprojector {
     fn SetVisible(&mut self, a0: u32, a1: u32) -> u32;
 }
 impl APIprojector for Engine {
-    fn CreateProjector(&mut self) -> u32 { self.host.APIprojector_CreateProjector(&mut self.mem) }
-    fn DestroyProjector(&mut self, a0: u32) -> u32 { self.host.APIprojector_DestroyProjector(&mut self.mem, a0) }
-    fn SetTexture(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIprojector_SetTexture(&mut self.mem, a0, a1) }
-    fn SetBlendingFunction(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIprojector_SetBlendingFunction(&mut self.mem, a0, a1) }
-    fn SetSize(&mut self, a0: u32, a1: f32, a2: f32) -> u32 { self.host.APIprojector_SetSize(&mut self.mem, a0, a1, a2) }
-    fn SetColor(&mut self, a0: u32, a1: f32, a2: f32, a3: f32, a4: f32) -> u32 { self.host.APIprojector_SetColor(&mut self.mem, a0, a1, a2, a3, a4) }
-    fn SetReachDistance(&mut self, a0: u32, a1: f32) -> u32 { self.host.APIprojector_SetReachDistance(&mut self.mem, a0, a1) }
-    fn SetProjectionType(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIprojector_SetProjectionType(&mut self.mem, a0, a1) }
-    fn SetVisible(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIprojector_SetVisible(&mut self.mem, a0, a1) }
+    fn CreateProjector(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIprojector_CreateProjector(&mut self.mem) }
+    fn DestroyProjector(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIprojector_DestroyProjector(&mut self.mem, a0) }
+    fn SetTexture(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIprojector_SetTexture(&mut self.mem, a0, a1) }
+    fn SetBlendingFunction(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIprojector_SetBlendingFunction(&mut self.mem, a0, a1) }
+    fn SetSize(&mut self, a0: u32, a1: f32, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIprojector_SetSize(&mut self.mem, a0, a1, a2) }
+    fn SetColor(&mut self, a0: u32, a1: f32, a2: f32, a3: f32, a4: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIprojector_SetColor(&mut self.mem, a0, a1, a2, a3, a4) }
+    fn SetReachDistance(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIprojector_SetReachDistance(&mut self.mem, a0, a1) }
+    fn SetProjectionType(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIprojector_SetProjectionType(&mut self.mem, a0, a1) }
+    fn SetVisible(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIprojector_SetVisible(&mut self.mem, a0, a1) }
 }
 
 pub trait APIextra {
@@ -1203,8 +1203,8 @@ pub trait APIextra {
     fn PrintClippingStats(&mut self) -> u32;
 }
 impl APIextra for Engine {
-    fn null_printf(&mut self, a0: Ptr, a1: u32) -> u32 { self.host.APIextra_null_printf(&mut self.mem, a0, a1) }
-    fn null_sprintf(&mut self, a0: Ptr, a1: Ptr, a2: u32) -> u32 { self.host.APIextra_null_sprintf(&mut self.mem, a0, a1, a2) }
+    fn null_printf(&mut self, a0: Ptr, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_null_printf(&mut self.mem, a0, a1) }
+    fn null_sprintf(&mut self, a0: Ptr, a1: Ptr, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_null_sprintf(&mut self.mem, a0, a1, a2) }
     fn TimerReset(&mut self, a0: u32) -> u32 { super::core::apiextra::TimerReset(self, a0) }
     fn TimerGetTime(&mut self, a0: u32) -> f32 { super::core::apiextra::TimerGetTime(self, a0) }
     fn TimerCreate(&mut self) -> u32 { super::core::apiextra::TimerCreate(self) }
@@ -1214,25 +1214,25 @@ impl APIextra for Engine {
     fn TimerPause(&mut self, a0: u32, a1: u32) -> u32 { super::core::apiextra::TimerPause(self, a0, a1) }
     fn TimerSetFrequency(&mut self, a0: u32, a1: f32) -> u32 { super::core::apiextra::TimerSetFrequency(self, a0, a1) }
     fn TimerGetFrequency(&mut self, a0: u32) -> u32 { super::core::apiextra::TimerGetFrequency(self, a0) }
-    fn WaypointGetPos(&mut self, a0: u32, a1: u32, a2: Ptr) -> Ptr { self.host.APIextra_WaypointGetPos(&mut self.mem, a0, a1, a2) }
-    fn WaypointSetPos(&mut self, a0: u32, a1: u32, a2: Ptr) -> Ptr { self.host.APIextra_WaypointSetPos(&mut self.mem, a0, a1, a2) }
-    fn WaypointGetNb(&mut self, a0: u32) -> u32 { self.host.APIextra_WaypointGetNb(&mut self.mem, a0) }
-    fn DebuggerBreakHook(&mut self, a0: u32) -> u32 { self.host.APIextra_DebuggerBreakHook(&mut self.mem, a0) }
-    fn SwitchInfoTopic(&mut self) -> u32 { self.host.APIextra_SwitchInfoTopic(&mut self.mem) }
-    fn SwitchInfoPage(&mut self) -> u32 { self.host.APIextra_SwitchInfoPage(&mut self.mem) }
-    fn DemoLoopIsPlaying(&mut self) -> u8 { self.host.APIextra_DemoLoopIsPlaying(&mut self.mem) }
-    fn DemoLoopRegisterNotify(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIextra_DemoLoopRegisterNotify(&mut self.mem, a0, a1) }
-    fn DemoLoopPlay(&mut self, a0: Ptr, a1: Ptr, a2: Ptr) -> u32 { self.host.APIextra_DemoLoopPlay(&mut self.mem, a0, a1, a2) }
-    fn DemoLoopRecord(&mut self, a0: Ptr) -> u32 { self.host.APIextra_DemoLoopRecord(&mut self.mem, a0) }
-    fn DemoLoopStop(&mut self) -> u32 { self.host.APIextra_DemoLoopStop(&mut self.mem) }
-    fn CreateSlideShow(&mut self, a0: u32) -> u32 { self.host.APIextra_CreateSlideShow(&mut self.mem, a0) }
-    fn SlideNext(&mut self) -> u32 { self.host.APIextra_SlideNext(&mut self.mem) }
-    fn SlidePrev(&mut self) -> u32 { self.host.APIextra_SlidePrev(&mut self.mem) }
-    fn SlideReadyRegisterNotify(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIextra_SlideReadyRegisterNotify(&mut self.mem, a0, a1) }
-    fn DebugLine(&mut self, a0: Ptr, a1: Ptr, a2: Ptr) -> u32 { self.host.APIextra_DebugLine(&mut self.mem, a0, a1, a2) }
-    fn DebugPoint(&mut self, a0: Ptr, a1: f32, a2: Ptr) -> u32 { self.host.APIextra_DebugPoint(&mut self.mem, a0, a1, a2) }
-    fn Assert(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIextra_Assert(&mut self.mem, a0, a1) }
-    fn PrintClippingStats(&mut self) -> u32 { self.host.APIextra_PrintClippingStats(&mut self.mem) }
+    fn WaypointGetPos(&mut self, a0: u32, a1: u32, a2: Ptr) -> Ptr { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_WaypointGetPos(&mut self.mem, a0, a1, a2) }
+    fn WaypointSetPos(&mut self, a0: u32, a1: u32, a2: Ptr) -> Ptr { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_WaypointSetPos(&mut self.mem, a0, a1, a2) }
+    fn WaypointGetNb(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_WaypointGetNb(&mut self.mem, a0) }
+    fn DebuggerBreakHook(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_DebuggerBreakHook(&mut self.mem, a0) }
+    fn SwitchInfoTopic(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_SwitchInfoTopic(&mut self.mem) }
+    fn SwitchInfoPage(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_SwitchInfoPage(&mut self.mem) }
+    fn DemoLoopIsPlaying(&mut self) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_DemoLoopIsPlaying(&mut self.mem) }
+    fn DemoLoopRegisterNotify(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_DemoLoopRegisterNotify(&mut self.mem, a0, a1) }
+    fn DemoLoopPlay(&mut self, a0: Ptr, a1: Ptr, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_DemoLoopPlay(&mut self.mem, a0, a1, a2) }
+    fn DemoLoopRecord(&mut self, a0: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_DemoLoopRecord(&mut self.mem, a0) }
+    fn DemoLoopStop(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_DemoLoopStop(&mut self.mem) }
+    fn CreateSlideShow(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_CreateSlideShow(&mut self.mem, a0) }
+    fn SlideNext(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_SlideNext(&mut self.mem) }
+    fn SlidePrev(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_SlidePrev(&mut self.mem) }
+    fn SlideReadyRegisterNotify(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_SlideReadyRegisterNotify(&mut self.mem, a0, a1) }
+    fn DebugLine(&mut self, a0: Ptr, a1: Ptr, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_DebugLine(&mut self.mem, a0, a1, a2) }
+    fn DebugPoint(&mut self, a0: Ptr, a1: f32, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_DebugPoint(&mut self.mem, a0, a1, a2) }
+    fn Assert(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_Assert(&mut self.mem, a0, a1) }
+    fn PrintClippingStats(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIextra_PrintClippingStats(&mut self.mem) }
 }
 
 pub trait APImath {
@@ -1429,9 +1429,9 @@ pub trait APIqa {
     fn CloseGame(&mut self) -> u32;
 }
 impl APIqa for Engine {
-    fn AppendToFile(&mut self, a0: Ptr, a1: Ptr) -> u32 { self.host.APIqa_AppendToFile(&mut self.mem, a0, a1) }
-    fn SendToGameLord(&mut self, a0: Ptr) -> u32 { self.host.APIqa_SendToGameLord(&mut self.mem, a0) }
-    fn CloseGame(&mut self) -> u32 { self.host.APIqa_CloseGame(&mut self.mem) }
+    fn AppendToFile(&mut self, a0: Ptr, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIqa_AppendToFile(&mut self.mem, a0, a1) }
+    fn SendToGameLord(&mut self, a0: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIqa_SendToGameLord(&mut self.mem, a0) }
+    fn CloseGame(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIqa_CloseGame(&mut self.mem) }
 }
 
 pub trait APIspline {
@@ -1467,21 +1467,21 @@ pub trait APIspline {
     fn GetNearest(&mut self, a0: u32, a1: Ptr) -> u32;
 }
 impl APIspline for Engine {
-    fn GetNbSplines(&mut self) -> u32 { self.host.APIspline_GetNbSplines(&mut self.mem) }
-    fn GetIndex(&mut self, a0: u32) -> u32 { self.host.APIspline_GetIndex(&mut self.mem, a0) }
-    fn GetID(&mut self, a0: i32) -> u16 { self.host.APIspline_GetID(&mut self.mem, a0) }
-    fn GetPosition(&mut self, a0: u32, a1: f32, a2: Ptr) -> u32 { self.host.APIspline_GetPosition(&mut self.mem, a0, a1, a2) }
-    fn GetSegmentPosition(&mut self, a0: u32, a1: u32, a2: f32, a3: Ptr) -> u32 { self.host.APIspline_GetSegmentPosition(&mut self.mem, a0, a1, a2, a3) }
-    fn GetNbSegments(&mut self, a0: u32) -> u32 { self.host.APIspline_GetNbSegments(&mut self.mem, a0) }
-    fn Segment2GlobalFactor(&mut self, a0: u32, a1: u32, a2: f32, a3: Ptr) -> u32 { self.host.APIspline_Segment2GlobalFactor(&mut self.mem, a0, a1, a2, a3) }
-    fn Global2SegmentFactor(&mut self, a0: u32, a1: f32, a2: Ptr, a3: Ptr) -> u32 { self.host.APIspline_Global2SegmentFactor(&mut self.mem, a0, a1, a2, a3) }
-    fn GetTangent(&mut self, a0: u32, a1: f32, a2: Ptr) -> u32 { self.host.APIspline_GetTangent(&mut self.mem, a0, a1, a2) }
-    fn GetLength(&mut self, a0: u32) -> u32 { self.host.APIspline_GetLength(&mut self.mem, a0) }
-    fn GetDistance(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIspline_GetDistance(&mut self.mem, a0, a1) }
-    fn GetSegmentLength(&mut self, a0: u32, a1: u32, a2: f32) -> u32 { self.host.APIspline_GetSegmentLength(&mut self.mem, a0, a1, a2) }
-    fn MoveDistance(&mut self, a0: u32, a1: f32, a2: f32) -> u32 { self.host.APIspline_MoveDistance(&mut self.mem, a0, a1, a2) }
-    fn GetType(&mut self, a0: u32) -> u16 { self.host.APIspline_GetType(&mut self.mem, a0) }
-    fn GetNearest(&mut self, a0: u32, a1: Ptr) -> u32 { self.host.APIspline_GetNearest(&mut self.mem, a0, a1) }
+    fn GetNbSplines(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIspline_GetNbSplines(&mut self.mem) }
+    fn GetIndex(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIspline_GetIndex(&mut self.mem, a0) }
+    fn GetID(&mut self, a0: i32) -> u16 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIspline_GetID(&mut self.mem, a0) }
+    fn GetPosition(&mut self, a0: u32, a1: f32, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIspline_GetPosition(&mut self.mem, a0, a1, a2) }
+    fn GetSegmentPosition(&mut self, a0: u32, a1: u32, a2: f32, a3: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIspline_GetSegmentPosition(&mut self.mem, a0, a1, a2, a3) }
+    fn GetNbSegments(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIspline_GetNbSegments(&mut self.mem, a0) }
+    fn Segment2GlobalFactor(&mut self, a0: u32, a1: u32, a2: f32, a3: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIspline_Segment2GlobalFactor(&mut self.mem, a0, a1, a2, a3) }
+    fn Global2SegmentFactor(&mut self, a0: u32, a1: f32, a2: Ptr, a3: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIspline_Global2SegmentFactor(&mut self.mem, a0, a1, a2, a3) }
+    fn GetTangent(&mut self, a0: u32, a1: f32, a2: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIspline_GetTangent(&mut self.mem, a0, a1, a2) }
+    fn GetLength(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIspline_GetLength(&mut self.mem, a0) }
+    fn GetDistance(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIspline_GetDistance(&mut self.mem, a0, a1) }
+    fn GetSegmentLength(&mut self, a0: u32, a1: u32, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIspline_GetSegmentLength(&mut self.mem, a0, a1, a2) }
+    fn MoveDistance(&mut self, a0: u32, a1: f32, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIspline_MoveDistance(&mut self.mem, a0, a1, a2) }
+    fn GetType(&mut self, a0: u32) -> u16 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIspline_GetType(&mut self.mem, a0) }
+    fn GetNearest(&mut self, a0: u32, a1: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIspline_GetNearest(&mut self.mem, a0, a1) }
 }
 
 pub trait APIRegLib {
@@ -1562,38 +1562,38 @@ pub trait APIinput {
     fn InputSetActivePort(&mut self, a0: i32) -> u32;
 }
 impl APIinput for Engine {
-    fn InputConfigAdd(&mut self, a0: i32) -> u32 { self.host.APIinput_InputConfigAdd(&mut self.mem, a0) }
-    fn InputConfigRemove(&mut self, a0: i32) -> u32 { self.host.APIinput_InputConfigRemove(&mut self.mem, a0) }
-    fn InputConfigRemoveAll(&mut self) -> u32 { self.host.APIinput_InputConfigRemoveAll(&mut self.mem) }
-    fn InputConfigSetState(&mut self, a0: i32, a1: i32) -> u32 { self.host.APIinput_InputConfigSetState(&mut self.mem, a0, a1) }
-    fn InputConfigGetState(&mut self, a0: i32) -> u32 { self.host.APIinput_InputConfigGetState(&mut self.mem, a0) }
-    fn InputConfigActivate(&mut self, a0: i32, a1: i32) -> u32 { self.host.APIinput_InputConfigActivate(&mut self.mem, a0, a1) }
-    fn InputActionAdd(&mut self, a0: i32, a1: i32, a2: u32) -> u32 { self.host.APIinput_InputActionAdd(&mut self.mem, a0, a1, a2) }
-    fn InputActionRemove(&mut self, a0: i32, a1: i32) -> u32 { self.host.APIinput_InputActionRemove(&mut self.mem, a0, a1) }
-    fn InputActionRemoveAll(&mut self, a0: i32) -> u32 { self.host.APIinput_InputActionRemoveAll(&mut self.mem, a0) }
-    fn InputActionGetAnalogX(&mut self, a0: i32, a1: i32) -> f32 { self.host.APIinput_InputActionGetAnalogX(&mut self.mem, a0, a1) }
-    fn InputActionGetAnalogY(&mut self, a0: i32, a1: i32) -> f32 { self.host.APIinput_InputActionGetAnalogY(&mut self.mem, a0, a1) }
-    fn InputActionGetDigitalInfo(&mut self, a0: i32, a1: i32) -> u8 { self.host.APIinput_InputActionGetDigitalInfo(&mut self.mem, a0, a1) }
-    fn InputActionIsPush(&mut self, a0: i32, a1: i32) -> u8 { self.host.APIinput_InputActionIsPush(&mut self.mem, a0, a1) }
-    fn InputActionIsRelease(&mut self, a0: i32, a1: i32) -> u8 { self.host.APIinput_InputActionIsRelease(&mut self.mem, a0, a1) }
-    fn InputActionTogglePush(&mut self, a0: i32, a1: i32) -> u8 { self.host.APIinput_InputActionTogglePush(&mut self.mem, a0, a1) }
-    fn InputActionToggleRelease(&mut self, a0: i32, a1: i32) -> u8 { self.host.APIinput_InputActionToggleRelease(&mut self.mem, a0, a1) }
-    fn InputContextAdd(&mut self, a0: u32, a1: u32, a2: i32, a3: i32, a4: i32, a5: i32) -> u32 { self.host.APIinput_InputContextAdd(&mut self.mem, a0, a1, a2, a3, a4, a5) }
-    fn InputContextRemove(&mut self, a0: i32, a1: i32, a2: i32) -> u32 { self.host.APIinput_InputContextRemove(&mut self.mem, a0, a1, a2) }
-    fn InputContextRemoveAll(&mut self, a0: i32, a1: i32) -> u32 { self.host.APIinput_InputContextRemoveAll(&mut self.mem, a0, a1) }
-    fn InputContextSetState(&mut self, a0: i32, a1: i32, a2: i32, a3: u32) -> u32 { self.host.APIinput_InputContextSetState(&mut self.mem, a0, a1, a2, a3) }
-    fn InputContextGetState(&mut self, a0: i32, a1: i32, a2: i32) -> u32 { self.host.APIinput_InputContextGetState(&mut self.mem, a0, a1, a2) }
-    fn InputContextSetFlags(&mut self, a0: i32, a1: i32, a2: i32, a3: u32) -> u32 { self.host.APIinput_InputContextSetFlags(&mut self.mem, a0, a1, a2, a3) }
-    fn InputContextGetFlags(&mut self, a0: i32, a1: i32, a2: i32) -> u32 { self.host.APIinput_InputContextGetFlags(&mut self.mem, a0, a1, a2) }
-    fn InputContextSetCallback(&mut self, a0: u32, a1: u32, a2: i32, a3: i32, a4: i32) -> u32 { self.host.APIinput_InputContextSetCallback(&mut self.mem, a0, a1, a2, a3, a4) }
-    fn InputDeviceAdd(&mut self, a0: i32, a1: i32, a2: i32, a3: i32, a4: i32, a5: i32, a6: i32, a7: i32) -> u32 { self.host.APIinput_InputDeviceAdd(&mut self.mem, a0, a1, a2, a3, a4, a5, a6, a7) }
-    fn InputDeviceRemove(&mut self, a0: i32, a1: i32, a2: i32) -> u32 { self.host.APIinput_InputDeviceRemove(&mut self.mem, a0, a1, a2) }
-    fn InputDeviceRemoveAll(&mut self, a0: i32, a1: i32) -> u32 { self.host.APIinput_InputDeviceRemoveAll(&mut self.mem, a0, a1) }
-    fn InputEnableVibration(&mut self, a0: i32, a1: i32) -> u32 { self.host.APIinput_InputEnableVibration(&mut self.mem, a0, a1) }
-    fn InputSetVibration(&mut self, a0: i32, a1: u32, a2: f32, a3: f32, a4: f32, a5: f32) -> u32 { self.host.APIinput_InputSetVibration(&mut self.mem, a0, a1, a2, a3, a4, a5) }
-    fn ConfigIsActive(&mut self, a0: i32) -> u8 { self.host.APIinput_ConfigIsActive(&mut self.mem, a0) }
-    fn InputErrorRegisterNotify(&mut self, a0: i32, a1: u32, a2: u32) -> u32 { self.host.APIinput_InputErrorRegisterNotify(&mut self.mem, a0, a1, a2) }
-    fn InputSetActivePort(&mut self, a0: i32) -> u32 { self.host.APIinput_InputSetActivePort(&mut self.mem, a0) }
+    fn InputConfigAdd(&mut self, a0: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputConfigAdd(&mut self.mem, a0) }
+    fn InputConfigRemove(&mut self, a0: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputConfigRemove(&mut self.mem, a0) }
+    fn InputConfigRemoveAll(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputConfigRemoveAll(&mut self.mem) }
+    fn InputConfigSetState(&mut self, a0: i32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputConfigSetState(&mut self.mem, a0, a1) }
+    fn InputConfigGetState(&mut self, a0: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputConfigGetState(&mut self.mem, a0) }
+    fn InputConfigActivate(&mut self, a0: i32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputConfigActivate(&mut self.mem, a0, a1) }
+    fn InputActionAdd(&mut self, a0: i32, a1: i32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputActionAdd(&mut self.mem, a0, a1, a2) }
+    fn InputActionRemove(&mut self, a0: i32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputActionRemove(&mut self.mem, a0, a1) }
+    fn InputActionRemoveAll(&mut self, a0: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputActionRemoveAll(&mut self.mem, a0) }
+    fn InputActionGetAnalogX(&mut self, a0: i32, a1: i32) -> f32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputActionGetAnalogX(&mut self.mem, a0, a1) }
+    fn InputActionGetAnalogY(&mut self, a0: i32, a1: i32) -> f32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputActionGetAnalogY(&mut self.mem, a0, a1) }
+    fn InputActionGetDigitalInfo(&mut self, a0: i32, a1: i32) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputActionGetDigitalInfo(&mut self.mem, a0, a1) }
+    fn InputActionIsPush(&mut self, a0: i32, a1: i32) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputActionIsPush(&mut self.mem, a0, a1) }
+    fn InputActionIsRelease(&mut self, a0: i32, a1: i32) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputActionIsRelease(&mut self.mem, a0, a1) }
+    fn InputActionTogglePush(&mut self, a0: i32, a1: i32) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputActionTogglePush(&mut self.mem, a0, a1) }
+    fn InputActionToggleRelease(&mut self, a0: i32, a1: i32) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputActionToggleRelease(&mut self.mem, a0, a1) }
+    fn InputContextAdd(&mut self, a0: u32, a1: u32, a2: i32, a3: i32, a4: i32, a5: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputContextAdd(&mut self.mem, a0, a1, a2, a3, a4, a5) }
+    fn InputContextRemove(&mut self, a0: i32, a1: i32, a2: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputContextRemove(&mut self.mem, a0, a1, a2) }
+    fn InputContextRemoveAll(&mut self, a0: i32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputContextRemoveAll(&mut self.mem, a0, a1) }
+    fn InputContextSetState(&mut self, a0: i32, a1: i32, a2: i32, a3: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputContextSetState(&mut self.mem, a0, a1, a2, a3) }
+    fn InputContextGetState(&mut self, a0: i32, a1: i32, a2: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputContextGetState(&mut self.mem, a0, a1, a2) }
+    fn InputContextSetFlags(&mut self, a0: i32, a1: i32, a2: i32, a3: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputContextSetFlags(&mut self.mem, a0, a1, a2, a3) }
+    fn InputContextGetFlags(&mut self, a0: i32, a1: i32, a2: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputContextGetFlags(&mut self.mem, a0, a1, a2) }
+    fn InputContextSetCallback(&mut self, a0: u32, a1: u32, a2: i32, a3: i32, a4: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputContextSetCallback(&mut self.mem, a0, a1, a2, a3, a4) }
+    fn InputDeviceAdd(&mut self, a0: i32, a1: i32, a2: i32, a3: i32, a4: i32, a5: i32, a6: i32, a7: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputDeviceAdd(&mut self.mem, a0, a1, a2, a3, a4, a5, a6, a7) }
+    fn InputDeviceRemove(&mut self, a0: i32, a1: i32, a2: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputDeviceRemove(&mut self.mem, a0, a1, a2) }
+    fn InputDeviceRemoveAll(&mut self, a0: i32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputDeviceRemoveAll(&mut self.mem, a0, a1) }
+    fn InputEnableVibration(&mut self, a0: i32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputEnableVibration(&mut self.mem, a0, a1) }
+    fn InputSetVibration(&mut self, a0: i32, a1: u32, a2: f32, a3: f32, a4: f32, a5: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputSetVibration(&mut self.mem, a0, a1, a2, a3, a4, a5) }
+    fn ConfigIsActive(&mut self, a0: i32) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_ConfigIsActive(&mut self.mem, a0) }
+    fn InputErrorRegisterNotify(&mut self, a0: i32, a1: u32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputErrorRegisterNotify(&mut self.mem, a0, a1, a2) }
+    fn InputSetActivePort(&mut self, a0: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIinput_InputSetActivePort(&mut self.mem, a0) }
 }
 
 pub trait APInewSound {
@@ -1645,29 +1645,29 @@ pub trait APInewSound {
     fn GetVideoVolume(&mut self) -> u32;
 }
 impl APInewSound for Engine {
-    fn Play(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { self.host.APInewSound_Play(&mut self.mem, a0, a1, a2) }
-    fn StopSound(&mut self, a0: u32, a1: u32) -> u32 { self.host.APInewSound_StopSound(&mut self.mem, a0, a1) }
-    fn SetListener(&mut self, a0: u32) -> u32 { self.host.APInewSound_SetListener(&mut self.mem, a0) }
-    fn PauseSoundEvents(&mut self, a0: u32) -> u32 { self.host.APInewSound_PauseSoundEvents(&mut self.mem, a0) }
-    fn ResumeSoundEvents(&mut self, a0: u32) -> u32 { self.host.APInewSound_ResumeSoundEvents(&mut self.mem, a0) }
-    fn SetVolumeByGroup(&mut self, a0: u32, a1: f32) -> u32 { self.host.APInewSound_SetVolumeByGroup(&mut self.mem, a0, a1) }
-    fn SetGlobalVolume(&mut self, a0: f32) -> u32 { self.host.APInewSound_SetGlobalVolume(&mut self.mem, a0) }
-    fn GetGlobalVolume(&mut self) -> u32 { self.host.APInewSound_GetGlobalVolume(&mut self.mem) }
-    fn SetFXVolume(&mut self, a0: f32) -> u32 { self.host.APInewSound_SetFXVolume(&mut self.mem, a0) }
-    fn GetFXVolume(&mut self) -> u32 { self.host.APInewSound_GetFXVolume(&mut self.mem) }
-    fn SetStreamVolume(&mut self, a0: f32) -> u32 { self.host.APInewSound_SetStreamVolume(&mut self.mem, a0) }
-    fn GetStreamVolume(&mut self) -> u32 { self.host.APInewSound_GetStreamVolume(&mut self.mem) }
-    fn SetSoundEventMasterVolume(&mut self, a0: u32, a1: u32, a2: f32) -> u32 { self.host.APInewSound_SetSoundEventMasterVolume(&mut self.mem, a0, a1, a2) }
-    fn GetSoundEventMasterVolume(&mut self, a0: u32, a1: u32) -> f32 { self.host.APInewSound_GetSoundEventMasterVolume(&mut self.mem, a0, a1) }
-    fn IsPlaying(&mut self, a0: u32, a1: u32) -> u8 { self.host.APInewSound_IsPlaying(&mut self.mem, a0, a1) }
-    fn SetPitch(&mut self, a0: u32, a1: u32, a2: f32) -> u32 { self.host.APInewSound_SetPitch(&mut self.mem, a0, a1, a2) }
-    fn ParentSoundEventToJoint(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { self.host.APInewSound_ParentSoundEventToJoint(&mut self.mem, a0, a1, a2, a3) }
-    fn SetDSPEffectForGroup(&mut self, a0: u32, a1: u32) -> u32 { self.host.APInewSound_SetDSPEffectForGroup(&mut self.mem, a0, a1) }
-    fn SetDSPEffectMasterVolume(&mut self, a0: u32, a1: f32) -> u32 { self.host.APInewSound_SetDSPEffectMasterVolume(&mut self.mem, a0, a1) }
-    fn SetGCDSPEffect(&mut self, a0: u32, a1: u32) -> u32 { self.host.APInewSound_SetGCDSPEffect(&mut self.mem, a0, a1) }
-    fn SetAudioEngineMode(&mut self, a0: u32) -> u32 { self.host.APInewSound_SetAudioEngineMode(&mut self.mem, a0) }
-    fn SetVideoVolume(&mut self, a0: f32) -> u32 { self.host.APInewSound_SetVideoVolume(&mut self.mem, a0) }
-    fn GetVideoVolume(&mut self) -> u32 { self.host.APInewSound_GetVideoVolume(&mut self.mem) }
+    fn Play(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_Play(&mut self.mem, a0, a1, a2) }
+    fn StopSound(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_StopSound(&mut self.mem, a0, a1) }
+    fn SetListener(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_SetListener(&mut self.mem, a0) }
+    fn PauseSoundEvents(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_PauseSoundEvents(&mut self.mem, a0) }
+    fn ResumeSoundEvents(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_ResumeSoundEvents(&mut self.mem, a0) }
+    fn SetVolumeByGroup(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_SetVolumeByGroup(&mut self.mem, a0, a1) }
+    fn SetGlobalVolume(&mut self, a0: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_SetGlobalVolume(&mut self.mem, a0) }
+    fn GetGlobalVolume(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_GetGlobalVolume(&mut self.mem) }
+    fn SetFXVolume(&mut self, a0: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_SetFXVolume(&mut self.mem, a0) }
+    fn GetFXVolume(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_GetFXVolume(&mut self.mem) }
+    fn SetStreamVolume(&mut self, a0: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_SetStreamVolume(&mut self.mem, a0) }
+    fn GetStreamVolume(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_GetStreamVolume(&mut self.mem) }
+    fn SetSoundEventMasterVolume(&mut self, a0: u32, a1: u32, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_SetSoundEventMasterVolume(&mut self.mem, a0, a1, a2) }
+    fn GetSoundEventMasterVolume(&mut self, a0: u32, a1: u32) -> f32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_GetSoundEventMasterVolume(&mut self.mem, a0, a1) }
+    fn IsPlaying(&mut self, a0: u32, a1: u32) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_IsPlaying(&mut self.mem, a0, a1) }
+    fn SetPitch(&mut self, a0: u32, a1: u32, a2: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_SetPitch(&mut self.mem, a0, a1, a2) }
+    fn ParentSoundEventToJoint(&mut self, a0: u32, a1: u32, a2: u32, a3: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_ParentSoundEventToJoint(&mut self.mem, a0, a1, a2, a3) }
+    fn SetDSPEffectForGroup(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_SetDSPEffectForGroup(&mut self.mem, a0, a1) }
+    fn SetDSPEffectMasterVolume(&mut self, a0: u32, a1: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_SetDSPEffectMasterVolume(&mut self.mem, a0, a1) }
+    fn SetGCDSPEffect(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_SetGCDSPEffect(&mut self.mem, a0, a1) }
+    fn SetAudioEngineMode(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_SetAudioEngineMode(&mut self.mem, a0) }
+    fn SetVideoVolume(&mut self, a0: f32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_SetVideoVolume(&mut self.mem, a0) }
+    fn GetVideoVolume(&mut self) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APInewSound_GetVideoVolume(&mut self.mem) }
 }
 
 pub trait APIsimpleinput {
@@ -1729,34 +1729,34 @@ pub trait APIsimpleinput {
     fn SimpleInput_AddButtonReleasedCallback_Port(&mut self, a0: u32, a1: i32, a2: u32) -> u32;
 }
 impl APIsimpleinput for Engine {
-    fn SimpleInput_ConfigCreate(&mut self) -> i32 { self.host.APIsimpleinput_SimpleInput_ConfigCreate(&mut self.mem) }
-    fn SimpleInput_ConfigEnable(&mut self, a0: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_ConfigEnable(&mut self.mem, a0) }
-    fn SimpleInput_ConfigDisable(&mut self, a0: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_ConfigDisable(&mut self.mem, a0) }
-    fn SimpleInput_ConfigIsEnabled(&mut self, a0: u32) -> u8 { self.host.APIsimpleinput_SimpleInput_ConfigIsEnabled(&mut self.mem, a0) }
-    fn SimpleInput_ConfigSetState(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_ConfigSetState(&mut self.mem, a0, a1) }
-    fn SimpleInput_ConfigGetState(&mut self, a0: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_ConfigGetState(&mut self.mem, a0) }
-    fn SimpleInput_AddLeftJoystickCallback(&mut self, a0: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddLeftJoystickCallback(&mut self.mem, a0) }
-    fn SimpleInput_AddLeftJoystickIdleCallback(&mut self, a0: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddLeftJoystickIdleCallback(&mut self.mem, a0) }
-    fn SimpleInput_AddRightJoystickCallback(&mut self, a0: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddRightJoystickCallback(&mut self.mem, a0) }
-    fn SimpleInput_AddRightJoystickIdleCallback(&mut self, a0: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddRightJoystickIdleCallback(&mut self.mem, a0) }
-    fn SimpleInput_AddButtonDownCallback(&mut self, a0: u32, a1: i32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddButtonDownCallback(&mut self.mem, a0, a1) }
-    fn SimpleInput_AddButtonUpCallback(&mut self, a0: u32, a1: i32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddButtonUpCallback(&mut self.mem, a0, a1) }
-    fn SimpleInput_AddButtonPushedCallback(&mut self, a0: u32, a1: i32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddButtonPushedCallback(&mut self.mem, a0, a1) }
-    fn SimpleInput_AddButtonReleasedCallback(&mut self, a0: u32, a1: i32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddButtonReleasedCallback(&mut self.mem, a0, a1) }
-    fn SimpleInput_AddKeyboardDownCallback(&mut self, a0: u32, a1: i32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddKeyboardDownCallback(&mut self.mem, a0, a1) }
-    fn SimpleInput_AddKeyboardUpCallback(&mut self, a0: u32, a1: i32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddKeyboardUpCallback(&mut self.mem, a0, a1) }
-    fn SimpleInput_AddKeyboardPushedCallback(&mut self, a0: u32, a1: i32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddKeyboardPushedCallback(&mut self.mem, a0, a1) }
-    fn SimpleInput_AddKeyboardReleasedCallback(&mut self, a0: u32, a1: i32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddKeyboardReleasedCallback(&mut self.mem, a0, a1) }
-    fn SimpleInput_ActionSetState(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_ActionSetState(&mut self.mem, a0, a1, a2) }
-    fn SimpleInput_ActionGetState(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_ActionGetState(&mut self.mem, a0, a1) }
-    fn SimpleInput_AddLeftJoystickCallback_Port(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddLeftJoystickCallback_Port(&mut self.mem, a0, a1) }
-    fn SimpleInput_AddLeftJoystickIdleCallback_Port(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddLeftJoystickIdleCallback_Port(&mut self.mem, a0, a1) }
-    fn SimpleInput_AddRightJoystickCallback_Port(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddRightJoystickCallback_Port(&mut self.mem, a0, a1) }
-    fn SimpleInput_AddRightJoystickIdleCallback_Port(&mut self, a0: u32, a1: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddRightJoystickIdleCallback_Port(&mut self.mem, a0, a1) }
-    fn SimpleInput_AddButtonDownCallback_Port(&mut self, a0: u32, a1: i32, a2: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddButtonDownCallback_Port(&mut self.mem, a0, a1, a2) }
-    fn SimpleInput_AddButtonUpCallback_Port(&mut self, a0: u32, a1: i32, a2: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddButtonUpCallback_Port(&mut self.mem, a0, a1, a2) }
-    fn SimpleInput_AddButtonPushedCallback_Port(&mut self, a0: u32, a1: i32, a2: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddButtonPushedCallback_Port(&mut self.mem, a0, a1, a2) }
-    fn SimpleInput_AddButtonReleasedCallback_Port(&mut self, a0: u32, a1: i32, a2: u32) -> u32 { self.host.APIsimpleinput_SimpleInput_AddButtonReleasedCallback_Port(&mut self.mem, a0, a1, a2) }
+    fn SimpleInput_ConfigCreate(&mut self) -> i32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_ConfigCreate(&mut self.mem) }
+    fn SimpleInput_ConfigEnable(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_ConfigEnable(&mut self.mem, a0) }
+    fn SimpleInput_ConfigDisable(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_ConfigDisable(&mut self.mem, a0) }
+    fn SimpleInput_ConfigIsEnabled(&mut self, a0: u32) -> u8 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_ConfigIsEnabled(&mut self.mem, a0) }
+    fn SimpleInput_ConfigSetState(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_ConfigSetState(&mut self.mem, a0, a1) }
+    fn SimpleInput_ConfigGetState(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_ConfigGetState(&mut self.mem, a0) }
+    fn SimpleInput_AddLeftJoystickCallback(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddLeftJoystickCallback(&mut self.mem, a0) }
+    fn SimpleInput_AddLeftJoystickIdleCallback(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddLeftJoystickIdleCallback(&mut self.mem, a0) }
+    fn SimpleInput_AddRightJoystickCallback(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddRightJoystickCallback(&mut self.mem, a0) }
+    fn SimpleInput_AddRightJoystickIdleCallback(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddRightJoystickIdleCallback(&mut self.mem, a0) }
+    fn SimpleInput_AddButtonDownCallback(&mut self, a0: u32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddButtonDownCallback(&mut self.mem, a0, a1) }
+    fn SimpleInput_AddButtonUpCallback(&mut self, a0: u32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddButtonUpCallback(&mut self.mem, a0, a1) }
+    fn SimpleInput_AddButtonPushedCallback(&mut self, a0: u32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddButtonPushedCallback(&mut self.mem, a0, a1) }
+    fn SimpleInput_AddButtonReleasedCallback(&mut self, a0: u32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddButtonReleasedCallback(&mut self.mem, a0, a1) }
+    fn SimpleInput_AddKeyboardDownCallback(&mut self, a0: u32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddKeyboardDownCallback(&mut self.mem, a0, a1) }
+    fn SimpleInput_AddKeyboardUpCallback(&mut self, a0: u32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddKeyboardUpCallback(&mut self.mem, a0, a1) }
+    fn SimpleInput_AddKeyboardPushedCallback(&mut self, a0: u32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddKeyboardPushedCallback(&mut self.mem, a0, a1) }
+    fn SimpleInput_AddKeyboardReleasedCallback(&mut self, a0: u32, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddKeyboardReleasedCallback(&mut self.mem, a0, a1) }
+    fn SimpleInput_ActionSetState(&mut self, a0: u32, a1: u32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_ActionSetState(&mut self.mem, a0, a1, a2) }
+    fn SimpleInput_ActionGetState(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_ActionGetState(&mut self.mem, a0, a1) }
+    fn SimpleInput_AddLeftJoystickCallback_Port(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddLeftJoystickCallback_Port(&mut self.mem, a0, a1) }
+    fn SimpleInput_AddLeftJoystickIdleCallback_Port(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddLeftJoystickIdleCallback_Port(&mut self.mem, a0, a1) }
+    fn SimpleInput_AddRightJoystickCallback_Port(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddRightJoystickCallback_Port(&mut self.mem, a0, a1) }
+    fn SimpleInput_AddRightJoystickIdleCallback_Port(&mut self, a0: u32, a1: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddRightJoystickIdleCallback_Port(&mut self.mem, a0, a1) }
+    fn SimpleInput_AddButtonDownCallback_Port(&mut self, a0: u32, a1: i32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddButtonDownCallback_Port(&mut self.mem, a0, a1, a2) }
+    fn SimpleInput_AddButtonUpCallback_Port(&mut self, a0: u32, a1: i32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddButtonUpCallback_Port(&mut self.mem, a0, a1, a2) }
+    fn SimpleInput_AddButtonPushedCallback_Port(&mut self, a0: u32, a1: i32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddButtonPushedCallback_Port(&mut self.mem, a0, a1, a2) }
+    fn SimpleInput_AddButtonReleasedCallback_Port(&mut self, a0: u32, a1: i32, a2: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APIsimpleinput_SimpleInput_AddButtonReleasedCallback_Port(&mut self.mem, a0, a1, a2) }
 }
 
 pub trait APILoadSave {
@@ -1869,9 +1869,9 @@ impl APILoadSave for Engine {
     fn GetPort2ActiveMemoryCard(&mut self) -> u32 { super::core::apiloadsave::GetPort2ActiveMemoryCard(self) }
     fn GetFileDescriptor(&mut self) -> u32 { super::core::apiloadsave::GetFileDescriptor(self) }
     fn GetProductCode(&mut self) -> Ptr { super::core::apiloadsave::GetProductCode(self) }
-    fn GoToMemCardManager(&mut self, a0: u32) -> u32 { self.host.APILoadSave_GoToMemCardManager(&mut self.mem, a0) }
-    fn SetCommentGC(&mut self, a0: Ptr) -> u32 { self.host.APILoadSave_SetCommentGC(&mut self.mem, a0) }
-    fn GetWorkingMemoryCardName(&mut self, a0: Ptr, a1: i32) -> u32 { self.host.APILoadSave_GetWorkingMemoryCardName(&mut self.mem, a0, a1) }
+    fn GoToMemCardManager(&mut self, a0: u32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APILoadSave_GoToMemCardManager(&mut self.mem, a0) }
+    fn SetCommentGC(&mut self, a0: Ptr) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APILoadSave_SetCommentGC(&mut self.mem, a0) }
+    fn GetWorkingMemoryCardName(&mut self, a0: Ptr, a1: i32) -> u32 { let _b = crate::logic::LogicBind::new(&mut self.rt); self.host.APILoadSave_GetWorkingMemoryCardName(&mut self.mem, a0, a1) }
     fn GetTempBuffer(&mut self, a0: i32) -> u32 { super::core::apiloadsave::GetTempBuffer(self, a0) }
     fn DestroyTempBuffer(&mut self) -> u32 { super::core::apiloadsave::DestroyTempBuffer(self) }
     fn GetFreeMem(&mut self) -> u32 { super::core::apiloadsave::Null(self) }
@@ -2346,7 +2346,7 @@ impl LIBdebug for Engine {
 /// Platform layer: everything the logic modules ask the engine to render, play, simulate or query.
 /// Every method defaults to logging the call and returning 0 (the original API's "nothing happened").
 pub trait Host: Send + Sync {
-    fn unimplemented(&mut self, api: &'static str) { log::trace!("unimplemented engine API {api}"); }
+    fn unimplemented(&mut self, api: &'static str) { log::trace!("unimplemented engine API {api}"); if std::env::var_os("GAME_STUB_LOG").is_some() { eprintln!("stub: unimplemented engine API {api}"); } }
     /// next object (id) of a position/scene-graph retriever (nearest 0x02/0x04, parent 0x20, children 0x40, in range 0x80/0x100); the cursor lives in params[0] as in logic::world
     fn retriever_get_object(&mut self, mem: &mut Mem, id: u32, params: Ptr) -> Option<u32> { None }
     /// a latent object was duplicated by LaunchLatant (the host creates its visuals/physics)

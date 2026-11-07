@@ -114,5 +114,7 @@ impl std::ops::DerefMut for Engine {
 pub const SELF: u32 = 0x2a00_0000;
 pub mod particle;
 pub mod waypoint;
+pub mod nav;
 pub mod runtime;
 pub mod script;
+pub mod settings;

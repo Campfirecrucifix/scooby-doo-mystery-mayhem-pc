@@ -1,0 +1,27 @@
+// P34: icon + version resource for the launcher ("Scooby-Doo Mystery Mayhem.exe") and game.exe.
+// VER_* come from build.rs (/d defines, from CARGO_PKG_VERSION).
+#include <winver.h>
+1 ICON "scooby.ico"
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION VER_MAJ,VER_MIN,VER_PAT,0
+PRODUCTVERSION VER_MAJ,VER_MIN,VER_PAT,0
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904b0"
+    BEGIN
+      VALUE "ProductName", "Scooby-Doo! Mystery Mayhem (PC port)"
+      VALUE "FileDescription", VER_DESC
+      VALUE "FileVersion", VER_STR
+      VALUE "ProductVersion", VER_STR
+      VALUE "OriginalFilename", VER_FILE
+      VALUE "Comments", "Requires your own PS2 disc image."
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END

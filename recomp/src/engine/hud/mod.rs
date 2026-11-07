@@ -108,7 +108,17 @@ struct Disp {
     word_x: f32,
     /// +0x20 next vararg
     arg: usize,
+    /// P41 R3 (port): the window's own font (PC key prompts are drawn in it)
+    base: u32,
 }
+
+/// P41 R3 prototype (`[game] pc_key_prompts`, default off): Some = the PC key names drawn instead of
+/// the four PS2 face-button icons of font 1 (codes 74 Triangle, 75 Circle, 76 Cross, 77 Square),
+/// set by the host while the last input came from the keyboard. None = the original icons.
+pub static KEY_PROMPTS: std::sync::Mutex<Option<[String; 4]>> = std::sync::Mutex::new(None);
+/// font slot / first code of the PS2 face-button icons in the game's texts ("[f1]<74>[f0] back")
+pub const ICON_FONT: u32 = 1;
+pub const ICON_FIRST: u16 = 74;
 
 const END: u32 = 0xffff_ffff;
 const FONT: u32 = 0xffff_fffe;
@@ -737,7 +747,7 @@ impl EFHudMgr {
             }
             EFHudWindowKind::Win3D(d) => {
                 // EFHud3DWindow_SP::SpecificRender renders the object clump with the HUD camera:
-                // unported (world/RW); exposed as a marker command.
+                // exposed as a marker command; game.rs hud_3d_objects draws the clump.
                 // quirk: the C++ dereferences +0x8c unchecked (NULL slot would crash); skipped here
                 if d.obj != 0 {
                     self.draw.push(HudDrawCmd { tex: HudTex::Object3D(d.owner, d.obj), pos: [[r[0], r[1]], [r[0], r[1] + r[3]], [r[0] + r[2], r[1]], [r[0] + r[2], r[1] + r[3]]], uv: [[0.0; 2]; 4], colors: [[0xff; 4]; 4], priority: prio });
@@ -841,7 +851,7 @@ impl EFHudMgr {
     fn ConvertTextCommandsToRenderCommands(&self, t: &EFHudTextWindow, fl: u32, cmds: &[u8], mem: &dyn HudMem) -> Vec<u32> {
         let mut out = Vec::new();
         out.extend_from_slice(&[FONT, t.font, COLOR, t.color]);
-        let mut d = Disp { x: t.area[0], y: t.area[1], font: t.font, line: 4, word: 4, wr: 4, last: 4, word_x: t.area[0], arg: 0 };
+        let mut d = Disp { x: t.area[0], y: t.area[1], font: t.font, line: 4, word: 4, wr: 4, last: 4, word_x: t.area[0], arg: 0, base: t.font };
         let rd = |p: usize| -> u32 { cmds.get(p..p + 4).map(|b| u32::from_le_bytes(b.try_into().unwrap())).unwrap_or(1) };
         let mut p = 0usize;
         loop {
@@ -962,6 +972,7 @@ impl EFHudMgr {
                 }
                 0xfffe => self.space(area, sp, d),
                 0xfffd => self.space(area, sp * 3.0, d),
+                _ if d.font == ICON_FONT && d.font != d.base && (ICON_FIRST..ICON_FIRST + 4).contains(&u) && self.key_prompt(u, d, out) => false,
                 _ => {
                     self.put_glyph(u as u32, d, out);
                     false
@@ -971,6 +982,25 @@ impl EFHudMgr {
                 self.AlignLine(area, fl, d, out);
             }
         }
+    }
+
+    /// P41 R3: icon `u` -> the key name (the menu fonts have no brackets) in the window's own font (back to the icon font after).
+    fn key_prompt(&self, u: u16, d: &mut Disp, out: &mut Vec<u32>) -> bool {
+        let Some(name) = KEY_PROMPTS.lock().unwrap().as_ref().map(|k| k[(u - ICON_FIRST) as usize].clone()) else { return false };
+        let Some(ascii) = self.font_ref(d.base).map(|f| f.ascii.clone()) else { return false };
+        let font = |v: u32, d: &mut Disp, out: &mut Vec<u32>| {
+            out.truncate(d.wr);
+            out.extend_from_slice(&[FONT, v]);
+            d.wr += 2;
+            d.font = v;
+        };
+        let icon = d.font;
+        font(d.base, d, out);
+        for c in name.bytes().filter(|c| *c < 0x80 && *c != b' ') {
+            self.put_glyph(ascii.get(c as usize).copied().unwrap_or(1) as u32, d, out);
+        }
+        font(icon, d, out);
+        true
     }
 
     /// EFHudTextWindow_BC::DisplayUnicodeString ("\n", "\t", ' ', ascii via the font table).

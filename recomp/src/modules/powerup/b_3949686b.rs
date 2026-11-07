@@ -69,7 +69,7 @@ pub fn SetParticleCollectablePickup_glow(e: &mut Engine, mut param_1: u32, mut p
 pub fn PowerUpST_FIRSTMOVE(e: &mut Engine, ep1: u32) -> LResult<u64> {
     let mut uVar1: u32 = 0;
     let mut iVar2: i32 = 0;
-    let _ = { let a3 = (e.r32(g(e, 0x10030))).wrapping_add(18u32); APIgameobj::GetPosition(e, 0x2a000000u32, 0x7fffffffu32, a3) };
+    let _ = { let a3 = (e.r32(g(e, 0x10030))).wrapping_add(72u32) /* int* +0x12 */; APIgameobj::GetPosition(e, 0x2a000000u32, 0x7fffffffu32, a3) };
     uVar1 = APIextra::TimerCreate(e);
     { let a0 = e.r32(g(e, 0x10030)); e.w32(a0, uVar1) };
     { let a0 = (e.r32(g(e, 0x10030))).wrapping_add((6u32).wrapping_mul(4)); let a1 = e.r32((e.r32(g(e, 0x10030))).wrapping_add((18u32).wrapping_mul(4))); e.w32(a0, a1) };
@@ -102,7 +102,7 @@ pub fn PowerUpST_SPIN_FASTER(e: &mut Engine, ep1: u32) -> LResult<u64> {
     let _ = PowerUpFUNC_RunBob(e)?;
     let _ = PowerUpFUNC_Spin(e, 20.0)?;
     fVar1 = { let a1 = e.r32(e.r32(g(e, 0x10030))); APIextra::TimerGetTime(e, a1) };
-    if (((e.r32((e.r32(g(e, 0x10030))).wrapping_add((17u32).wrapping_mul(4)))) as f32) < fVar1) {
+    if (f32::from_bits(e.r32((e.r32(g(e, 0x10030))).wrapping_add((17u32).wrapping_mul(4)))) < fVar1) {
         let _ = APIgameobj::SetNextState(e, 0x2a000000u32, 1u32);
     }
     return Ok(0u64);
@@ -114,7 +114,7 @@ pub fn PowerUpST_EMBRION(e: &mut Engine, ep1: u32) -> LResult<u64> {
     let mut fVar2: f32 = 0.0;
     puVar1 = e.r32(g(e, 0x10030));
     fVar2 = { let a1 = e.r32(e.r32(g(e, 0x10030))); APIextra::TimerGetTime(e, a1) };
-    if (((e.r32((e.r32(g(e, 0x10030))).wrapping_add((17u32).wrapping_mul(4)))) as f32) < fVar2) {
+    if (f32::from_bits(e.r32((e.r32(g(e, 0x10030))).wrapping_add((17u32).wrapping_mul(4)))) < fVar2) {
         if (e.r32(g(e, 0x10020)) != 0u32) {
             let _ = { let a1 = e.cstr("PowUp"); let a2 = e.cstr("PowerUpST_EMBRION - RESPAWNING"); LIBdebug::PrintDebugInfo(e, a1, a2) };
         }
@@ -152,7 +152,7 @@ pub fn PowerUpCB_CLIP_PROXIMITY(e: &mut Engine, ep1: u32) -> LResult<u64> {
             let _ = PowerUpFUNC_GrabPowerUp(e)?;
         } else {
             fVar2 = { let a1 = e.r32(e.r32(g(e, 0x10030))); APIextra::TimerGetTime(e, a1) };
-            e.w32((puVar1).wrapping_add((17u32).wrapping_mul(4)), (((fVar2 + 1.0)) as i64 as u32));
+            e.w32((puVar1).wrapping_add((17u32).wrapping_mul(4)), (fVar2 + 1.0).to_bits());
             let _ = APIgameobj::SetNextState(e, 0x2a000000u32, 2u32);
         }
     }
@@ -234,7 +234,7 @@ pub fn PowerUpFUNC_GrabPowerUp(e: &mut Engine) -> LResult<u32> {
     let frame = e.alloca(0x90);
     puVar2 = e.r32(g(e, 0x10030));
     if (e.r32((e.r32(g(e, 0x10030))).wrapping_add((1u32).wrapping_mul(4))) == 0u32) {
-        if (((e.r32((e.r32(g(e, 0x10030))).wrapping_add((3u32).wrapping_mul(4)))) as f32) != 0.0) {
+        if (f32::from_bits(e.r32((e.r32(g(e, 0x10030))).wrapping_add((3u32).wrapping_mul(4)))) != 0.0) {
             if (e.r32(g(e, 0x10020)) != 0u32) {
                 let _ = { let a1 = e.cstr("PowUp"); let a2 = e.cstr("FUNC_GrabPowerUp - recharging powerup"); LIBdebug::PrintDebugInfo(e, a1, a2) };
             }
@@ -294,11 +294,11 @@ pub fn PowerUpFUNC_GrabPowerUp(e: &mut Engine) -> LResult<u32> {
         e.w32(((frame + 0x20)).wrapping_add((0u32).wrapping_mul(4)), 0x40000000u32);
         let _ = { let a1 = e.r32((puVar2).wrapping_add((4u32).wrapping_mul(4))); LIBApiText::ShowText(e, a1, (frame + 0x20)) };
     }
-    fVar6 = ((e.r32((puVar2).wrapping_add((5u32).wrapping_mul(4)))) as f32);
+    fVar6 = f32::from_bits(e.r32((puVar2).wrapping_add((5u32).wrapping_mul(4))));
     if (0.1 < fVar6) {
         let _ = APIgameobj::SetGameObjectVisible(e, 0x2a000000u32, 0i32);
-        let _ = { let a1 = e.r32(e.r32(g(e, 0x10030))); APIextra::TimerGetTime(e, a1) };
-        { let a0 = (e.r32(g(e, 0x10030))).wrapping_add((17u32).wrapping_mul(4)); let a1 = (((fVar6 + ((e.r32((puVar2).wrapping_add((5u32).wrapping_mul(4)))) as f32))) as i64 as u32); e.w32(a0, a1) };
+        fVar6 = { let a1 = e.r32(e.r32(g(e, 0x10030))); APIextra::TimerGetTime(e, a1) };
+        { let a0 = (e.r32(g(e, 0x10030))).wrapping_add((17u32).wrapping_mul(4)); let a1 = (((fVar6 + f32::from_bits(e.r32((puVar2).wrapping_add((5u32).wrapping_mul(4)))))).to_bits()); e.w32(a0, a1) };
         uVar5 = APIgameobj::SetNextState(e, 0x2a000000u32, 3u32);
     } else {
         let _ = APIgameobj::SetGameObjectVisible(e, 0x2a000000u32, 0i32);
@@ -371,10 +371,10 @@ pub fn PowerUpFUNC_SetClipping(e: &mut Engine, mut param_1: u32, mut param_2: u3
     let _ = APIgameobj::GetProximityClippingParams(e, param_1, (frame + 0x0));
     e.w32((frame + 0x4), 0x40000000u32);
     e.w32((frame + 0x8), 0x3dcccccdu32);
-    { let a1 = g(e, 0x100000a0); e.w32((frame + 0xc), a1) };
+    { let a1 = 0x100000a0u32; e.w32((frame + 0xc), a1) };
     e.w32((frame + 0x0), param_2);
     if (param_3 != 0i32) {
-        { let a1 = g(e, 0x100000a0); e.w32((frame + 0xc), a1) };
+        { let a1 = 0x100000a0u32; e.w32((frame + 0xc), a1) };
         let _ = APIgameobj::RegisterNotify(e, param_1, 0xffffffffu32, 10u32, ((param_3) as u32));
     }
     let _ = APIgameobj::SetProximityClippingParams(e, param_1, (frame + 0x0));
@@ -401,7 +401,7 @@ pub fn PowerUpFUNC_UpdateClipping(e: &mut Engine, mut param_1: u32) -> LResult<(
     let _ = APIgameobj::GetProximityClippingParams(e, 0x2a000000u32, (frame + 0x0));
     e.w32((frame + 0x4), 0x40000000u32);
     e.w32((frame + 0x8), 0x3dcccccdu32);
-    { let a1 = g(e, 0x100000a0); e.w32((frame + 0xc), a1) };
+    { let a1 = 0x100000a0u32; e.w32((frame + 0xc), a1) };
     e.w32((frame + 0x0), param_1);
     let _ = APIgameobj::SetProximityClippingParams(e, 0x2a000000u32, (frame + 0x0));
     return Ok(());
@@ -414,8 +414,8 @@ pub fn PowerUpFUNC_RunBob(e: &mut Engine) -> LResult<()> {
     let mut fVar1: f32 = 0.0;
     fVar1 = { let a1 = e.r32(e.r32(g(e, 0x10030))); APIextra::TimerGetTime(e, a1) };
     fVar1 = LIBMiscFunc::MiscFunc_Sin(e, (fVar1 * 3.0));
-    { let a0 = (e.r32(g(e, 0x10030))).wrapping_add((7u32).wrapping_mul(4)); let a1 = (((((e.r32((e.r32(g(e, 0x10030))).wrapping_add((9u32).wrapping_mul(4)))) as f32) + (fVar1 * 0.07))) as i64 as u32); e.w32(a0, a1) };
-    let _ = { let a2 = (e.r32(g(e, 0x10030))).wrapping_add(6u32); APIgameobj::SetTranslation(e, 0x2a000000u32, a2) };
+    { let a0 = (e.r32(g(e, 0x10030))).wrapping_add((7u32).wrapping_mul(4)); let a1 = (((f32::from_bits(e.r32((e.r32(g(e, 0x10030))).wrapping_add((9u32).wrapping_mul(4)))) + (fVar1 * 0.07))).to_bits()); e.w32(a0, a1) };
+    let _ = { let a2 = (e.r32(g(e, 0x10030))).wrapping_add(24u32) /* int* +6 */; APIgameobj::SetTranslation(e, 0x2a000000u32, a2) };
     return Ok(());
     #[allow(unreachable_code)]
     Ok(())

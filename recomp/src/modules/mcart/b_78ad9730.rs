@@ -570,16 +570,16 @@ pub fn mineCartST_Accident_In(e: &mut Engine) -> LResult<()> {
                 e.w32((frame + 0x40), 0x22au32);
                 e.w32((puVar2).wrapping_add((38u32).wrapping_mul(4)), 8u32);
                 if !(e.r32((puVar2).wrapping_add((64u32).wrapping_mul(4))) == 34u32) { pc = 4; continue 'sm; }
-                { let a1 = (((((e.r32((puVar2).wrapping_add((39u32).wrapping_mul(4)))) as f32) - 5.0)) as i64 as u32); e.w32((puVar2).wrapping_add((39u32).wrapping_mul(4)), a1) };
+                { let a1 = (((f32::from_bits(e.r32((puVar2).wrapping_add((39u32).wrapping_mul(4)))) - 5.0)).to_bits()); e.w32((puVar2).wrapping_add((39u32).wrapping_mul(4)), a1) };
                 { pc = 5; continue 'sm; }
                 pc = 4;
             }
             4 => {
-                { let a1 = (((((e.r32((puVar2).wrapping_add((39u32).wrapping_mul(4)))) as f32) - 10.0)) as i64 as u32); e.w32((puVar2).wrapping_add((39u32).wrapping_mul(4)), a1) };
+                { let a1 = (((f32::from_bits(e.r32((puVar2).wrapping_add((39u32).wrapping_mul(4)))) - 10.0)).to_bits()); e.w32((puVar2).wrapping_add((39u32).wrapping_mul(4)), a1) };
                 pc = 5;
             }
             5 => {
-                if !(((e.r32((puVar2).wrapping_add((39u32).wrapping_mul(4)))) as f32) < 17.0) { pc = 6; continue 'sm; }
+                if !(f32::from_bits(e.r32((puVar2).wrapping_add((39u32).wrapping_mul(4)))) < 17.0) { pc = 6; continue 'sm; }
                 e.w32((puVar2).wrapping_add((39u32).wrapping_mul(4)), 0x41880000u32);
                 pc = 6;
             }
@@ -868,7 +868,7 @@ pub fn mineCartST_MiniGameLock_Execute(e: &mut Engine) -> LResult<()> {
     let mut puVar1: u32 = 0;
     puVar1 = e.r32(g(e, 0x10038));
     if ((e.r32(e.r32(g(e, 0x10038))) & 0x40000u32) != 0u32) {
-        { let a0 = (e.r32(g(e, 0x10038))).wrapping_add((39u32).wrapping_mul(4)); let a1 = (((((e.r32((e.r32(g(e, 0x10038))).wrapping_add((42u32).wrapping_mul(4)))) as f32) + 17.0)) as i64 as u32); e.w32(a0, a1) };
+        { let a0 = (e.r32(g(e, 0x10038))).wrapping_add((39u32).wrapping_mul(4)); let a1 = (((f32::from_bits(e.r32((e.r32(g(e, 0x10038))).wrapping_add((42u32).wrapping_mul(4)))) + 17.0)).to_bits()); e.w32(a0, a1) };
         let _ = { let a1 = ((e.r32((puVar1).wrapping_add((83u32).wrapping_mul(4)))) as i32); APIparticle::EmitterStart(e, a1, 1u32) };
         { let a1 = 0x12428u32; e.w32((puVar1).wrapping_add((1u32).wrapping_mul(4)), a1) };
         { let a0 = e.r32(g(e, 0x10038)); let a1 = (e.r32(e.r32(g(e, 0x10038))) & 0xfffbffffu32); e.w32(a0, a1) };
@@ -935,8 +935,8 @@ pub fn mineCartCB_INPUT_STICK_0_PUSHED(e: &mut Engine, ep1: u32) -> LResult<u64>
     let mut param_1: u32 = ep1;
     { let a0 = (e.r32(g(e, 0x10038))).wrapping_add((34u32).wrapping_mul(4)); let a1 = e.r32(param_1); e.w32(a0, a1) };
     { let a0 = (e.r32(g(e, 0x10038))).wrapping_add((35u32).wrapping_mul(4)); let a1 = e.r32((param_1).wrapping_add((1u32).wrapping_mul(4))); e.w32(a0, a1) };
-    if ((((e.r32((e.r32(g(e, 0x10038))).wrapping_add((34u32).wrapping_mul(4)))) as f32) <= 0.1) || (e.r32((e.r32(g(e, 0x10038))).wrapping_add((45u32).wrapping_mul(4))) != 0u32)) {
-        if ((-0.1 <= ((e.r32((e.r32(g(e, 0x10038))).wrapping_add((34u32).wrapping_mul(4)))) as f32)) || (e.r32((e.r32(g(e, 0x10038))).wrapping_add((45u32).wrapping_mul(4))) != 0u32)) {
+    if ((f32::from_bits(e.r32((e.r32(g(e, 0x10038))).wrapping_add((34u32).wrapping_mul(4)))) <= 0.1) || (e.r32((e.r32(g(e, 0x10038))).wrapping_add((45u32).wrapping_mul(4))) != 0u32)) {
+        if ((-0.1 <= f32::from_bits(e.r32((e.r32(g(e, 0x10038))).wrapping_add((34u32).wrapping_mul(4))))) || (e.r32((e.r32(g(e, 0x10038))).wrapping_add((45u32).wrapping_mul(4))) != 0u32)) {
             { let a0 = e.r32(g(e, 0x10038)); let a1 = (e.r32(e.r32(g(e, 0x10038))) | 8u32); e.w32(a0, a1) };
         } else {
             { let a0 = e.r32(g(e, 0x10038)); let a1 = (e.r32(e.r32(g(e, 0x10038))) | 4u32); e.w32(a0, a1) };

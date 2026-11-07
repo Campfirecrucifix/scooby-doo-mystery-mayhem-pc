@@ -621,10 +621,10 @@ pub fn FountainFUNC_MoveParticle(e: &mut Engine) -> LResult<()> {
             8 => {
                 if !(e.r32((frame + 0x0)) < e.r32((frame + 0x4))) { pc = 10; continue 'sm; }
                 fVar4 = { let a1 = e.rf((frame + 0xc)); APImath::cosf(e, a1) };
-                { let a0 = (e.r32(g(e, 0x1003c))).wrapping_add((((e.r32((frame + 0x0))).wrapping_mul(3u32)).wrapping_add(13u32)).wrapping_mul(4)); e.w32(a0, (((fVar3 * fVar4)) as i64 as u32)) };
-                { let a0 = (e.r32(g(e, 0x1003c))).wrapping_add((((e.r32((frame + 0x0))).wrapping_mul(3u32)).wrapping_add(14u32)).wrapping_mul(4)); let a1 = (((e.rf(((frame + 0x30)).wrapping_add(4)) - e.rf(((frame + 0x20)).wrapping_add(4)))) as i64 as u32); e.w32(a0, a1) };
+                { let a0 = (e.r32(g(e, 0x1003c))).wrapping_add((((e.r32((frame + 0x0))).wrapping_mul(3u32)).wrapping_add(13u32)).wrapping_mul(4)); e.w32(a0, (fVar3 * fVar4).to_bits()) };
+                { let a0 = (e.r32(g(e, 0x1003c))).wrapping_add((((e.r32((frame + 0x0))).wrapping_mul(3u32)).wrapping_add(14u32)).wrapping_mul(4)); let a1 = (((e.rf(((frame + 0x30)).wrapping_add(4)) - e.rf(((frame + 0x20)).wrapping_add(4)))).to_bits()); e.w32(a0, a1) };
                 fVar4 = { let a1 = e.rf((frame + 0xc)); APImath::sinf(e, a1) };
-                { let a0 = (e.r32(g(e, 0x1003c))).wrapping_add((((e.r32((frame + 0x0))).wrapping_mul(3u32)).wrapping_add(15u32)).wrapping_mul(4)); e.w32(a0, (((fVar3 * fVar4)) as i64 as u32)) };
+                { let a0 = (e.r32(g(e, 0x1003c))).wrapping_add((((e.r32((frame + 0x0))).wrapping_mul(3u32)).wrapping_add(15u32)).wrapping_mul(4)); e.w32(a0, (fVar3 * fVar4).to_bits()) };
                 let _ = { let a1 = e.r32((e.r32(g(e, 0x1003c))).wrapping_add(((e.r32((frame + 0x0))).wrapping_add(3u32)).wrapping_mul(4))); let a2 = ((e.r32(g(e, 0x1003c))).wrapping_add(((e.r32((frame + 0x0))).wrapping_mul(3u32)).wrapping_mul(4))).wrapping_add((((13i32) as u32)).wrapping_mul(4)); APIgameobj::SetTranslation(e, a1, a2) };
                 { let a1 = (e.rf((frame + 0xc)) + (6.2831855 / ((e.r32((frame + 0x4))) as f32))); e.wf((frame + 0xc), a1) };
                 pc = 9;

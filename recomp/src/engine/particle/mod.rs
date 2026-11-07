@@ -78,7 +78,8 @@ impl PLInterpol {
 }
 
 /// PLParticle (0x2c bytes): +0 next (list), +4 pos, +0x10 velocity, +0x1c age, +0x20 start size,
-/// +0x24 RwMatrix* (only for "3D" types, type flag 1), +0x28 unused.
+/// +0x24 RwMatrix* (only for "3D" types, type flag 1), +0x28 u16 collision stamp
+/// (EFObjCollision*::CheckParticlesIntersection marks with PLParticle::mui16GlobalCount).
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct PLParticle {
     pub pos: V3,
@@ -86,6 +87,7 @@ pub struct PLParticle {
     pub age: f32,
     pub size: f32,
     pub matrix: Option<DTMatrix>,
+    pub stamp: u16,
 }
 
 /// PS2 libc rand() (newlib 64-bit LCG, RAND_MAX 0x7fffffff). Replacement for the global libc

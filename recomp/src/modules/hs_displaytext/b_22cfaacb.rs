@@ -12,7 +12,7 @@ pub const DTOR: crate::logic::DtorFn = hs_displaytextDestructor;
 /// 0x00010cf0
 pub fn hs_displayTextST_FirstMove(e: &mut Engine, ep1: u32) -> LResult<u64> {
     let _ = { let a1 = (e.r32(g(e, 0x10020))).wrapping_add(8u32); LIBApiText::InitStruct(e, a1) };
-    { let a0 = (e.r32(g(e, 0x10020))).wrapping_add(8u32); let a1 = g(e, 0x40600000); e.w32(a0, a1) };
+    { let a0 = (e.r32(g(e, 0x10020))).wrapping_add(8u32); let a1 = 0x40600000u32; e.w32(a0, a1) };
     let _ = APIgameobj::SetGroupID(e, 0x2a000000u32, 23u32);
     let _ = APIgameobj::SetNextState(e, 0x2a000000u32, 1u32);
     return Ok(0u64);
@@ -57,7 +57,7 @@ pub fn hs_displayTextCB_NotifyColide(e: &mut Engine, ep1: u32) -> LResult<u64> {
             e.w32((frame + 0x0), 0x153u32);
         } else if (uVar3 < 0x2a000125u32) {
             if (uVar3 == 0x2a000123u32) {
-                { let a0 = (e.r32(g(e, 0x10020))).wrapping_add(8u32); let a1 = g(e, 0x40a00000); e.w32(a0, a1) };
+                { let a0 = (e.r32(g(e, 0x10020))).wrapping_add(8u32); let a1 = 0x40a00000u32; e.w32(a0, a1) };
                 e.w32((frame + 0x0), 0x14fu32);
                 let _ = { let a2 = (e.r32(g(e, 0x10020))).wrapping_add(8u32); LIBApiText::ShowText(e, 0x14eu32, a2) };
             }
@@ -66,7 +66,7 @@ pub fn hs_displayTextCB_NotifyColide(e: &mut Engine, ep1: u32) -> LResult<u64> {
         } else if (uVar3 == 0x2a000126u32) {
             e.w32((frame + 0x0), 0x155u32);
         }
-        { let a0 = (e.r32(g(e, 0x10020))).wrapping_add(8u32); let a1 = g(e, 0x40600000); e.w32(a0, a1) };
+        { let a0 = (e.r32(g(e, 0x10020))).wrapping_add(8u32); let a1 = 0x40600000u32; e.w32(a0, a1) };
         let _ = { let a1 = e.r32((frame + 0x0)); let a2 = (e.r32(g(e, 0x10020))).wrapping_add(8u32); LIBApiText::ShowText(e, a1, a2) };
     }
     return Ok(0u64);

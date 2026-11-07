@@ -39,24 +39,9 @@ const DEF: ModuleDef = ModuleDef {
     ctor: title_cameraConstructor,
     dtor: title_cameraDestructor,
     register: None,
-    init: &[
-        // CameraFlags.. fSpeedFactor
-        (0x10168, &[0, 0, 0x3f99_999a, 0x7fff_ffff, 0x3f40_0000, 0]),
-        // fCameraCurve[6][2] + the 3 CheckWall ray dirs
-        (
-            0x10180,
-            &[
-                0, 0x4026_6666, 0x3f80_0000, 0x4000_0000, 0x4000_0000, 0x3fd9_999a, //
-                0x4040_0000, 0x4019_999a, 0x4080_0000, 0x4040_0000, 0x40a0_0000, 0x409c_cccd, //
-                0, 0, 0x3f80_0000, 0, 0x3f5d_b22d, 0, 0xbf00_0000, 0, 0xbf5d_b22d, 0, 0xbf00_0000, 0,
-            ],
-        ),
-        // Events[1]; pEventBuffer (0x101f4) is set by build_init; i32EventBufferSize = 1
-        (0x101f0, &[EV_DEFAULT]),
-        (0x101f8, &[1]),
-        // szFileName = "ScoobyScreenShot00.bmp"
-        (0x10200, &[0x6f6f_6353, 0x6353_7962, 0x6e65_6572, 0x746f_6853, 0x622e_3030, 0x0000_706d]),
-    ],
+    // module image 0x10000..0x10218 (goHeroesData, CameraFlags.. fSpeedFactor, fCameraCurve, CheckWall ray
+    // dirs, Events, szFileName) is read from the module on the disc by build_init (WP-X4)
+    init: &[],
     build_init: Some(title_camera_build_init),
 };
 
@@ -147,6 +132,8 @@ pub fn build_index(key: &str) -> Option<usize> {
 
 /// relocated pointer of the image (pEventBuffer = &Events) + the per-build goHeroesData rows
 fn title_camera_build_init(m: &mut Mem, data: Ptr, build: usize) {
+    crate::engine::gamedata::init_runs(m, data, ["22333f77", "42815106", "e8f6fb31"][build], &[(0x10000, 0x10218)]);
+    m.w32(data + (Events - 0x10000), EV_DEFAULT); // relocated code pointer
     m.w32(data + (pEventBuffer - 0x10000), data + (Events - 0x10000));
     let k = &BUILDS[build];
     let (a, b) = (k.def_lead, k.def_follow);

@@ -594,8 +594,8 @@ impl DTObject for EFTextureAnimRes {
     }
 }
 
-/// EFMorphAnimRes (class 0x13, size 0x14). Replaced: ApMorphAnimationStreamRead (RenderWare
-/// plugin) is not ported; the RW chunk {u32 type, u32 size, u32 version, data} is kept raw.
+/// EFMorphAnimRes (class 0x13, size 0x14). The ApMorphAnimationStreamRead (RenderWare
+/// plugin) chunk {u32 type, u32 size, u32 version, data} is kept raw and decoded by anim/morph.rs.
 /// Not present in EP1L01.
 #[derive(Debug, Clone, Default)]
 pub struct EFMorphAnimRes {

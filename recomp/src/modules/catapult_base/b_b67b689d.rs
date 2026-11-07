@@ -47,7 +47,7 @@ pub fn fcback_NOTIFY_COLLIDE_OBJ(e: &mut Engine, ep1: u32) -> LResult<u64> {
     if ((e.ri32((((param_1).wrapping_add(8i32)) as u32)) == e.ri32((e.r32(e.r32(g(e, 0x10034)))).wrapping_add(8u32))) && ((e.r32((e.r32(e.r32(g(e, 0x10034)))).wrapping_add(20u32)) & 0x6e20090du32) == 0u32)) {
         let _ = APIgameobj::SetGroupID(e, 0x2a000000u32, 6u32);
         let _ = { let a1 = e.r32((e.r32(g(e, 0x10030))).wrapping_add((21u32).wrapping_mul(4))); APIextra::TimerReset(e, a1) };
-        let _ = { let a1 = e.r32((e.r32(g(e, 0x10030))).wrapping_add((21u32).wrapping_mul(4))); let a2 = ((e.r32((e.r32(g(e, 0x10030))).wrapping_add((20u32).wrapping_mul(4)))) as f32); APIextra::TimerSetFrequency(e, a1, a2) };
+        let _ = { let a1 = e.r32((e.r32(g(e, 0x10030))).wrapping_add((21u32).wrapping_mul(4))); let a2 = f32::from_bits(e.r32((e.r32(g(e, 0x10030))).wrapping_add((20u32).wrapping_mul(4)))); APIextra::TimerSetFrequency(e, a1, a2) };
         let _ = { let a2 = e.r32((e.r32(g(e, 0x10030))).wrapping_add((21u32).wrapping_mul(4))); APIextra::TimerRegisterNotify(e, 0x2a000000u32, a2, 4u32) };
         let _ = APIgameobj::SendMessageTo(e, 0x2a00004du32, NULL, 210u32, 0x504u32, NULL);
         let _ = APIgameobj::SendMessageTo(e, 0x2a00004cu32, NULL, 210u32, 0x504u32, NULL);

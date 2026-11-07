@@ -199,6 +199,22 @@ impl EF3dObj_SP {
         if creation_flags & 0x68 != 0 {
             o.base.ApplyCreationFlags(creation_flags);
         }
+        // EFWorld::RenderObjectsTransparent picks the GS ALPHA mode from these flags (0x10 > 0x100 >
+        // 0x200) for every object queued in the transparent buckets (P26 R16: EP6/L03 electric arcs)
+        let f = o.base.flags;
+        o.blend_mode = if f & 0x10 != 0 {
+            BlendMode::Additive
+        } else if f & 0x100 != 0 {
+            BlendMode::AdditiveFix
+        } else if f & 0x200 != 0 {
+            BlendMode::Subtractive
+        } else {
+            BlendMode::Normal
+        };
+        // P33 R6 debug: GAME_BLEND_LOG=1 reports objects whose flags select the subtractive GS mode 0xa1
+        if o.blend_mode == BlendMode::Subtractive && std::env::var_os("GAME_BLEND_LOG").is_some() {
+            eprintln!("P33 blend 0xa1 object flags {f:#x} creation {creation_flags:#x}");
+        }
         for (i, a) in clump.atomics.iter().enumerate().rev() {
             let g = clump.geometries.get(a.geometry as usize);
             let skinned = g.is_some_and(|g| g.skin.is_some());
@@ -408,4 +424,89 @@ impl EF3dObj_SP {
             }
         }
     }
+}
+
+/// EF3dObj pose + frame update of one game object (bin/game.rs draw_objects; P21 R69 moved here so
+/// the headless test harness can run it too): applies the anim pose (`apply_pose`), syncs the frames
+/// to `ltm` and returns the HAnim node frames (modelling matrix, LTM) + node ids published to
+/// RuntimeWorld::nodes / node_ids (PhysicWorld::GetBone: bone-attached coll prims follow them).
+pub fn pose_nodes(o: &mut EF3dObj_SP, c: &RpClump, pose: Option<&[crate::engine::anim::res::DTTransfo]>, ltm: Mat4) -> Option<(Vec<(crate::engine::camera::DTMatrix, crate::engine::camera::DTMatrix)>, Vec<i32>)> {
+    use crate::engine::camera::DTMatrix;
+    if let Some(pose) = pose {
+        apply_pose(o, c, pose, ltm);
+    }
+    o.SyncFrames(ltm);
+    let h = o.hier.hierarchy.as_ref()?;
+    let m = |a: &Mat4| DTMatrix { right: [a[0], a[1], a[2]], up: [a[4], a[5], a[6]], at: [a[8], a[9], a[10]], pos: [a[12], a[13], a[14]] };
+    let nodes = h.node_frames.iter().map(|f| f.map_or((m(&ltm), m(&ltm)), |f| (m(&o.frames.local[f]), m(&o.frames.GetLTM(f))))).collect();
+    Some((nodes, h.node_ids.clone()))
+}
+
+/// P28 R11: logic-side node posing. EFAnimationMgr::PlayHAnim (0x001e9390) runs UpdateHierarchyAnimNode at
+/// once and the hierarchy frames are the EF3dObj's own RwFrames, so a GetObjectFrame(joint) later in the same
+/// logic pass sees the new anim's pose (heroInit_EdgeJump reads the leader's hand 0x2500000 right after the
+/// leader's EdgeIn played the climb anim). The renderer / headless publisher register each clump here the first
+/// time they pose an object; [`NodePoser::Repose`] then re-poses that object from the logic side.
+#[derive(Debug, Clone, Default)]
+pub struct NodePoser {
+    /// resource uid -> clump (rest frames + HAnim hierarchy)
+    pub clumps: std::collections::HashMap<u32, RpClump>,
+    /// game object uid -> its posing EF3dObj (independent of the renderer's)
+    pub objs: std::collections::HashMap<u32, EF3dObj_SP>,
+}
+
+impl NodePoser {
+    /// Node frames (modelling, LTM) + HAnim ids of `uid` for `pose` at object LTM `ltm`; None without a
+    /// registered clump / hierarchy.
+    pub fn Repose(&mut self, uid: u32, res_uid: u32, pose: Option<&[crate::engine::anim::res::DTTransfo]>, ltm: Mat4) -> Option<(Vec<(crate::engine::camera::DTMatrix, crate::engine::camera::DTMatrix)>, Vec<i32>)> {
+        let c = self.clumps.get(&res_uid)?;
+        let o = self.objs.entry(uid).or_insert_with(|| {
+            let mut o = EF3dObj_SP::Initialize(res_uid, c, 0);
+            o.SetVisible(1);
+            o
+        });
+        pose_nodes(o, c, pose, ltm)
+    }
+}
+
+/// HAnim pose -> EF3dObj transfo pool 0 -> EF3dObj::UpdateHierarchy (as the viewer: pose
+/// transfos carry their hierarchy node index, nodes the anim does not drive keep the clump rest).
+pub fn apply_pose(o: &mut EF3dObj_SP, c: &RpClump, pose: &[crate::engine::anim::res::DTTransfo], ltm: Mat4) {
+    let n = o.hier.transfos.first().map_or(0, |t| t.len());
+    if pose.is_empty() || !pose.iter().all(|t| (t.id as usize) < n && t.id >= 0) {
+        return;
+    }
+    for t in pose {
+        o.hier.transfos[0][t.id as usize] = t.clone();
+    }
+    o.base.flags |= 0x80;
+    let flags = o.base.flags;
+    let mut owner = ltm;
+    o.hier.UpdateHierarchy(flags, &mut o.frames, &mut owner);
+    if let Some(h) = &o.hier.hierarchy {
+        for (i, f) in h.node_frames.iter().enumerate() {
+            if let Some(f) = f {
+                if !pose.iter().any(|t| t.id as usize == i) {
+                    if let Some(r) = c.frames.get(*f) {
+                        o.frames.local[*f] = r.local_matrix();
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// P22 R26 (GAME_LOGICCLIP): the clip spheres EFWorld::ClipFrustumTest reads, one per atomic (atomic +0x1c
+/// centre through its frame LTM, radius +0x28), here in object space with the clump at its REST pose
+/// (deviation: the C uses the animated atomic frames; the world transform is applied per frame).
+pub fn clip_spheres(res_uid: u32, c: &RpClump) -> Vec<[f32; 4]> {
+    let mut o = EF3dObj_SP::Initialize(res_uid, c, 0);
+    o.SyncFrames(IDENTITY);
+    o.atomics
+        .iter()
+        .map(|a| {
+            let p = transform_point(&o.frames.GetLTM(a.frame), [a.bsphere[0], a.bsphere[1], a.bsphere[2]]);
+            [p[0], p[1], p[2], a.bsphere[3]]
+        })
+        .collect()
 }

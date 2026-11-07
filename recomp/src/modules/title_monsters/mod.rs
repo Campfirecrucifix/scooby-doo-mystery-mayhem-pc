@@ -122,7 +122,7 @@ pub fn bigghostCB_ANIM_LF(e: &mut Engine, _: u32) -> LResult<u64> {
 /// The glow (ghost layout -0x1a0: group +0x1c, types +0x10..+0x18, sprite/emitter i at +0x30 + i*4,
 /// joint +0x13c + i*4, offset +0x248 + i*0xc).
 struct Glow {
-    table: &'static [(u32, u32)],
+    table: emitter_pos::StoreRun,
     rgb: (f32, f32, f32),
     types: &'static [(u32, &'static str, fn(&mut Engine, u32, u32) -> LResult<()>)],
     sprites: u32,
@@ -133,7 +133,7 @@ struct Glow {
 
 fn CreateEmitterPos(e: &mut Engine, g: &Glow) -> LResult<()> {
     let l = L(e);
-    for &(o, v) in g.table {
+    for &(o, v) in g.table.iter() {
         e.w32(l + o - 0x1a0, v);
     }
     let gr = APIgraphics::SpriteAddGroup(e);

@@ -437,7 +437,7 @@ pub fn robotState_Wait_In(e: &mut Engine, mut param_1: u32) -> LResult<()> {
     let _ = LIBAnimMngr::PlayAnim(e, 0.0, 16i32, 1i32, 4i32);
     let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0x180u32);
     fVar1 = APIextra::TimerGetTime(e, 0x90000000u32);
-    e.w32((param_1).wrapping_add((24u32).wrapping_mul(4)), (((fVar1 + 3.0)) as i64 as u32));
+    e.w32((param_1).wrapping_add((24u32).wrapping_mul(4)), (fVar1 + 3.0).to_bits());
     { let a1 = 0x14e18u32; e.w32(param_1, a1) };
     let _ = call_code(e, e.r32(param_1), (param_1) as u32)?;
     return Ok(());
@@ -450,7 +450,7 @@ pub fn robotState_Wait_Execute(e: &mut Engine, mut param_1: u32) -> LResult<()> 
     let mut bVar1: bool = false;
     let mut fVar2: f32 = 0.0;
     fVar2 = APIextra::TimerGetTime(e, 0x90000000u32);
-    if (((e.r32((param_1).wrapping_add((24u32).wrapping_mul(4)))) as f32) < fVar2) {
+    if (f32::from_bits(e.r32((param_1).wrapping_add((24u32).wrapping_mul(4)))) < fVar2) {
         if (((e.r32((e.r32(e.r32(g(e, 0x10038)))).wrapping_add(20u32)) & 1u32) == 0u32) || { { bVar1 = ((({ let a3 = e.r32((e.r32(e.r32(g(e, 0x10038)))).wrapping_add(8u32)); LIBApiCFunctions::CheckRangeObject(e, 2.0, 0x2a000000u32, a3, 1i32) } as u32)) != 0); bVar1 }; !bVar1 }) {
             if (((e.r32((e.r32(e.r32(g(e, 0x10038)))).wrapping_add(20u32)) & 1u32) == 0u32) && { { bVar1 = ((({ let a3 = e.r32((e.r32(e.r32(g(e, 0x10038)))).wrapping_add(8u32)); LIBApiCFunctions::CheckRangeObject(e, 1.0, 0x2a000000u32, a3, 1i32) } as u32)) != 0); bVar1 }; bVar1 }) {
                 { let a1 = 0x14b38u32; e.w32(param_1, a1) };
@@ -477,7 +477,7 @@ pub fn robotState_Return_In(e: &mut Engine, mut param_1: u32) -> LResult<()> {
     e.w32((param_1).wrapping_add((33u32).wrapping_mul(4)), 1u32);
     let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0xb80u32);
     fVar1 = APIextra::TimerGetTime(e, 0x90000000u32);
-    e.w32((param_1).wrapping_add((24u32).wrapping_mul(4)), (((fVar1 + 2.0)) as i64 as u32));
+    e.w32((param_1).wrapping_add((24u32).wrapping_mul(4)), (fVar1 + 2.0).to_bits());
     { let a1 = 0x15090u32; e.w32(param_1, a1) };
     { let a1 = 0x15090u32; e.w32((param_1).wrapping_add((1u32).wrapping_mul(4)), a1) };
     let _ = call_code(e, e.r32(param_1), (param_1) as u32)?;
@@ -492,7 +492,7 @@ pub fn robotState_Return_Execute(e: &mut Engine, mut param_1: u32) -> LResult<()
     let mut iVar2: i32 = 0;
     let mut fVar3: f32 = 0.0;
     iVar2 = ((robotFUNC_CheckEvents(e, 32u32)?) as i32);
-    if ((iVar2 == 0i32) && { { bVar1 = (((LIBApiCFunctions::CheckRangePoint(e, 1.5, 0x2a000000u32, (param_1).wrapping_add((((20i32) as u32)).wrapping_mul(4)), 1i32) as u32)) != 0); bVar1 }; (bVar1 || { { fVar3 = APIextra::TimerGetTime(e, 0x90000000u32); fVar3 }; (((e.r32((param_1).wrapping_add((24u32).wrapping_mul(4)))) as f32) < fVar3) }) }) {
+    if ((iVar2 == 0i32) && { { bVar1 = (((LIBApiCFunctions::CheckRangePoint(e, 1.5, 0x2a000000u32, (param_1).wrapping_add((((20i32) as u32)).wrapping_mul(4)), 1i32) as u32)) != 0); bVar1 }; (bVar1 || { { fVar3 = APIextra::TimerGetTime(e, 0x90000000u32); fVar3 }; (f32::from_bits(e.r32((param_1).wrapping_add((24u32).wrapping_mul(4)))) < fVar3) }) }) {
         { let a1 = 0x14398u32; e.w32(param_1, a1) };
         let _ = robotFUNC_SetClipping(e, 2u32)?;
     }
@@ -1009,7 +1009,7 @@ pub fn robotState_Rotating_Execute(e: &mut Engine) -> LResult<()> {
     fVar1 = 1.0;
     e.wf(((frame + 0x0)).wrapping_add(4), 1.0);
     e.wf(((frame + 0x0)).wrapping_add(8), 0.0);
-    let _ = APIgame::GetFrameDeltaTime(e);
+    fVar1 = APIgame::GetFrameDeltaTime(e); // Ghidra dropped the f1 return
     e.wf((frame + 0x10), ((fVar1 * 3.1415927) / 1.5));
     if ((e.r32((e.r32(g(e, 0x10034))).wrapping_add(8u32)) & 0x8000u32) == 0u32) {
         if ((e.r32((e.r32(g(e, 0x10034))).wrapping_add(8u32)) & 0x4000u32) != 0u32) {

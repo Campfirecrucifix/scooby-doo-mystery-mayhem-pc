@@ -194,7 +194,7 @@ pub fn PanelST_RETURN_FROM_SAVEGAME(e: &mut Engine, ep1: u32) -> LResult<u64> {
 pub fn PanelST_BASICLOGIC(e: &mut Engine, ep1: u32) -> LResult<u64> {
     let mut uVar1: u32 = 0;
     let mut in_f0: f32 = 0.0;
-    if (((e.ri32((e.r32(g(e, 0x23e5c))).wrapping_add(0x380u32)) == 2i32) || (e.ri32((e.r32(g(e, 0x23e5c))).wrapping_add(0x384u32)) == 20i32)) && { { let a1 = e.r32((e.r32(g(e, 0x23e5c))).wrapping_add(0x3b4u32)); APIextra::TimerGetTime(e, a1) }; (5.5 < in_f0) }) {
+    if (((e.ri32((e.r32(g(e, 0x23e5c))).wrapping_add(0x380u32)) == 2i32) || (e.ri32((e.r32(g(e, 0x23e5c))).wrapping_add(0x384u32)) == 20i32)) && { in_f0 = { let a1 = e.r32((e.r32(g(e, 0x23e5c))).wrapping_add(0x3b4u32)); APIextra::TimerGetTime(e, a1) }; (5.5 < in_f0) } /* $f0 = TimerGetTime return (P32 R43) */) {
         let _ = APIstdlib::MyRand(e);
         uVar1 = APIstdlib::MyRand(e);
         let _ = panel_baseFUNC_UpdateMonsterClipping(e)?;
@@ -284,7 +284,7 @@ pub fn PanelCB_NOINPUT(e: &mut Engine, ep1: u32) -> LResult<u64> {
     if (e.ri32((e.r32(g(e, 0x23e5c))).wrapping_add(0x3c4u32)) == 0i32) {
         if (param_1 == e.ri32((e.r32(e.r32(g(e, 0x23e60)))).wrapping_add(76u32))) {
             iVar1 = ((APIgameobj::GetCurrentStateID(e, 0x2a000000u32)) as i32);
-            if ((iVar1 == 4i32) && { { let a1 = e.r32((e.r32(g(e, 0x23e5c))).wrapping_add(0x3d4u32)); APIextra::TimerGetTime(e, a1) }; (1.0 < in_f0) }) {
+            if ((iVar1 == 4i32) && { in_f0 = { let a1 = e.r32((e.r32(g(e, 0x23e5c))).wrapping_add(0x3d4u32)); APIextra::TimerGetTime(e, a1) }; (1.0 < in_f0) } /* $f0 = TimerGetTime return (P32 R43) */) {
                 if (e.ri32((e.r32(g(e, 0x23e5c))).wrapping_add(0x3b8u32)) == 0i32) {
                     let _ = { let a1 = e.cstr("NOCONTROLLER \n\n"); APIextra::null_printf(e, a1, 0u32) };
                     uVar2 = APIhud::WindowAdd(e, 1u32, 0xffffffffu32, 0x3080cu32, 1u32);
@@ -1715,21 +1715,21 @@ pub fn panel_baseFUNC_OptionsMenuStickLeftRight(e: &mut Engine, mut param_1: u32
                     iVar1 = (({ let a1 = e.rf(param_1); let a3 = e.r32((e.r32(g(e, 0x23e60))).wrapping_add((2u32).wrapping_mul(4))); let a4 = e.r32((e.r32(g(e, 0x23e5c))).wrapping_add(0x238u32)); let a5 = (e.r32((e.r32(g(e, 0x23e60))).wrapping_add((2u32).wrapping_mul(4)))).wrapping_add(48u32); let a6 = (e.r32((e.r32(g(e, 0x23e60))).wrapping_add((2u32).wrapping_mul(4)))).wrapping_add(52u32); LIBMiscHUD::miscHUDFUNC_VolumeBarUpdate(e, a1, 1.0, a3, a4, a5, a6) }) as i32);
                     if (iVar1 != 0i32) {
                         let _ = APInewSound::Play(e, 0x2a000000u32, 10u32, 0u32);
-                        let _ = { let a1 = e.r32((e.r32(g(e, 0x23e60))).wrapping_add((2u32).wrapping_mul(4))); LIBMiscHUD::miscHUDFUNC_SetMusicVolume(e, a1) };
+                        let _ = { let a1 = e.r32((e.r32((e.r32(g(e, 0x23e60))).wrapping_add(8u32))).wrapping_add(0u32)); LIBMiscHUD::miscHUDFUNC_SetMusicVolume(e, a1) }; // P32 R49: disasm lwc1 $f12 from the options buffer
                     }
                 }
                 122u32 => {
                     iVar1 = (({ let a1 = e.rf(param_1); let a3 = (e.r32((e.r32(g(e, 0x23e60))).wrapping_add((2u32).wrapping_mul(4)))).wrapping_add(8u32); let a4 = e.r32((e.r32(g(e, 0x23e5c))).wrapping_add(0x23cu32)); let a5 = (e.r32((e.r32(g(e, 0x23e60))).wrapping_add((2u32).wrapping_mul(4)))).wrapping_add(56u32); let a6 = (e.r32((e.r32(g(e, 0x23e60))).wrapping_add((2u32).wrapping_mul(4)))).wrapping_add(60u32); LIBMiscHUD::miscHUDFUNC_VolumeBarUpdate(e, a1, 1.0, a3, a4, a5, a6) }) as i32);
                     if (iVar1 != 0i32) {
                         let _ = APInewSound::Play(e, 0x2a000000u32, 10u32, 0u32);
-                        let _ = { let a1 = e.r32((e.r32(g(e, 0x23e60))).wrapping_add((2u32).wrapping_mul(4))); LIBMiscHUD::miscHUDFUNC_SetFXVolume(e, a1) };
+                        let _ = { let a1 = e.r32((e.r32((e.r32(g(e, 0x23e60))).wrapping_add(8u32))).wrapping_add(8u32)); LIBMiscHUD::miscHUDFUNC_SetFXVolume(e, a1) }; // P32 R49: disasm lwc1 $f12 from the options buffer
                     }
                 }
                 123u32 => {
                     iVar1 = (({ let a1 = e.rf(param_1); let a3 = (e.r32((e.r32(g(e, 0x23e60))).wrapping_add((2u32).wrapping_mul(4)))).wrapping_add(4u32); let a4 = e.r32((e.r32(g(e, 0x23e5c))).wrapping_add(0x240u32)); let a5 = (e.r32((e.r32(g(e, 0x23e60))).wrapping_add((2u32).wrapping_mul(4)))).wrapping_add(40u32); let a6 = (e.r32((e.r32(g(e, 0x23e60))).wrapping_add((2u32).wrapping_mul(4)))).wrapping_add(44u32); LIBMiscHUD::miscHUDFUNC_VolumeBarUpdate(e, a1, 0.85, a3, a4, a5, a6) }) as i32);
                     if (iVar1 != 0i32) {
                         let _ = APInewSound::Play(e, 0x2a000000u32, 10u32, 0u32);
-                        let _ = { let a1 = e.r32((e.r32(g(e, 0x23e60))).wrapping_add((2u32).wrapping_mul(4))); LIBMiscHUD::miscHUDFUNC_SetMoviesVolume(e, a1) };
+                        let _ = { let a1 = e.r32((e.r32((e.r32(g(e, 0x23e60))).wrapping_add(8u32))).wrapping_add(4u32)); LIBMiscHUD::miscHUDFUNC_SetMoviesVolume(e, a1) }; // P32 R49: disasm lwc1 $f12 from the options buffer
                         let _ = APInewSound::Play(e, 0x2a000000u32, 0x80000001u32, 0u32);
                     }
                 }
@@ -2320,9 +2320,9 @@ pub fn panel_baseFUNC_Messages(e: &mut Engine, mp1: u32, mp2: u32, mp3: Ptr) -> 
 
 /// 0x00033f48
 pub fn panel_baseFUNC_SetVolumes(e: &mut Engine) -> LResult<()> {
-    let _ = { let a1 = e.r32((e.r32(g(e, 0x23e60))).wrapping_add(8u32)); LIBMiscHUD::miscHUDFUNC_SetMusicVolume(e, a1) };
-    let _ = { let a1 = e.r32((e.r32(g(e, 0x23e60))).wrapping_add(8u32)); LIBMiscHUD::miscHUDFUNC_SetFXVolume(e, a1) };
-    let _ = { let a1 = e.r32((e.r32(g(e, 0x23e60))).wrapping_add(8u32)); LIBMiscHUD::miscHUDFUNC_SetMoviesVolume(e, a1) };
+    let _ = { let a1 = e.r32((e.r32((e.r32(g(e, 0x23e60))).wrapping_add(8u32))).wrapping_add(0u32)); LIBMiscHUD::miscHUDFUNC_SetMusicVolume(e, a1) }; // P32 R49: disasm lwc1 $f12 from the options buffer
+    let _ = { let a1 = e.r32((e.r32((e.r32(g(e, 0x23e60))).wrapping_add(8u32))).wrapping_add(8u32)); LIBMiscHUD::miscHUDFUNC_SetFXVolume(e, a1) }; // P32 R49: disasm lwc1 $f12 from the options buffer
+    let _ = { let a1 = e.r32((e.r32((e.r32(g(e, 0x23e60))).wrapping_add(8u32))).wrapping_add(4u32)); LIBMiscHUD::miscHUDFUNC_SetMoviesVolume(e, a1) }; // P32 R49: disasm lwc1 $f12 from the options buffer
     return Ok(());
     #[allow(unreachable_code)]
     Ok(())

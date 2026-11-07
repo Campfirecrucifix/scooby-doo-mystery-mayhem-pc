@@ -109,7 +109,7 @@ pub fn Pipes_MansionST_BASICMOVE_LOOP(e: &mut Engine, ep1: u32) -> LResult<u64> 
     e.wi32((frame + 0x10), 0i32);
     fVar2 = e.rf((e.r32(g(e, 0x10074))).wrapping_add(48u32));
     if (0.0 <= fVar2) {
-        let _ = APIgame::GetFrameDeltaTime(e);
+        fVar2 = APIgame::GetFrameDeltaTime(e); // Ghidra dropped the f1 return
         { let a0 = (e.r32(g(e, 0x10074))).wrapping_add(48u32); let a1 = (e.rf((e.r32(g(e, 0x10074))).wrapping_add(48u32)) - fVar2); e.wf(a0, a1) };
     } else {
         if (e.ri32((e.r32(g(e, 0x10074))).wrapping_add(24u32)) == 2i32) {

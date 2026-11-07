@@ -14,6 +14,10 @@ pub mod motion_trail;
 pub mod projector;
 pub mod shadow;
 pub mod api;
+#[cfg(feature = "solari")]
+pub mod rtgi;
+#[cfg(feature = "solari")]
+pub mod rtgi_hybrid;
 #[cfg(feature = "bevy_render")]
 pub mod bevy_adapter;
 
@@ -157,7 +161,11 @@ impl EFStatic3dObj {
                 }
             }
         }
-        // TODO(render): EFProjectorMgr_SP::SetWorldSectorRenderCallback
+        // EFProjectorMgr_SP::SetWorldSectorRenderCallback (0x00251d40) installs WorldSectorCallBackRender:
+        // sectors marked by a projector occurrence this frame (+0x8e == frame) take the BSP mapper
+        // pipeline (sector + projected texture pass), the rest the simple BSP pipeline. Ported as the
+        // separate projector pass: gfx::projector::ProjectorOccurence::{sectors, mesh} + game.rs
+        // draw_projectors (P32 R78: checked, no divergence; nothing to install here).
         self.world = Some(world);
         Ok(())
     }

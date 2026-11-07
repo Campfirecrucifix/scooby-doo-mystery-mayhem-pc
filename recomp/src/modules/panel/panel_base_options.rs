@@ -21,12 +21,69 @@ pub fn panel_baseST_OPTIONS_SET(e: &mut Engine, _: u32) -> LResult<u64> {
     for (s, a, b) in [(panel_baseST_OPTIONS_SET_0_6, 0xc, 0xd), (panel_baseST_OPTIONS_SET_0_7, 0xe, 0xf), (panel_baseST_OPTIONS_SET_0_8, 10, 0xb)] {
         APIhud::WindowSetDims(e, e.r32(l + k(e, s)), e.rf(p1 + a * 4), e.rf(p1 + b * 4));
     }
+    OPTIONS_OPEN.store(true, std::sync::atomic::Ordering::Relaxed);
     APIgameobj::SetNextState(e, SELF, 6);
     Ok(0)
 }
 
+/// Port-side (P22): true while the Game Options page is shown (set on OPTIONS_SET and on the return
+/// from the Sound page, cleared on the Sound page and on the return to the pause state); read by the host for its extra (non-PS2) option row.
+pub static OPTIONS_OPEN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// Port-side (P34): menu sound requested by the host's PC Settings page (the panel's own sound
+/// slots: 10 move, 0xd confirm, 0xe back), played from the panel object in its options state.
+pub static PC_PAGE_SOUND: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
+
+/// Port-side (P34): selected row of the host's PC Settings page (-1 = page closed). The panel's
+/// selection flower follows it like MenuRefresh moves it for the original rows: PC row i sits at
+/// the goPauseSelectorInfo spot of Options row 0x16 + i (rows past the 3rd continue with the last
+/// step); the host draws PC row i on the original row i's y.
+pub static PC_PAGE_ROW: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
+static PC_FLOWER_AT: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
+/// Port-side (P34 R15): row count of the open PC Settings tab (see [`pc_row_step`])
+pub static PC_PAGE_ROWS: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
+
+/// Port-side (P34 R15): the step factor for PC rows past the 3rd; a 7-row tab squeezes its rows 3..6
+/// into the 6-row span so the last row clears the panel's bottom-left flower (host text and flower agree)
+pub fn pc_row_step(rows: i32) -> f32 {
+    if rows > 6 { 0.75 } else { 1.0 }
+}
+
+fn pc_page_flower(e: &mut Engine) {
+    use std::sync::atomic::Ordering::Relaxed;
+    let row = PC_PAGE_ROW.load(Relaxed);
+    let n = PC_PAGE_ROWS.load(Relaxed);
+    if PC_FLOWER_AT.swap(row | n << 16, Relaxed) == row | n << 16 {
+        return;
+    }
+    let l = LB(e);
+    let lang = e.r32(l + k(e, panel_baseFUNC_MenuRefresh_0_2)) as i32;
+    let spot = |e: &Engine, sel: i32| {
+        let p = G(e, S_goPauseSelectorInfo).wrapping_add(lang.wrapping_mul(8).wrapping_add(sel.wrapping_mul(0x18)) as u32);
+        (e.rf(p), e.rf(p.wrapping_add(4)))
+    };
+    let (x, y) = if row < 0 {
+        // page closed: back on the current original row (as MenuRefresh left it)
+        spot(e, e.r32(l + 0xa8) as i32)
+    } else {
+        // rows 0..2 = the original Options row spots 0x16..0x18 (not evenly spaced); further rows
+        // continue with the last step (spot 0x19 = APPLY CHANGES puts the flower further left)
+        let r = row.min(2);
+        let ((x, _), (_, y)) = (spot(e, 0x16), spot(e, 0x16 + r)); // one flower column (the gap between label and value)
+        let (_, yp) = spot(e, 0x16 + r - 1);
+        (x, y + (row - r) as f32 * (y - yp) * pc_row_step(n))
+    };
+    APIhud::WindowSetPos(e, e.r32(l + k(e, panel_baseFUNC_MenuRefresh_0_1)), x, y);
+}
+
 /// 0x0001ae40 (48 bytes) `undefined8 panel_baseST_OPTIONS(void)`
 pub fn panel_baseST_OPTIONS(e: &mut Engine, _: u32) -> LResult<u64> {
+    let snd = PC_PAGE_SOUND.swap(0, std::sync::atomic::Ordering::Relaxed);
+    if snd != 0 {
+        APInewSound::Play(e, SELF, snd, 0);
+    }
+    pc_page_flower(e);
+    super::MENU_ROW_AT.store(LB(e) + 0xa8, std::sync::atomic::Ordering::Relaxed);
     Ok(0)
 }
 
@@ -77,6 +134,7 @@ pub fn panel_baseCB_OPTIONS_CANCEL(e: &mut Engine, _: u32) -> LResult<u64> {
         APIinput::InputConfigActivate(e, 10, 0);
         APIinput::InputConfigActivate(e, 8, 1);
         APIinput::InputConfigSetState(e, 8, 0x192);
+        OPTIONS_OPEN.store(false, std::sync::atomic::Ordering::Relaxed);
     } else if e.r32(l + k(e, panel_baseCB_OPTIONS_CANCEL_0_4)) == 0x1c {
         for (d, s) in [(0, 4), (2, 6), (1, 5), (0xe, 9), (0xc, 8), (10, 7)] {
             e.w32(p1 + d * 4, e.r32(p2 + s * 4));
@@ -92,6 +150,8 @@ pub fn panel_baseCB_OPTIONS_CANCEL(e: &mut Engine, _: u32) -> LResult<u64> {
         panel_baseFUNC_DrawNewMenu(e, 0x14, 0x16, 0x19)?;
         panel_baseFUNC_OptionsMenuUpdate(e)?;
         APIhud::WindowResetFlags(e, e.r32(l + k(e, panel_baseCB_OPTIONS_CANCEL_0_9)), 0x100);
+        // port-side (P32 R55): Triangle on the Sound page returns to the Game Options page (not the pause menu)
+        OPTIONS_OPEN.store(true, std::sync::atomic::Ordering::Relaxed);
     }
     APInewSound::Play(e, SELF, 0xe, 0);
     APIgameobj::SetNextState(e, SELF, 4);
@@ -239,11 +299,15 @@ pub fn panel_baseFUNC_OptionsMenuConfirm(e: &mut Engine) -> LResult<Ptr> {
             r = panel_baseFUNC_OptionsMenuUpdate(e)?;
         }
         0x18 => {
+            OPTIONS_OPEN.store(false, std::sync::atomic::Ordering::Relaxed); // port-side: Sound page
             panel_baseFUNC_DrawNewMenu(e, 0x1c, 0x1e, 0x20)?;
             // 2-arg TextWindowSetText: stale a2 -> 0
             r = APIhud::TextWindowSetText(e, e.r32(l + k(e, panel_baseFUNC_OptionsMenuConfirm_0_1)), 5, &[0]);
         }
         0x19 => {
+            // port-side (P32 R54): Back always returns to the pause main menu; only group 9 also leaves
+            // state 6, so clear the host's options-row flag here for every build
+            OPTIONS_OPEN.store(false, std::sync::atomic::Ordering::Relaxed);
             panel_baseFUNC_DrawNewMenu(e, 7, 9, 0xc)?;
             APIhud::WindowResetFlags(e, e.r32(l + k(e, panel_baseFUNC_OptionsMenuConfirm_0_2)), 0x100);
             APIhud::TextWindowSetText(e, e.r32(l + k(e, panel_baseFUNC_OptionsMenuConfirm_0_3)), 8, &[0]);
@@ -262,6 +326,7 @@ pub fn panel_baseFUNC_OptionsMenuConfirm(e: &mut Engine) -> LResult<Ptr> {
                 e.w32(i2 + d, e.r32(p1 + s * 4));
             }
             APInewSound::StopSound(e, SELF, k(e, ID_80000012));
+            OPTIONS_OPEN.store(true, std::sync::atomic::Ordering::Relaxed); // port-side: back on Game Options
             panel_baseFUNC_DrawNewMenu(e, 0x14, 0x16, 0x19)?;
             APIhud::TextWindowSetText(e, e.r32(l + k(e, panel_baseFUNC_OptionsMenuConfirm_0_9)), 6, &[0]);
             r = panel_baseFUNC_OptionsMenuUpdate(e)?;

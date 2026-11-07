@@ -56,59 +56,17 @@ const VARIANT: [V; 5] = [V::Old, V::L02, V::New, V::New, V::New];
 /// SetLocalClipping door id (New/L02 builds; 0 = empty function)
 const LOCAL_CLIP_ID: [u32; 5] = [0, 0x2a000147, 0x2a00016a, 0, 0];
 
-/// mInitautomaticDoors (0x10000): {door id, partner, lock mask, locked text, +0x44}
-const DOORS: [&[[u32; 5]]; 5] = [
-    &[
-        [0x2a000056, 0x2a000042, 0, 0, 0], [0x2a000042, 0x2a000056, 0, 0, 0],
-        [0x2a000051, 0x2a000044, 0, 0, 0], [0x2a000044, 0x2a000051, 0, 0, 0],
-        [0x2a00004c, 0x2a000050, 0, 0, 0], [0x2a000050, 0x2a00004c, 0, 0, 0],
-        [0x2a000041, 0x2a000052, 0, 0, 0], [0x2a000052, 0x2a000041, 0, 0, 0],
-        [0x2a000053, 0x2a00004e, 0, 0, 0], [0x2a00004e, 0x2a000053, 0, 0, 0],
-        [0x2a00004f, 0x2a00004d, 0, 0, 0], [0x2a00004d, 0x2a00004f, 0, 0, 0],
-        [0x2a00004c, 0x2a000050, 0, 0, 0], [0x2a000050, 0x2a00004c, 0, 0, 0],
-        [0x2a000059, 0x2a000055, 0, 0, 0], [0x2a000055, 0x2a000059, 0, 0, 0],
-        [0x2a00004b, 0x2a000049, 0, 0, 0], [0x2a000049, 0x2a00004b, 0, 0, 0],
-        [0x2a000043, 0, 0, 0, 0],
-    ],
-    &[
-        [0x2a000146, 0, 0x80000000, 0, 1], [0x2a000145, 0, 0x800, 0x15c, 1],
-        [0x2a000147, 0, 0x40000000, 0x159, 0], [0x2a00015b, 0, 0x02000000, 0x157, 1],
-        [0x2a000180, 0, 0x04000000, 0x159, 0], [0x2a000119, 0, 0x40000000, 0x159, 0],
-        [0x2a000125, 0, 0, 0, 1], [0x2a00015a, 0, 0, 0, 1], [0x2a00017d, 0, 0, 0, 1],
-        [0x2a00017e, 0, 0x40000000, 0x159, 1], [0x2a00017f, 0, 0, 0, 1],
-    ],
-    &[
-        [0x2a000106, 0, 0x40000000, 0x159, 0], [0x2a00016a, 0, 0x40000000, 0x159, 0],
-        [0x2a000168, 0, 0, 0, 1], [0x2a000137, 0, 0, 0, 1], [0x2a000182, 0, 0, 0, 1],
-        [0x2a000136, 0, 0, 0, 1], [0x2a000103, 0, 0, 0, 1], [0x2a000104, 0, 0x40000000, 0x159, 1],
-        [0x2a000105, 0, 0, 0, 1], [0x2a00018b, 0, 0x00010000, 0x159, 0],
-    ],
-    &[
-        [0x2a00005a, 0, 0x40000000, 0x156, 0], [0x2a000043, 0, 0x40000000, 0x156, 0],
-        [0x2a000044, 0, 0x40000000, 0x156, 0], [0x2a000053, 0, 0x40000000, 0x156, 0],
-        [0x2a000054, 0, 0x40000000, 0x156, 0],
-    ],
-    &[
-        [0x2a000017, 0, 0x40000000, 0x182, 1], [0x2a000018, 0, 0x40000000, 0x182, 1],
-        [0x2a000015, 0, 0x40000000, 0x182, 1], [0x2a000016, 0, 0, 0, 1],
-        [0x2a000014, 0, 0x40000000, 0x182, 1], [0x2a000021, 0, 0x40000000, 0x182, 1],
-        [0x2a000022, 0, 0, 0, 1], [0x2a000013, 0, 0, 0, 1],
-        [0x2a000012, 0, 0x40000000, 0x182, 1], [0x2a000023, 0, 0x40000000, 0x182, 1],
-        [0x2a000024, 0, 0x40000000, 0x182, 1], [0x2a000010, 0, 0, 0, 1],
-        [0x2a000011, 0, 0x40000000, 0x182, 1], [0x2a00000f, 0, 0x40000000, 0x182, 1],
-        [0x2a000019, 0, 0x40000000, 0x182, 1], [0x2a00001a, 0, 0x40000000, 0x182, 1],
-        [0x2a00001b, 0, 0x40000000, 0x182, 1], [0x2a00001c, 0, 0x40000000, 0x182, 1],
-        [0x2a00001d, 0, 0x40000000, 0x182, 1], [0x2a00001e, 0, 0x40000000, 0x182, 1],
-        [0x2a00001f, 0, 0x40000000, 0x182, 1], [0, 0, 0, 0, 0],
-    ],
-];
 
+/// mInitautomaticDoors (0x10000): {door id, partner, lock mask, locked text, +0x44} rows, read from the
+/// build's module on the disc (WP-X4)
 fn build_init(m: &mut Mem, data: Ptr, b: usize) {
-    for (i, row) in DOORS[b].iter().enumerate() {
-        for (j, &v) in row.iter().enumerate() {
-            m.w32(data + 0x14 * i as u32 + 4 * j as u32, v);
-        }
-    }
+    crate::engine::gamedata::init_syms(m, data, KEYS[b], &["mInitautomaticDoors"]);
+}
+
+/// row count of mInitautomaticDoors (ELF symbol size / 0x14)
+fn n_doors(b: usize) -> u32 {
+    static N: [std::sync::OnceLock<u32>; KEYS.len()] = [const { std::sync::OnceLock::new() }; KEYS.len()];
+    *N[b].get_or_init(|| crate::engine::gamedata::sym_words(KEYS[b], "mInitautomaticDoors").1.len() as u32 / 5)
 }
 
 // module globals, as offsets after mInitautomaticDoors
@@ -134,7 +92,7 @@ fn var(e: &Engine) -> V {
 }
 /// address of a module global (0x10000 + mInitautomaticDoors size + off)
 fn G(e: &Engine, off: u32) -> Ptr {
-    e.rt.cur_data() + DOORS[b(e)].len() as u32 * 0x14 + off
+    e.rt.cur_data() + n_doors(b(e)) * 0x14 + off
 }
 fn L(e: &Engine) -> Ptr {
     e.r32(G(e, pLocalDataautomaticdoor_base))
@@ -759,7 +717,7 @@ fn automaticdoor_baseConstructor(e: &mut Engine, api: Ptr, instanceCount: i32) -
     }
     let id = APIgameobj::GetID(e, SELF, NULL);
     let data = e.rt.cur_data();
-    let n = DOORS[b(e)].len() as u32;
+    let n = n_doors(b(e));
     for i in 0..n {
         let row = data + i * 0x14;
         // no break: the last matching row wins

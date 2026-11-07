@@ -101,12 +101,12 @@ pub fn Railing_BaseST_BEEN_THROWN(e: &mut Engine, ep1: u32) -> LResult<u64> {
     let _ = APIgameobj::InvertTransformVector(e, 0x2a000000u32, (frame + 0x10), (frame + 0x10));
     if (e.r32((e.r32(g(e, 0x10174))).wrapping_add((12u32).wrapping_mul(4))) == 0u32) {
         { let a0 = (e.r32(g(e, 0x10174))).wrapping_add((12u32).wrapping_mul(4)); e.w32(a0, 1u32) };
-        { let a1 = ((-e.rf(((frame + 0x10)).wrapping_add(0))) * ((e.r32((e.r32(g(e, 0x10174))).wrapping_add((14u32).wrapping_mul(4)))) as f32)); e.wf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4)), a1) };
-        { let a1 = ((-e.rf(((frame + 0x10)).wrapping_add(8))) * ((e.r32((e.r32(g(e, 0x10174))).wrapping_add((14u32).wrapping_mul(4)))) as f32)); e.wf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4)), a1) };
+        { let a1 = ((-e.rf(((frame + 0x10)).wrapping_add(0))) * f32::from_bits(e.r32((e.r32(g(e, 0x10174))).wrapping_add((14u32).wrapping_mul(4))))); e.wf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4)), a1) };
+        { let a1 = ((-e.rf(((frame + 0x10)).wrapping_add(8))) * f32::from_bits(e.r32((e.r32(g(e, 0x10174))).wrapping_add((14u32).wrapping_mul(4))))); e.wf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4)), a1) };
     } else {
         { let a0 = (e.r32(g(e, 0x10174))).wrapping_add((12u32).wrapping_mul(4)); e.w32(a0, 0u32) };
-        { let a1 = (e.rf(((frame + 0x10)).wrapping_add(0)) * ((e.r32((e.r32(g(e, 0x10174))).wrapping_add((14u32).wrapping_mul(4)))) as f32)); e.wf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4)), a1) };
-        { let a1 = (e.rf(((frame + 0x10)).wrapping_add(8)) * ((e.r32((e.r32(g(e, 0x10174))).wrapping_add((14u32).wrapping_mul(4)))) as f32)); e.wf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4)), a1) };
+        { let a1 = (e.rf(((frame + 0x10)).wrapping_add(0)) * f32::from_bits(e.r32((e.r32(g(e, 0x10174))).wrapping_add((14u32).wrapping_mul(4))))); e.wf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4)), a1) };
+        { let a1 = (e.rf(((frame + 0x10)).wrapping_add(8)) * f32::from_bits(e.r32((e.r32(g(e, 0x10174))).wrapping_add((14u32).wrapping_mul(4))))); e.wf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4)), a1) };
     }
     e.wf(((frame + 0x0)).wrapping_add((1u32).wrapping_mul(4)), 0.0);
     let _ = { let a1 = e.r32(e.r32(g(e, 0x10174))); APIphysic::DMSetParams(e, a1, (frame + 0x0)) };
@@ -122,23 +122,23 @@ pub fn Railing_BaseST_BEEN_THROWN_LOOP(e: &mut Engine, ep1: u32) -> LResult<u64>
     let frame = e.alloca(0x40);
     let _ = { let a1 = e.r32(e.r32(g(e, 0x10174))); APIphysic::DMGetParams(e, a1, (frame + 0x0)) };
     if ((((0.1 < e.rf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4)))) || (e.rf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4))) < -0.1)) || (0.1 < e.rf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4))))) || (e.rf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4))) < -0.1)) {
-        { let a1 = (e.rf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4))) - (e.rf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4))) * ((e.r32((e.r32(g(e, 0x10174))).wrapping_add((15u32).wrapping_mul(4)))) as f32))); e.wf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4)), a1) };
+        { let a1 = (e.rf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4))) - (e.rf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4))) * f32::from_bits(e.r32((e.r32(g(e, 0x10174))).wrapping_add((15u32).wrapping_mul(4)))))); e.wf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4)), a1) };
         e.wf(((frame + 0x0)).wrapping_add((1u32).wrapping_mul(4)), 0.0);
-        { let a1 = (e.rf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4))) - (e.rf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4))) * ((e.r32((e.r32(g(e, 0x10174))).wrapping_add((15u32).wrapping_mul(4)))) as f32))); e.wf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4)), a1) };
+        { let a1 = (e.rf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4))) - (e.rf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4))) * f32::from_bits(e.r32((e.r32(g(e, 0x10174))).wrapping_add((15u32).wrapping_mul(4)))))); e.wf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4)), a1) };
         let _ = { let a1 = e.r32(e.r32(g(e, 0x10174))); APIphysic::DMSetParams(e, a1, (frame + 0x0)) };
         { let a1 = LIBApiCFunctions::GetVelocity(e, 0x2a000000i32, 7u32); e.wf((frame + 0x10), a1) };
         if (e.rf((frame + 0x10)) < 0.3) {
             let _ = { let a1 = e.r32(e.r32(g(e, 0x10174))); APIphysic::DMGetParams(e, a1, (frame + 0x0)) };
-            { let a1 = (e.rf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4))) - (e.rf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4))) * ((e.r32((e.r32(g(e, 0x10174))).wrapping_add((15u32).wrapping_mul(4)))) as f32))); e.wf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4)), a1) };
+            { let a1 = (e.rf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4))) - (e.rf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4))) * f32::from_bits(e.r32((e.r32(g(e, 0x10174))).wrapping_add((15u32).wrapping_mul(4)))))); e.wf(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4)), a1) };
             e.wf(((frame + 0x0)).wrapping_add((1u32).wrapping_mul(4)), 0.0);
-            { let a1 = (e.rf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4))) - (e.rf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4))) * ((e.r32((e.r32(g(e, 0x10174))).wrapping_add((15u32).wrapping_mul(4)))) as f32))); e.wf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4)), a1) };
+            { let a1 = (e.rf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4))) - (e.rf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4))) * f32::from_bits(e.r32((e.r32(g(e, 0x10174))).wrapping_add((15u32).wrapping_mul(4)))))); e.wf(((frame + 0x0)).wrapping_add((2u32).wrapping_mul(4)), a1) };
             let _ = { let a1 = e.r32(e.r32(g(e, 0x10174))); APIphysic::DMSetParams(e, a1, (frame + 0x0)) };
             let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0u32);
             let _ = APIphysic::SetVelocity(e, 0x2a000000u32, 0.0, 0.0, 0.0);
             let _ = APInewSound::StopSound(e, 0x2a000000u32, 0x4000000fu32);
         }
-        { let a0 = (e.r32(g(e, 0x10174))).wrapping_add((13u32).wrapping_mul(4)); let a1 = (((((e.r32((e.r32(g(e, 0x10174))).wrapping_add((13u32).wrapping_mul(4)))) as f32) - (((e.r32((e.r32(g(e, 0x10174))).wrapping_add((13u32).wrapping_mul(4)))) as f32) * ((e.r32((e.r32(g(e, 0x10174))).wrapping_add((15u32).wrapping_mul(4)))) as f32)))) as i64 as u32); e.w32(a0, a1) };
-        let _ = { let a3 = ((e.r32((e.r32(g(e, 0x10174))).wrapping_add((13u32).wrapping_mul(4)))) as f32); APInewSound::SetPitch(e, 0x2a000000u32, 0x4000000fu32, a3) };
+        { let a0 = (e.r32(g(e, 0x10174))).wrapping_add((13u32).wrapping_mul(4)); let a1 = (((f32::from_bits(e.r32((e.r32(g(e, 0x10174))).wrapping_add((13u32).wrapping_mul(4)))) - (f32::from_bits(e.r32((e.r32(g(e, 0x10174))).wrapping_add((13u32).wrapping_mul(4)))) * f32::from_bits(e.r32((e.r32(g(e, 0x10174))).wrapping_add((15u32).wrapping_mul(4))))))).to_bits()); e.w32(a0, a1) };
+        let _ = { let a3 = f32::from_bits(e.r32((e.r32(g(e, 0x10174))).wrapping_add((13u32).wrapping_mul(4)))); APInewSound::SetPitch(e, 0x2a000000u32, 0x4000000fu32, a3) };
     } else {
         let _ = APIphysic::PrimResetIntAttribBits(e, 0x2a000000u32, 0x32au32, 0u32, 8u32);
         let _ = { let a4 = e.r32((e.r32(g(e, 0x10174))).wrapping_add((6u32).wrapping_mul(4))); APIphysic::PrimResetIntAttribBits(e, 0x2a000000u32, 0x32au32, 7u32, a4) };

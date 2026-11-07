@@ -44,10 +44,18 @@ fn start(e: &mut Engine, param_1: Ptr, blend: f32, anim: u32) -> LResult<()> {
 /// Anim ids of cases 2/3 are not slotted; per group: 0 = 0xfffff855/0xfffff856, 1 = 0x11/0x12, 2 = 0x10/0x12.
 pub fn heroInit_Action(e: &mut Engine, param_1: Ptr) -> LResult<()> {
     let gi = g(e, G_heroInit_Action);
-    let (a2, a3) = match gi {
-        0 => (0xfffff855u32, 0xfffff856u32),
-        1 => (0x11, 0x12),
-        2 => (0x10, 0x12),
+    // case 2/3 (pull lever) anim ids are literals that vary inside a shape group (from each
+    // build's hero_actions.c); a wrong id makes StartAnim fail, the one-shot never ends and the
+    // hero keeps GB0+0x14 bit 0x100 (blocks e.g. the EP4/L01 pipes)
+    let (a2, a3) = match (crate::modules::hero::builds::BUILDS[e.rt.cur_build()].sha8, gi) {
+        ("11df665e", _) => (0x11, 0x12),
+        ("4fb89b85", _) => (0x12, 0x13),
+        ("7e698dff", _) => (0x13, 0x15),
+        ("160eeb3e", _) => (0x15, 0x17),
+        ("97105e68", _) => (0x11, 0x13),
+        (_, 0) => (0xfffff855u32, 0xfffff856u32),
+        (_, 1) => (0x11, 0x12),
+        (_, 2) => (0x10, 0x12),
         _ => unported_shape(e, "heroInit_Action", G_heroInit_Action),
     };
     let pos = e.alloca(0x10); // DStack_60

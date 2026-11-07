@@ -33,6 +33,9 @@ pub struct EFTextureAnimNode {
     pub cur_frame: u32,
     /// this+0x5c connect kind: 0 none, 0xf EF3dObj clump, 0x18 static world
     pub target: u32,
+    /// P26 R31: in the connected EF3dObj's +0x60 texture-anim list (Play on a 0xf node adds it,
+    /// Stop removes it); EF3dObj::Render calls ApplyText/RestoreText for the list
+    pub played: bool,
     pub events: Vec<AnimEvent>,
 }
 
@@ -41,7 +44,7 @@ impl EFTextureAnimNode {
     /// frames[count-1].time. quirk: count 0 reads frames[-1] (here: 0.0).
     pub fn new(res: Arc<EFTextureAnimRes>, user: u32, orig_texture: Option<String>) -> Self {
         let duration = res.frames.last().map_or(0.0, |f| f.1);
-        EFTextureAnimNode { user, excl: 0, obj: 0, res, state: state::STOPPED, time: 0.0, duration, speed: 1.0, orig_texture, cur_frame: 0, target: 0, events: Vec::new() }
+        EFTextureAnimNode { user, excl: 0, obj: 0, res, state: state::STOPPED, time: 0.0, duration, speed: 1.0, orig_texture, cur_frame: 0, target: 0, played: false, events: Vec::new() }
     }
 
     /// EFTextureAnimNode::Connect(EFInstance*): `kind` = instance type (+8 >> 24), `found` = the
@@ -62,6 +65,9 @@ impl EFTextureAnimNode {
     pub fn Play(&mut self, flags: u32, _f: f32) {
         if self.target != 0 {
             self.state = flags; // EFAnimNode::Play
+            if self.target == 0xf {
+                self.played = true;
+            }
             self.cur_frame = 0;
         }
     }
@@ -69,6 +75,7 @@ impl EFTextureAnimNode {
     /// EFTextureAnimNode::Stop (the tree detach is the mgr's business)
     pub fn Stop(&mut self) {
         if self.state != state::STOPPED {
+            self.played = false;
             self.state = state::STOPPED;
             self.time = 0.0;
             self.events.push(AnimEvent::Notify { code: 0, user: self.user, arg: 0 });

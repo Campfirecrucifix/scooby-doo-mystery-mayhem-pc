@@ -1,5 +1,33 @@
+# Build speedups (ported from the Sly 2 project):
+# - sccache shares compiled crates between worktrees/target dirs (cache hits need the same absolute path).
+# - rust-lld links much faster than MSVC link.exe.
+# - jobs capped so ~4 parallel workers share 32 threads.
+[build]
+rustc-wrapper = "sccache"
+jobs = 8
+
 [target.x86_64-pc-windows-msvc]
 linker = "rust-lld"
 
 [profile.release]
 incremental = true
+
+# Light test profile for tiny tests: `cargo test --profile wtest --all-features --test <t> <filter>`.
+[profile.wtest]
+inherits = "dev"
+debug = "line-tables-only"
+split-debuginfo = "off"
+incremental = true
+
+[profile.wtest.package."*"]
+debug = false
+
+# Fast test profile for gates and long runs: `cargo test --profile wfast --all-features ...`.
+# Overflow checks + debug assertions stay on; crate opt 1, deps opt 2 (built once, sccache-shared).
+[profile.wfast]
+inherits = "wtest"
+opt-level = 1
+
+[profile.wfast.package."*"]
+opt-level = 2
+debug = false

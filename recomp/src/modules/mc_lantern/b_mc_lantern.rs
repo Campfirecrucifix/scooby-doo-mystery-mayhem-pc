@@ -17,11 +17,11 @@ pub fn MCLanternST_FIRSTMOVE(e: &mut Engine, ep1: u32) -> LResult<u64> {
     e.wf(((frame + 0x0)).wrapping_add(8), 0.0);
     let _ = LIBMiscFunc::MiscFunc_ChangeClipping(e, 0x2a000000u32, 2u32, NULL, 1u32);
     { let a0 = e.r32(g(e, 0x1001c)); e.w32(a0, 4) };
-    let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((1u32).wrapping_mul(4))); let a3 = (((e.r32(e.r32(g(e, 0x1001c)))) as f32) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
-    let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((7u32).wrapping_mul(4))); let a3 = (((e.r32(e.r32(g(e, 0x1001c)))) as f32) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
-    let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((8u32).wrapping_mul(4))); let a3 = (((e.r32(e.r32(g(e, 0x1001c)))) as f32) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
-    let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((9u32).wrapping_mul(4))); let a3 = (((e.r32(e.r32(g(e, 0x1001c)))) as f32) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
-    let _ = { let a3 = (((e.r32(e.r32(g(e, 0x1001c)))) as f32) * 0.017453292); APIgameobj::SetRotation(e, 0x2a000000u32, (frame + 0x0), a3) };
+    let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((1u32).wrapping_mul(4))); let a3 = (f32::from_bits(e.r32(e.r32(g(e, 0x1001c)))) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
+    let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((7u32).wrapping_mul(4))); let a3 = (f32::from_bits(e.r32(e.r32(g(e, 0x1001c)))) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
+    let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((8u32).wrapping_mul(4))); let a3 = (f32::from_bits(e.r32(e.r32(g(e, 0x1001c)))) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
+    let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((9u32).wrapping_mul(4))); let a3 = (f32::from_bits(e.r32(e.r32(g(e, 0x1001c)))) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
+    let _ = { let a3 = (f32::from_bits(e.r32(e.r32(g(e, 0x1001c)))) * 0.017453292); APIgameobj::SetRotation(e, 0x2a000000u32, (frame + 0x0), a3) };
     let _ = APIgameobj::SetNextState(e, 0x2a000000u32, 3u32);
     return Ok(0u64);
 }
@@ -62,12 +62,12 @@ pub fn MCLanternFUNC_MessageHandler(e: &mut Engine, mp1: u32, mp2: u32, mp3: Ptr
             e.wf(((frame + 0x0)).wrapping_add(0), 1.0);
             e.wf(((frame + 0x0)).wrapping_add(4), 0.0);
             e.wf(((frame + 0x0)).wrapping_add(8), 0.0);
-            { let a0 = e.r32(g(e, 0x1001c)); let a1 = (((((e.r32(e.r32(g(e, 0x1001c)))) as f32) + 0.5)) as i64 as u32); e.w32(a0, a1) };
-            let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((1u32).wrapping_mul(4))); let a3 = (((e.r32(e.r32(g(e, 0x1001c)))) as f32) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
-            let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((7u32).wrapping_mul(4))); let a3 = (((e.r32(e.r32(g(e, 0x1001c)))) as f32) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
-            let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((8u32).wrapping_mul(4))); let a3 = (((e.r32(e.r32(g(e, 0x1001c)))) as f32) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
-            let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((9u32).wrapping_mul(4))); let a3 = (((e.r32(e.r32(g(e, 0x1001c)))) as f32) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
-            let _ = { let a3 = (((e.r32(e.r32(g(e, 0x1001c)))) as f32) * 0.017453292); APIgameobj::SetRotation(e, 0x2a000000u32, (frame + 0x0), a3) };
+            { let a0 = e.r32(g(e, 0x1001c)); let a1 = (((f32::from_bits(e.r32(e.r32(g(e, 0x1001c)))) + 0.5)).to_bits()); e.w32(a0, a1) };
+            let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((1u32).wrapping_mul(4))); let a3 = (f32::from_bits(e.r32(e.r32(g(e, 0x1001c)))) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
+            let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((7u32).wrapping_mul(4))); let a3 = (f32::from_bits(e.r32(e.r32(g(e, 0x1001c)))) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
+            let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((8u32).wrapping_mul(4))); let a3 = (f32::from_bits(e.r32(e.r32(g(e, 0x1001c)))) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
+            let _ = { let a1 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add((9u32).wrapping_mul(4))); let a3 = (f32::from_bits(e.r32(e.r32(g(e, 0x1001c)))) * 0.017453292); APIgameobj::SetRotation(e, a1, (frame + 0x0), a3) };
+            let _ = { let a3 = (f32::from_bits(e.r32(e.r32(g(e, 0x1001c)))) * 0.017453292); APIgameobj::SetRotation(e, 0x2a000000u32, (frame + 0x0), a3) };
             let _ = { let a1 = e.cstr("DEGREE: %f\n"); let a2 = e.r32(e.r32(g(e, 0x1001c))); APIextra::null_printf(e, a1, a2) };
         }
     }

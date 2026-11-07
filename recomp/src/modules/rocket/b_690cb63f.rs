@@ -244,6 +244,11 @@ pub fn rocketCB_TIMER(e: &mut Engine, ep1: u32) -> LResult<u64> {
 /// 0x00014a68
 pub fn rocketCB_CollisionDetection(e: &mut Engine, ep1: u32) -> LResult<u64> {
     let mut param_1: i32 = ((ep1) as i32);
+    // P20 R60 debug: GAME_ROCKETLOG=1
+    if std::env::var_os("GAME_ROCKETLOG").is_some() {
+        let g30 = e.r32(g(e, 0x10030));
+        eprintln!("ROCKET coll other {:#x} leader {:#x} gb0.14 {:#x} b1.8 {:#x} b2.8 {:#x} l8 {:#x}", e.r32(ep1 + 8), e.r32(e.r32(g30) + 8), e.r32(e.r32(g30) + 20), e.r32(e.r32(g30 + 4) + 8), e.r32(e.r32(g30 + 8) + 8), e.r32(e.r32(g(e, 0x1002c)) + 8));
+    }
     if ((((e.ri32((e.r32(e.r32(g(e, 0x10030)))).wrapping_add(8u32)) == e.ri32((((param_1).wrapping_add(8i32)) as u32))) && ((e.r32((e.r32(e.r32(g(e, 0x10030)))).wrapping_add(20u32)) & 0xe20090cu32) == 0u32)) && ((e.r32((e.r32((e.r32(g(e, 0x10030))).wrapping_add((1u32).wrapping_mul(4)))).wrapping_add(8u32)) & 16u32) == 0u32)) && (((e.r32((e.r32((e.r32(g(e, 0x10030))).wrapping_add((2u32).wrapping_mul(4)))).wrapping_add(8u32)) & 8u32) != 0u32) && { { { let a0 = (e.r32(g(e, 0x1002c))).wrapping_add(32u32); e.w32(a0, 1u32) }; e.r32((e.r32(g(e, 0x1002c))).wrapping_add(32u32)) }; (e.ri32((e.r32(g(e, 0x1002c))).wrapping_add(8u32)) == 0i32) })) {
         if (e.r32(g(e, 0x10020)) != 0u32) {
             let _ = { let a1 = e.cstr("Rocket"); let a2 = e.cstr("CB_CollisionDetection IN"); LIBdebug::PrintDebugInfo(e, a1, a2) };

@@ -666,6 +666,7 @@ pub fn heroDoTestForOnFloor(e: &mut Engine, param_1: Ptr) -> LResult<u32> {
         }
     }
     if falling {
+        if std::env::var_os("GAME_DEADTRACE").is_some() { let p = APIgameobj::GetID(e, SELF, 0); eprintln!("FALLTRACE obj {p:#x} vy {} gb14 {:#x}", e.rf(d90 + 4), e.r32(GB0(e) + 0x14)); }
         if e.r32(GB0(e) + 0x14) & 0x40 == 0 {
             or_w(e, param_1 + 0x170, 0x10);
         } else {

@@ -23,7 +23,7 @@
 pub mod builds;
 pub mod maps;
 
-mod emitter_pos;
+pub mod emitter_pos;
 mod ghost_base;
 mod ghost_glow_init;
 mod glow;

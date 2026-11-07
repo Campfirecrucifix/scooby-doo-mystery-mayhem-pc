@@ -22,17 +22,22 @@ pub static MODULE: ModuleDef = ModuleDef {
 };
 
 /// (sha8, explosion latent (+1 = small ghost latent), charge anim, hero id, 3 "own ghost" ids)
-const BUILDS: [(&str, u32, u32, u32, [u32; 3]); 9] = [
-    ("12cac354", 0x2a8001e0, 2, 0x2a00003e, [0x2a00003d, 0x2a00003c, 0x2a00026a]),
-    ("26216801", 0x2a8000e6, 2, 0x2a00001c, [0x2a00001b, 0x2a00001a, 0x2a0000c0]),
-    ("2f030c78", 0x2a800105, 2, 0x2a000045, [0x2a000044, 0x2a000043, 0x2a0000e6]),
-    ("3a0d3e17", 0x2a8000e4, 2, 0x2a000037, [0x2a000036, 0x2a000035, 0x2a0000d8]),
-    ("5b4dbe07", 0x2a80010a, 2, 0x2a000043, [0x2a000042, 0x2a000041, 0x2a0000e9]),
-    ("6fed490c", 0x2a80000f, 3, 0x2a000009, [0x2a000008, 0x2a000007, 0x2a0000b2]),
-    ("737c99f4", 0x2a80005d, 3, 0x2a000057, [0x2a000056, 0x2a000055, 0x2a000101]),
-    ("7f990cb3", 0x2a8000c9, 2, 0x2a000012, [0x2a000011, 0x2a000010, 0x2a0000aa]),
-    ("84e0783f", 0x2a800082, 2, 0x2a00007c, [0x2a00007b, 0x2a00007a, 0x2a00011d]),
-];
+pub static BUILDS: Table<(&'static str, u32, u32, u32, [u32; 3])> = Table::new(&BUILDS_K, builds_row);
+const BUILDS_G: [u8; 9] = [0, 0, 0, 0, 0, 1, 1, 0, 0];
+fn builds_row(k: &TRow) -> (&'static str, u32, u32, u32, [u32; 3]) {
+    match BUILDS_G[k.1] {
+        0 => (k.0.builds[k.1], k.v(0), 2, k.v(1), [k.v(2), k.v(3), k.v(4)]),
+        1 => (k.0.builds[k.1], k.v(0), 3, k.v(1), [k.v(2), k.v(3), k.v(4)]),
+        _ => unreachable!(),
+    }
+}
+static BUILDS_K: TSpec = TSpec {
+    builds: &["12cac354", "26216801", "2f030c78", "3a0d3e17", "5b4dbe07", "6fed490c", "737c99f4", "7f990cb3", "84e0783f"],
+    fns: &["FearWaveFUNC_CreateSmallGhosts", "FearWaveCB_NOTIFY_COLLIDE_OBJ", "FearWaveFUNC_ExplodeScare"],
+    entries: &[
+        TE::L(0, 13, 16, 1), TE::L(1, 3, 17, 1), TE::L(1, 13, 17, 1), TE::L(2, 3, 60, 6), TE::L(2, 3, 60, 11),
+    ],
+};
 
 pub fn build_index(key: &str) -> Option<usize> {
     BUILDS.iter().position(|b| b.0 == key)
@@ -360,3 +365,6 @@ pub fn fearwaveDestructor(e: &mut Engine, _: i32) -> LResult<()> {
     W(e, 8, 0);
     Ok(())
 }
+
+#[allow(unused_imports)]
+use crate::engine::gamedata::{KLoc, TRow, TSpec, Table, TE};

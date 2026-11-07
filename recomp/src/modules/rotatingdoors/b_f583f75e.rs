@@ -227,7 +227,7 @@ pub fn fstate_ROTATEDOOR(e: &mut Engine, ep1: u32) -> LResult<u64> {
     }
     let _ = { let a2 = e.r32((frame + 0x0)); let a3 = e.rf((e.r32(g(e, 0x1002c))).wrapping_add(96u32)); APIanim::SetSpeed(e, 0x2a000000u32, a2, a3) };
     let _ = { let a2 = ((e.r32((frame + 0x0))) as i32); LIBAnimMngr::PlayAnim(e, 0.0, a2, 1i32, 6i32) };
-    uVar2 = (({ let a2 = e.r32((frame + 0x0)); APIanim::GetDuration(e, 0x2a000000u32, a2) }) as i64 as u32);
+    uVar2 = ({ let a2 = e.r32((frame + 0x0)); APIanim::GetDuration(e, 0x2a000000u32, a2) }).to_bits(); // P32 R50: disasm swc1 $f0, 0x8c -> float bits, not a cvt
     { let a0 = (e.r32(g(e, 0x1002c))).wrapping_add(140u32); e.w32(a0, uVar2) };
     { let a0 = (e.r32(g(e, 0x1002c))).wrapping_add(140u32); let a1 = (e.rf((e.r32(g(e, 0x1002c))).wrapping_add(140u32)) / e.rf((e.r32(g(e, 0x1002c))).wrapping_add(96u32))); e.wf(a0, a1) };
     { let a0 = (e.r32(g(e, 0x1002c))).wrapping_add(140u32); let a1 = (e.rf((e.r32(g(e, 0x1002c))).wrapping_add(140u32)) * 0.666); e.wf(a0, a1) };

@@ -124,15 +124,9 @@ pub trait PhysicWorld {
     /// of EFDMCameraFlex::UpdateCameraDistance). None = 1.0.
     fn CameraFlexTargetScale(&self, _uid: u32) -> Option<f32> { None }
     /// WP-E9 CameraFlex: EFDMCameraFlex::UpdateAnimation's walk of GetGameObject(id)+0x60 (anim set
-    /// list, count +0x4c) for the entry whose id == spline id. Per channel (entry +8 + i*8):
-    /// (channel id (low 24 bits of +8), DTFCurve handle (+0xc), curve type (+9), start time (+0),
-    /// end time (+4), constant value (+0xc, type 1), key times (first float of each key; stride 3
-    /// floats when type 4 else 5, count +10)). None = no entry found.
-    #[allow(clippy::type_complexity)]
-    fn CameraAnimChannels(&self, _uid: u32, _spline_id: i32) -> Option<Vec<(u32, u32, u8, f32, f32, f32, Vec<f32>)>> { None }
-    /// WP-E9 CameraFlex: DTFCurve evaluation at `t` (FindSegmentTime + FindSegment[Comp]AndConvertTime
-    /// + cubic / DTFloatComp::Decompress1075 cubic) for the handle from CameraAnimChannels.
-    fn EvalFCurve(&self, _curve: u32, _t: f32) -> f32 { 0.0 }
+    /// list: anim node +0x30 res +0x10 DTAnimHdr) for the channel set whose id == spline id:
+    /// its channels as (channel id (+0, low 24 bits used), DTFCurve). None = no set found.
+    fn CameraAnimChannels(&self, _uid: u32, _spline_id: i32) -> Option<Vec<(u32, crate::engine::anim::res::DTFCurve)>> { None }
     /// WP-E9 CameraFlex: RwCameraSetFarClipPlane(GetCamera(0)+0x30, v); camera+200 = 1.
     fn CameraSetFarClipPlane(&self, _v: f32) {}
     /// WP-E9 CameraFlex: EFCamera::SetFOV(EFGraphicsMgr::GetCamera(0), fov).
@@ -196,6 +190,8 @@ pub struct EFDynamicPhysic {
     pub radius: f32,
     /// +0x40 / +0x44 particle emitters with live particles (count)
     pub emitters: u32,
+    /// +0x40 list: indices into EFPhysicMgr::emitters (BuildParticleEmittersList)
+    pub emitter_list: Vec<usize>,
 }
 
 /// Seam for EFColDMData (WP-E3's collision system hands one to each ColUpdate module): the
@@ -236,6 +232,8 @@ pub trait EFDM: Send + Sync {
     fn base_mut(&mut self) -> &mut EFPhysicModule;
     /// words of the SetParams/GetParams block (what the API copies to/from Mem)
     fn ParamWords(&self) -> usize { 0 }
+    /// safe downcast to the water simulation (P32 R76: replaces an unchecked pointer cast)
+    fn as_water_sim(&self) -> Option<&super::dm::water_simulation::EFDMWaterSimulation> { None }
     /// vtbl+0x0c. Returns false to delete the module (EFPhysic::PreCollisionUpdate).
     fn PreColUpdate(&mut self, _ctx: &mut DMCtx, _dp: &mut EFDynamicPhysic, _dt: f32) -> bool { true }
     /// vtbl+0x10

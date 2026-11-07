@@ -21,34 +21,22 @@ pub static MODULE: ModuleDef = ModuleDef {
 
 /// (build sha8, camera object, FIRSTMOVE anim variant: 0 = PlayAnim 2 + blend (1,2), 1 = PlayAnim 1 + blend (2,1)).
 /// All 26 builds share EnemyBar.c; only these constants differ (WP-L8).
-const BUILDS: [(&str, u32, u32); 26] = [
-    ("14be3154", 0x2a00_001f, 0),
-    ("26c66f9e", 0x2a00_0247, 0),
-    ("2e1e9d2f", 0x2a00_0004, 0),
-    ("37cbfaa1", 0x2a00_000c, 0),
-    ("39f336a1", 0x2a00_0006, 1),
-    ("3d98c754", 0x2a00_005c, 0),
-    ("42ab147d", 0x2a00_0027, 0),
-    ("46dc2fdb", 0x2a00_0030, 0),
-    ("4ab90906", 0x2a00_002a, 0),
-    ("530d0457", 0x2a00_008f, 0),
-    ("685c1a49", 0x2a00_0020, 0),
-    ("6a96af2e", 0x2a00_0026, 0),
-    ("6e004941", 0x2a00_001e, 1),
-    ("77972111", 0x2a00_00dd, 0),
-    ("8e395d34", 0x2a00_0248, 0),
-    ("94375486", 0x2a00_0052, 0),
-    ("aa756721", 0x2a00_000f, 0),
-    ("b9de54a4", 0x2a00_0025, 1),
-    ("be6ba59e", 0x2a00_004a, 0),
-    ("c606d6c5", 0x2a00_00b3, 0),
-    ("c7ce8808", 0x2a00_0017, 0),
-    ("d0ee12c7", 0x2a00_0045, 0),
-    ("d4f1e62d", 0x2a00_0037, 0),
-    ("ef61e885", 0x2a00_000e, 0),
-    ("f8a12f7d", 0x2a00_0006, 0),
-    ("f8ef2fbb", 0x2a00_0012, 0),
-];
+pub static BUILDS: Table<(&'static str, u32, u32)> = Table::new(&BUILDS_K, builds_row);
+const BUILDS_G: [u8; 26] = [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0];
+fn builds_row(k: &TRow) -> (&'static str, u32, u32) {
+    match BUILDS_G[k.1] {
+        0 => (k.0.builds[k.1], k.v(0), 0),
+        1 => (k.0.builds[k.1], k.v(0), 1),
+        _ => unreachable!(),
+    }
+}
+static BUILDS_K: TSpec = TSpec {
+    builds: &["14be3154", "26c66f9e", "2e1e9d2f", "37cbfaa1", "39f336a1", "3d98c754", "42ab147d", "46dc2fdb", "4ab90906", "530d0457", "685c1a49", "6a96af2e", "6e004941", "77972111", "8e395d34", "94375486", "aa756721", "b9de54a4", "be6ba59e", "c606d6c5", "c7ce8808", "d0ee12c7", "d4f1e62d", "ef61e885", "f8a12f7d", "f8ef2fbb"],
+    fns: &["CreatePhysic"],
+    entries: &[
+        TE::L(0, 3, 30, 1),
+    ],
+};
 
 pub fn build_index(key: &str) -> Option<usize> {
     BUILDS.iter().position(|b| b.0 == key)
@@ -214,3 +202,6 @@ pub fn enemybarConstructor(e: &mut Engine, api: Ptr, instanceCount: i32) -> LRes
 pub fn enemybarDestructor(e: &mut Engine, instanceCount: i32) -> LResult<()> {
     Ok(())
 }
+
+#[allow(unused_imports)]
+use crate::engine::gamedata::{KLoc, TRow, TSpec, Table, TE};

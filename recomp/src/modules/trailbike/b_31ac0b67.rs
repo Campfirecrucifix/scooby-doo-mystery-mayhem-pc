@@ -819,11 +819,11 @@ pub fn trailBikeCB_DM_STATE_CHANGE(e: &mut Engine, ep1: u32) -> LResult<u64> {
             if ((e.r32((frame + 0x14)) & 0x40000000u32) != 0u32) {
                 { let a0 = (e.r32((frame + 0x40))).wrapping_add((42u32).wrapping_mul(4)); e.w32(a0, 0x40000000u32) };
                 { let a0 = e.r32(g(e, 0x10038)); let a1 = (e.r32(e.r32(g(e, 0x10038))) & 0xfffdffffu32); e.w32(a0, a1) };
-                { let a0 = e.r32(g(e, 0x10038)); let a1 = (e.r32(e.r32(g(e, 0x10038))) | g(e, 0x10000)); e.w32(a0, a1) };
+                { let a0 = e.r32(g(e, 0x10038)); let a1 = (e.r32(e.r32(g(e, 0x10038))) | 0x10000u32); e.w32(a0, a1) };
             }
             if ((e.r32((frame + 0x14)) & 0x80000000u32) != 0u32) {
                 { let a0 = e.r32(g(e, 0x10038)); let a1 = (e.r32(e.r32(g(e, 0x10038))) & 0xfffdffffu32); e.w32(a0, a1) };
-                { let a0 = e.r32(g(e, 0x10038)); let a1 = (e.r32(e.r32(g(e, 0x10038))) | g(e, 0x10000)); e.w32(a0, a1) };
+                { let a0 = e.r32(g(e, 0x10038)); let a1 = (e.r32(e.r32(g(e, 0x10038))) | 0x10000u32); e.w32(a0, a1) };
                 { let a0 = (e.r32((frame + 0x40))).wrapping_add((42u32).wrapping_mul(4)); e.w32(a0, 0x80000000u32) };
             }
         }

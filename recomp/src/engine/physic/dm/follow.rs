@@ -227,8 +227,9 @@ fn ps2_div(a: f32, b: f32) -> f32 {
 }
 
 /// DTQuaternion::MatToQuat (0x0010e380).
-/// quirk: in the trace <= 0 path the three branches are sequential `if`s (as decompiled) and
-/// the z branch is unconditional, so it always overwrites the result.
+/// Trace <= 0: the y and x branches return (DTQuaternion.cpp 0x0010e380; P24 R22: the port fell through
+/// to the z branch, so EFDMFollow tilted a follower turning toward -z (Scooby pitched/flipped, then sank
+/// through the floor at the EP4/L01 pivots).
 pub fn MatToQuat(m: &RwMatrix) -> [f32; 4] {
     let mut q = [0.0f32; 4];
     let tr = m.at[2] + m.right[0] + m.up[1];
@@ -247,6 +248,7 @@ pub fn MatToQuat(m: &RwMatrix) -> [f32; 4] {
         q[3] = f * (-m.right[2] + m.at[0]);
         q[0] = f * (m.right[1] + m.up[0]);
         q[2] = f * (m.at[1] + m.up[2]);
+        return q;
     }
     if m.up[1] < m.right[0] && m.at[2] < m.right[0] {
         q[0] = (((m.right[0] - m.up[1]) - m.at[2]) + 1.0).abs().sqrt() / 2.0;
@@ -254,6 +256,7 @@ pub fn MatToQuat(m: &RwMatrix) -> [f32; 4] {
         q[3] = f * (-m.at[1] + m.up[2]);
         q[1] = f * (m.right[1] + m.up[0]);
         q[2] = f * (m.right[2] + m.at[0]);
+        return q;
     }
     q[2] = (((m.at[2] - m.right[0]) - m.up[1]) + 1.0).abs().sqrt() / 2.0;
     let f = ps2_div(1.0, q[2] * 4.0);

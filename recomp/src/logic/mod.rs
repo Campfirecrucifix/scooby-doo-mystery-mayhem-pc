@@ -171,6 +171,45 @@ pub struct LibEntry {
     pub words: u32,
 }
 
+// P32 R75: sound host access to the logic runtime. The host (`Box<dyn Host>`, a sibling field of
+// `Engine::rt`) reaches the logic objects (SELF resolution, group/logic-flag fields) only while an
+// Engine API wrapper lends it `&mut self.rt` through this guard: the raw pointer comes from a live,
+// otherwise unused `&mut` (replaces the stale `*const` from `&e.rt` that was written through while
+// `&mut Engine` was live = UB).
+thread_local! {
+    static BOUND: std::cell::Cell<*mut LogicRuntime> = const { std::cell::Cell::new(std::ptr::null_mut()) };
+}
+
+/// lends the logic runtime to host code for the guard's lifetime (restores the previous binding)
+pub struct LogicBind<'a>(*mut LogicRuntime, std::marker::PhantomData<&'a mut LogicRuntime>);
+
+impl<'a> LogicBind<'a> {
+    #[inline]
+    pub fn new(rt: &'a mut LogicRuntime) -> Self {
+        LogicBind(BOUND.replace(rt as *mut _), std::marker::PhantomData)
+    }
+}
+
+impl Drop for LogicBind<'_> {
+    #[inline]
+    fn drop(&mut self) {
+        BOUND.set(self.0);
+    }
+}
+
+/// run `f` on the lent logic runtime (None = not lent / already in use)
+pub fn with_bound<R>(f: impl FnOnce(&mut LogicRuntime) -> R) -> Option<R> {
+    let p = BOUND.replace(std::ptr::null_mut());
+    if p.is_null() {
+        return None;
+    }
+    // SAFETY: `p` comes from the `&mut LogicRuntime` held by a live `LogicBind`, which nothing else
+    // uses while the host runs; nulled during `f` so no second `&mut` can be made.
+    let r = f(unsafe { &mut *p });
+    BOUND.set(p);
+    Some(r)
+}
+
 pub struct LogicRuntime {
     pub codes: Vec<LogicCode>,
     pub objects: Vec<Option<GameObject>>,

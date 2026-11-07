@@ -53,7 +53,10 @@ impl std::fmt::Debug for ParentJointFn {
 pub struct EFHAnimNode {
     /// this+0x20 user value passed to notifications
     pub user: u32,
-    /// this+0x24 nb channel sets (DTAnimHdr+0xd byte per Initialize; quirk: C++ reads +0xd)
+    /// this+0x24 exclusivity key = DTAnimHdr+0xd byte (EFAnimNode::Initialize 0x0022d600). P32 R3: was the
+    /// channel-set count (+0xc): an additive layer anim (+0xd 1, e.g. wispsourcenew release anims 2/3/4
+    /// over idle anim 1, +0xd 0) then REPLACED the idle (FindExclNode) instead of being layered on it
+    /// (FindNonExclNode -> BlendLayer additive), so its raw deltas (scale 0) collapsed the skull model
     pub nb_bones: u32,
     /// this+0x30 the resource
     pub res: Arc<EFHAnimRes>,
@@ -100,10 +103,10 @@ pub struct EFHAnimNode {
 impl EFHAnimNode {
     /// EFAnimNode ctor + EFHAnimNode::Initialize: state STOPPED, speed 1, duration from hdr+0x8.
     pub fn new(res: Arc<EFHAnimRes>, user: u32) -> Self {
-        let (nb, dur) = res.base.anim.as_ref().map_or((0, 0.0), |a| (a.sets.len() as u32, a.duration));
+        let (nb, excl, dur) = res.base.anim.as_ref().map_or((0, 0, 0.0), |a| (a.sets.len() as u32, a.unkd[0] as u32, a.duration));
         EFHAnimNode {
             user,
-            nb_bones: nb,
+            nb_bones: excl,
             res,
             state: state::STOPPED,
             time: 0.0,
@@ -167,7 +170,7 @@ impl EFHAnimNode {
         self.cur_cb = 0;
     }
 
-    fn cb(&self, i: u32) -> (f32, u8, u32) {
+    pub fn cb(&self, i: u32) -> (f32, u8, u32) {
         let w = self.res.callback_words(i as usize);
         let t = w.first().map_or(0.0, |x| f32::from_bits(*x));
         let k = w.get(1).map_or(0, |x| *x as u8);

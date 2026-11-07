@@ -4,9 +4,11 @@
 pub mod adsr;
 pub mod api;
 pub mod bank;
+pub mod capture;
 #[cfg(feature = "bevy_audio")]
 pub mod bevy_adapter;
 pub mod container;
+pub mod device;
 pub mod events;
 pub mod handlers;
 pub mod mgr;

@@ -19,45 +19,17 @@ pub static MODULE: ModuleDef = ModuleDef {
 };
 
 /// (build sha8, camera object, arrow object). All 37 builds share the source; only these ids differ (WP-L8).
-const BUILDS: [(&str, u32, u32); 37] = [
-    ("043f09fc", 0x2a000027, 0xf00058d),
-    ("1279df19", 0x2a000004, 0xf0004f7),
-    ("15806ed5", 0x2a000006, 0xf0005e3),
-    ("26755258", 0x2a00002a, 0xf000437),
-    ("26bb84da", 0x2a00000e, 0xf000494),
-    ("2ba63f7e", 0x2a000025, 0xf000a80),
-    ("353d5815", 0x2a000004, 0xf000456),
-    ("35e12ee0", 0x2a0000dd, 0xf000606),
-    ("56e5d505", 0x2a000248, 0xf000501),
-    ("76bbfb39", 0x2a000004, 0xf000454),
-    ("77ca9baf", 0x2a000027, 0xf0004a9),
-    ("78143773", 0x2a0000b3, 0xf0001ca),
-    ("8873a911", 0x2a00001e, 0xf000657),
-    ("8f8a8bd4", 0x2a000247, 0xf000506),
-    ("90ca0cbd", 0x2a00008f, 0xf00066c),
-    ("99ca93e4", 0x2a000004, 0xf000420),
-    ("9a3cf822", 0x2a000045, 0xf000581),
-    ("9dfd22dd", 0x2a00005c, 0xf00051b),
-    ("a02bdc05", 0x2a000017, 0xf00061e),
-    ("a6217532", 0x2a000006, 0xf000403),
-    ("ab28c46e", 0x2a000037, 0xf000751),
-    ("ae6c1459", 0x2a00000c, 0xf000483),
-    ("af4a33e6", 0x2a000052, 0xf000616),
-    ("b37388ef", 0x2a000004, 0xf00045b),
-    ("b501c2fa", 0x2a000004, 0xf00037a),
-    ("b51f25f4", 0x2a000004, 0xf0004c7),
-    ("b53ff036", 0x2a00005c, 0xf000579),
-    ("b6bc4a6f", 0x2a000004, 0xf0004c1),
-    ("c04dd81f", 0x2a000020, 0xf00053e),
-    ("d40a29ce", 0x2a000027, 0xf00040f),
-    ("de0b4ed6", 0x2a000026, 0xf000550),
-    ("df466fa3", 0x2a00000f, 0xf0004eb),
-    ("e5bf7e68", 0x2a000012, 0xf000445),
-    ("e5eb9580", 0x2a00004a, 0xf000618),
-    ("f4f11235", 0x2a00001f, 0xf0005b3),
-    ("fc0885e1", 0x2a000030, 0xf0005bc),
-    ("fd57d9bb", 0x2a000004, 0xf000422),
-];
+pub static BUILDS: Table<(&'static str, u32, u32)> = Table::new(&BUILDS_K, builds_row);
+fn builds_row(k: &TRow) -> (&'static str, u32, u32) {
+    (k.0.builds[k.1], k.v(0), k.v(1))
+}
+static BUILDS_K: TSpec = TSpec {
+    builds: &["043f09fc", "1279df19", "15806ed5", "26755258", "26bb84da", "2ba63f7e", "353d5815", "35e12ee0", "56e5d505", "76bbfb39", "77ca9baf", "78143773", "8873a911", "8f8a8bd4", "90ca0cbd", "99ca93e4", "9a3cf822", "9dfd22dd", "a02bdc05", "a6217532", "ab28c46e", "ae6c1459", "af4a33e6", "b37388ef", "b501c2fa", "b51f25f4", "b53ff036", "b6bc4a6f", "c04dd81f", "d40a29ce", "de0b4ed6", "df466fa3", "e5bf7e68", "e5eb9580", "f4f11235", "fc0885e1", "fd57d9bb"],
+    fns: &["fstate_BASICMOVE_LOOP"],
+    entries: &[
+        TE::L(0, 3, 27, 1), TE::L(0, 3, 67, 1),
+    ],
+};
 
 pub fn build_index(key: &str) -> Option<usize> {
     BUILDS.iter().position(|b| b.0 == key)
@@ -187,3 +159,6 @@ pub fn herospotConstructor(e: &mut Engine, api: Ptr, instanceCount: i32) -> LRes
 pub fn herospotDestructor(e: &mut Engine, instanceCount: i32) -> LResult<()> {
     Ok(())
 }
+
+#[allow(unused_imports)]
+use crate::engine::gamedata::{KLoc, TRow, TSpec, Table, TE};

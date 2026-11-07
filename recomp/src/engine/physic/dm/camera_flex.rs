@@ -8,7 +8,7 @@
 //! Replacements: the shared scratch RwMatrix `*(0x003439d0)` -> local RwMatrix; RwFrameGetLTM /
 //! frame modelling matrix of the owner -> `ctx.phys.frame`; the target EFGameObject pointer (+0x34)
 //! -> uid + `GetObjectFrame`; the spline pointer (+0x44) -> index into `ctx.world.Splines()`;
-//! obj+0x60 animation data and DTFCurve evaluation -> `CameraAnimChannels` / `EvalFCurve`;
+//! obj+0x60 animation data -> `CameraAnimChannels` (DTFCurve::Evaluate here);
 //! RwFrameUpdateObjects -> no-op.
 #![allow(non_snake_case)]
 
@@ -702,18 +702,27 @@ impl EFDMCameraFlex {
         let mut height_set = false;
         self.use_look_mat = 0;
         let Some(chans) = ctx.world.CameraAnimChannels(obj, self.spline_id) else { return -1 };
-        for (ch, curve, kind, t0, t1, cval, keys) in chans {
-            let key = |i: u32| keys.get(i as usize).copied().unwrap_or(0.0); // quirk: NULL deref out of range
+        for (ch, curve) in chans {
+            // key i = first float of segment i (stride 3 floats for type 4, else 5)
+            let key = |i: u32| -> f32 {
+                // quirk: NULL deref out of range in the C
+                match &curve.data {
+                    crate::engine::anim::res::DTFCurveData::Comp(v) => v.get(i as usize).map_or(0.0, |x| x.0),
+                    crate::engine::anim::res::DTFCurveData::Cubic(v) => v.get(i as usize).map_or(0.0, |x| x[0]),
+                    crate::engine::anim::res::DTFCurveData::Const(_) => 0.0,
+                }
+            };
             let mut t;
-            if sp.nseg() == keys.len() as u32 {
+            if sp.nseg() == curve.nb_segment as u32 {
                 let seg = self.cursor.seg;
                 let k1 = key(seg);
                 let k0 = if 0 < seg as i32 { key(seg - 1) } else { 0.0 };
                 t = k0 + (sp.GetSegmentLengthAt(seg, self.cursor.t) / sp.GetSegmentLength(seg)) * (k1 - k0);
             } else {
-                t = t0 + self.cursor.GetLengthFactor(sp) * (t1 - t0);
+                t = curve.start_time + self.cursor.GetLengthFactor(sp) * (curve.end_time - curve.start_time);
             }
-            t = if kind == 1 { cval } else { ctx.world.EvalFCurve(curve, t) };
+            // type 1 = constant (+0xc), 4 = DTFloatComp cubic, else cubic (DTFCurve::Evaluate)
+            t = curve.Evaluate(t);
             let v = t;
             match ch & 0x00ff_ffff {
                 3 if self.anim_mask & 0x100 == 0 => tgt[0] = v,

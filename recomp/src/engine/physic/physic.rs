@@ -129,8 +129,10 @@ impl EFPhysic {
     }
 
     /// EFPhysic::UpdatePhysicState(dt, phys, dyn): falling detection + state change notify.
-    /// Returns the notification (state) to send to the instance (EFInstance::Notify(5, &state)).
-    pub fn UpdatePhysicState(&mut self, dt: f32, prev_state: u32) -> Option<u32> {
+    /// Returns the notification to send to the instance: EFInstance::Notify(5, &{state, changed bits})
+    /// (the C passes &uStack_8 = state with uStack_4 = state ^ previous state right after it on the
+    /// stack; receivers such as Throwable_BaseST_JUST_HIT_THE_FLOOR read both words).
+    pub fn UpdatePhysicState(&mut self, dt: f32, prev_state: u32) -> Option<(u32, u32)> {
         if self.state == 0 {
             let t = self.falling_timer;
             self.falling_timer = t + dt;
@@ -141,7 +143,7 @@ impl EFPhysic {
             self.falling_timer = 0.0;
         }
         let ch = self.state ^ prev_state;
-        if ch != 0 && ch & self.notify_bits != 0 { Some(self.state) } else { None }
+        if ch != 0 && ch & self.notify_bits != 0 { Some((self.state, ch)) } else { None }
     }
 }
 

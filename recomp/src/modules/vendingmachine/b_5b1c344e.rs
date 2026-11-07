@@ -66,7 +66,7 @@ pub fn VendingMachineCB_InputAction_X(e: &mut Engine, ep1: u32) -> LResult<u64> 
         e.w32(((frame + 0x0)).wrapping_add((0u32).wrapping_mul(4)), 0x40600000u32);
         let _ = LIBApiText::ShowText(e, 0x15au32, (frame + 0x0));
     } else {
-        { let a1 = (((e.r32(g(e, 0x10cf0))) as u64)) as u64; e.w64((frame + 0x40), a1) };
+        { let a1 = e.r64(g(e, 0x10cf0)); /* P32 R36: 8-byte ldl/ldr copy */ e.w64((frame + 0x40), a1) };
         { let a1 = e.r32(g(e, 0x10cf8)); e.w32((frame + 0x48), a1) };
         let _ = APIgameobj::SendMessageTo(e, 0x2a0000abu32, NULL, 224u32, 0x2a000055u32, (frame + 0x40));
         let _ = APInewSound::Play(e, 0x2a000000u32, 0x4000000eu32, 0u32);

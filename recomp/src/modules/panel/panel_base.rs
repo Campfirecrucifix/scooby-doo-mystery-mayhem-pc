@@ -1740,7 +1740,7 @@ pub fn panel_baseFUNC_PlayPauseINAnims(e: &mut Engine) -> LResult<()> {
         APIanim::Play(e, SELF, kk(e, panel_baseFUNC_PlayPauseINAnims_0_8), 1, 0.0);
         APIanim::Play(e, SELF, kk(e, panel_baseFUNC_PlayPauseINAnims_0_9), 1, 0.0);
         if e.r32(LB(e) + 0xc) == 0 {
-            APIgameobj::SendMessageTo(e, 0x2a10_0014, 0, 0xe2, 0, 0);
+            APIgameobj::SendMessageTo(e, kk(e, ID_2a100014), 0, 0xe2, 0, 0);
         } else {
             for s in [
                 panel_baseFUNC_PlayPauseINAnims_0_10,
@@ -1749,7 +1749,7 @@ pub fn panel_baseFUNC_PlayPauseINAnims(e: &mut Engine) -> LResult<()> {
                 panel_baseFUNC_PlayPauseINAnims_0_13,
                 panel_baseFUNC_PlayPauseINAnims_0_14,
             ] {
-                APIanim::Play(e, 0x2a10_0014, kk(e, s), 1, 0.0);
+                APIanim::Play(e, kk(e, ID_2a100014), kk(e, s), 1, 0.0);
             }
         }
         let v = e.r32(f428) & 0xffff_fff7;
@@ -1787,7 +1787,7 @@ pub fn panel_baseFUNC_PlayPauseOUTAnims(e: &mut Engine) -> LResult<()> {
     let f424 = lb(e, 0x424);
     if e.r32(f424) & 8 != 0 {
         APIanim::Play(e, SELF, kk(e, panel_baseFUNC_PlayPauseOUTAnims_0_6), 1, 0.0);
-        APIgameobj::SendMessageTo(e, 0x2a10_0014, 0, 0xe1, 0, 0);
+        APIgameobj::SendMessageTo(e, kk(e, ID_2a100014), 0, 0xe1, 0, 0);
         APIanim::Play(e, SELF, kk(e, panel_baseFUNC_PlayPauseOUTAnims_0_7), 1, 0.0);
         APIgameobj::RegisterNotify(e, SELF, kk(e, panel_baseFUNC_PlayPauseOUTAnims_0_8), 1, 0x1e);
     }

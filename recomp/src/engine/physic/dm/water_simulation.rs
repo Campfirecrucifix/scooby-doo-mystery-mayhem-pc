@@ -444,6 +444,7 @@ impl EFDMWaterSimulation {
 impl EFDM for EFDMWaterSimulation {
     fn base(&self) -> &EFPhysicModule { &self.base }
     fn base_mut(&mut self) -> &mut EFPhysicModule { &mut self.base }
+    fn as_water_sim(&self) -> Option<&EFDMWaterSimulation> { Some(self) }
     /// 0xc: 0x38 bytes; 0xd: 0x24 bytes
     fn ParamWords(&self) -> usize { if self.kind() == 0xc { 14 } else { 9 } }
 

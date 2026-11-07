@@ -19,7 +19,7 @@ pub fn Monster_Base_Func_Initialise(e: &mut Engine) -> LResult<()> {
     let _ = { let a3 = (e.r32(g(e, 0x100a4))).wrapping_add(248u32); APIgameobj::GetPosition(e, 0x2a000000u32, 0x7fffffffu32, a3) };
     bVar1 = false;
     'l1: while !bVar1 {
-        if (e.r64(g(e, 0x10030)) == ((e.ri32((e.r32(g(e, 0x100a4))).wrapping_add(68u32))) as u64)) {
+        if ((e.ri32(g(e, 0x10030)) as u64) == ((e.ri32((e.r32(g(e, 0x100a4))).wrapping_add(68u32))) as u64)) {
             { let a1 = ((e.r64(g(e, 0x1005c))) as u32); e.w32((((iVar2).wrapping_add(168i32)) as u32), a1) };
             let _ = { let d = (((iVar2).wrapping_add(172i32)) as u32); e.memset(d, 0, 4); let s = e.cstr("333?"); e.memcpy(d, s, 4); d };
             e.w32((((iVar2).wrapping_add(176i32)) as u32), 0u32);
@@ -35,7 +35,7 @@ pub fn Monster_Base_Func_Initialise(e: &mut Engine) -> LResult<()> {
             { let a1 = ((e.r64(g(e, 0x1004c))) as u32); e.w32((((iVar2).wrapping_add(152i32)) as u32), a1) };
             { let a1 = ((e.r64(g(e, 0x10038))) as u32); e.w32((((iVar2).wrapping_add(132i32)) as u32), a1) };
             's2: {
-                match e.r64(g(e, 0x10030)) {
+                match (e.ri32(g(e, 0x10030)) as u64) {
                     1u64 => {
                         { let a0 = (e.r32(g(e, 0x100a4))).wrapping_add(88u32); e.w32(a0, 1u32) };
                     }
@@ -191,7 +191,7 @@ pub fn SetClipping(e: &mut Engine) -> LResult<()> {
     e.w32((frame + 0x10), 0x42480000u32);
     e.w32((frame + 0x1c), 0xbf800000u32);
     e.w32((frame + 0xc), 0x10000000u32);
-    { let a1 = g(e, 0x10000047); e.w32((frame + 0x8), a1) };
+    { let a1 = 0x10000047u32; e.w32((frame + 0x8), a1) };
     e.w32((frame + 0x18), 64u32);
     e.w32((frame + 0x14), 0x6a7u32);
     e.w32((frame + 0x24), 0x6a7u32);
@@ -1372,7 +1372,7 @@ pub fn Patrollingguard_baseConstructor(e: &mut Engine, mut api: Ptr, mut instanc
             }
             4 => {
                 pAVar1 = e.r32(g(e, 0x10088));
-                let _ = APIextra::TimerGetTime(e, 0x90000000u32);
+                fVar4 = APIextra::TimerGetTime(e, 0x90000000u32);
                 let _ = APIstdlib::srand(e, ((((fVar4) as i32)) as u32));
                 uVar2 = APIextra::TimerCreate(e);
                 { let a0 = (e.r32(g(e, 0x100ac))).wrapping_add(0x16cu32); e.w32(a0, uVar2) };

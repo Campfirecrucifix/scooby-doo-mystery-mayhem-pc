@@ -20,7 +20,7 @@ pub fn heroFUNC_UpdateBlend_Others(e: &mut Engine, mut param_1: i32, mut param_2
         in_f0 = APIanim::GetTime(e, 0x2a000000u32, 8u32); // $f0 = return value
         if (in_f0 != fVar1) {
             let _ = { let a1 = e.cstr("0.anim1 %6.4f   ->  anim2 %6.4f  =  %6.4f\n"); APIextra::null_printf(e, a1, ((in_f0) as i64 as u32)) };
-            let _ = APIanim::SetTime(e, 0x2a000000u32, 1u32, fVar1);
+            let _ = APIanim::SetTime(e, 0x2a000000u32, 1u32, in_f0); // P32 R44: disasm lwc1 $f12 = 2nd GetTime (anim2); Ghidra printed the stale 1st
             { let a1 = (((e.ri32((((param_1).wrapping_add(696i32)) as u32)) == 0i32)) as u32); e.w32((((param_1).wrapping_add(696i32)) as u32), a1) };
         }
     }
@@ -80,7 +80,7 @@ pub fn heroFUNC_StartBlend(e: &mut Engine, mut param_1: u32, mut param_2: i32, m
                 e.w32((((iVar1).wrapping_add(684i32)) as u32), 0x3dcccccdu32);
                 e.w32((((iVar1).wrapping_add(692i32)) as u32), 0x3f000000u32);
                 let _ = APIanim::BeginTree(e, 0x2a000000u32);
-                uVar2 = ((heroFUNC_StartAnim(e, 1040791372.0, 1i32, 2i32, 0i32)?) as u64);
+                uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3e09374c), 1i32, 2i32, 0i32)?) as u64);
                 let _ = APIanim::PlayBlendConnect(e, 0x2a000000u32, 8u32, 1u32, 10u32, (((iVar1).wrapping_add(676i32)) as u32));
                 let _ = APIanim::SetTime(e, 0x2a000000u32, 1u32, 0.075);
                 let _ = APIanim::SetTime(e, 0x2a000000u32, 8u32, 0.075);
@@ -108,7 +108,7 @@ pub fn heroCB_STATECHANGE(e: &mut Engine, ep1: u32) -> LResult<u64> {
     } else {
         let _ = APIphysic::ResetStateChangeNotifyBits(e, 0x2a000000u32, 1u32);
         if (e.ri32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(8u32)) == e.ri32((e.r32(g(e, 0x10440))).wrapping_add(0x17cu32))) {
-            let _ = heroFUNC_CallVibration(e, 1059648963.0, 0.0, 1045220557.0, 0.0)?;
+            let _ = heroFUNC_CallVibration(e, f32::from_bits(0x3f28f5c3), 0.0, f32::from_bits(0x3e4ccccd), 0.0)?;
         }
     }
     return Ok(0u64);
@@ -348,7 +348,7 @@ pub fn heroCB_ANIM(e: &mut Engine, ep1: u32) -> LResult<u64> {
         if (uVar1 == 0xfffff840u32) {
             if (e.r32((e.r32(g(e, 0x10440))).wrapping_add((95u32).wrapping_mul(4))) == 0x2a00001au32) {
                 if (e.r32((param_1).wrapping_add((2u32).wrapping_mul(4))) == 0u32) {
-                    let _ = heroFUNC_CallVibration(e, 1051260355.0, 0.0, 1045220557.0, 0.0)?;
+                    let _ = heroFUNC_CallVibration(e, f32::from_bits(0x3ea8f5c3), 0.0, f32::from_bits(0x3e4ccccd), 0.0)?;
                 } else {
                     { let a0 = (e.r32(g(e, 0x10440))).wrapping_add((90u32).wrapping_mul(4)); let a1 = (e.r32((e.r32(g(e, 0x10440))).wrapping_add((90u32).wrapping_mul(4))) | 0x10000000u32); e.w32(a0, a1) };
                 }
@@ -1033,7 +1033,7 @@ pub fn heroFUNC_CheckActionEvents(e: &mut Engine, mut param_1: i32) -> LResult<(
 /// 0x0001de50
 pub fn heroFUNC_GetVelocity(e: &mut Engine, mut param_1: i32) -> LResult<()> {
     let mut uVar1: u32 = 0;
-    uVar1 = ((LIBApiCFunctions::GetVelocity(e, 0x2a000000i32, 7u32)) as i64 as u32);
+    uVar1 = (LIBApiCFunctions::GetVelocity(e, 0x2a000000i32, 7u32)).to_bits(); // P32 R50: disasm swc1 $f0 -> float bits, not a cvt
     e.w32((((param_1).wrapping_add(736i32)) as u32), uVar1);
     return Ok(());
     #[allow(unreachable_code)]
@@ -1392,7 +1392,7 @@ pub fn heroInit_FollowIdle(e: &mut Engine, mut param_1: i32) -> LResult<()> {
                     let _ = UpdateTimerOutOfTime(e, fVar4)?;
                     let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0x50000050u32);
                 } else {
-                    uVar2 = ((heroFUNC_StartAnim(e, 1017370378.0, 1i32, 2i32, 0i32)?) as u64);
+                    uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3ca3d70a), 1i32, 2i32, 0i32)?) as u64);
                     e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
                     let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0x70002050u32);
                 }
@@ -1404,7 +1404,7 @@ pub fn heroInit_FollowIdle(e: &mut Engine, mut param_1: i32) -> LResult<()> {
                 let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0x50000050u32);
             }
         } else {
-            uVar2 = ((heroFUNC_StartAnim(e, 1028443341.0, (-1982i32), 2i32, 0i32)?) as u64);
+            uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3d4ccccd), (-1982i32), 2i32, 0i32)?) as u64);
             e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
             let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0x50000050u32);
         }
@@ -1415,15 +1415,15 @@ pub fn heroInit_FollowIdle(e: &mut Engine, mut param_1: i32) -> LResult<()> {
                     if ((e.r32((((param_1).wrapping_add(372i32)) as u32)) & 0x8000000u32) == 0u32) {
                         if ((e.r32((((param_1).wrapping_add(372i32)) as u32)) & 0x10000000u32) == 0u32) {
                             if ((e.r32((((param_1).wrapping_add(372i32)) as u32)) & 0x20000000u32) != 0u32) {
-                                uVar2 = ((heroFUNC_StartAnim(e, 1028443341.0, (-1992i32), 1i32, 0i32)?) as u64);
+                                uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3d4ccccd), (-1992i32), 1i32, 0i32)?) as u64);
                                 e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
                             }
                         } else {
-                            uVar2 = ((heroFUNC_StartAnim(e, 1028443341.0, (-1993i32), 2i32, 0i32)?) as u64);
+                            uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3d4ccccd), (-1993i32), 2i32, 0i32)?) as u64);
                             e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
                         }
                     } else {
-                        uVar2 = ((heroFUNC_StartAnim(e, 1028443341.0, (-1994i32), 1i32, 0i32)?) as u64);
+                        uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3d4ccccd), (-1994i32), 1i32, 0i32)?) as u64);
                         e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
                     }
                 } else {
@@ -1464,7 +1464,7 @@ pub fn heroST_FollowIdle_Loop(e: &mut Engine, mut param_1: i32) -> LResult<()> {
                     if ((e.r32((((param_1).wrapping_add(360i32)) as u32)) & 1u32) == 0u32) {
                         if ((e.r32((((param_1).wrapping_add(360i32)) as u32)) & 8u32) == 0u32) {
                             if ((e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) & 0x400000u32) == 0u32) {
-                                if (((e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) & 0x20000u32) == 0u32) || { { bVar2 = heroIsTrackWPReached(e, 1041865114.0, param_1)?; bVar2 }; !bVar2 }) {
+                                if (((e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) & 0x20000u32) == 0u32) || { { bVar2 = heroIsTrackWPReached(e, f32::from_bits(0x3e19999a), param_1)?; bVar2 }; !bVar2 }) {
                                     if (((e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) & 128u32) == 0u32) && { { bVar2 = IsOutOfTime(e)?; bVar2 }; bVar2 }) {
                                         e.w32((((param_1).wrapping_add(340i32)) as u32), 0x1f6b8u32);
                                     }
@@ -1510,7 +1510,7 @@ pub fn heroST_FollowIdle_Loop(e: &mut Engine, mut param_1: i32) -> LResult<()> {
 /// 0x00020268
 pub fn heroInit_FollowSneaking(e: &mut Engine, mut param_1: i32) -> LResult<()> {
     let mut uVar1: u64 = 0;
-    uVar1 = ((heroFUNC_StartAnim(e, 1036831949.0, (-1981i32), 2i32, 0i32)?) as u64);
+    uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), (-1981i32), 2i32, 0i32)?) as u64);
     e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar1) as i32));
     let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0x50000050u32);
     let _ = heroUpdateDMFollow(e, param_1, 1i32)?;
@@ -1618,7 +1618,7 @@ pub fn heroInit_Unhook(e: &mut Engine, mut param_1: i32) -> LResult<()> {
         let _ = { let a1 = e.r32((((param_1).wrapping_add(476i32)) as u32)); APIphysic::DMSetStateBits(e, a1, 1u32) };
     }
     let _ = heroFUNC_DebugTime(e)?;
-    uVar1 = ((heroFUNC_StartAnim(e, 1041865114.0, 5i32, 2i32, 0i32)?) as u64);
+    uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3e19999a), 5i32, 2i32, 0i32)?) as u64);
     e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar1) as i32));
     let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0x50000050u32);
     let _ = { let a1 = e.ri32((((param_1).wrapping_add(392i32)) as u32)); APIinput::InputConfigSetState(e, a1, (-0x7ffffd22i32)) };
@@ -1725,9 +1725,9 @@ pub fn heroCB_INPUT_Stick(e: &mut Engine, ep1: u32) -> LResult<u64> {
     let mut fVar2: f32 = 0.0;
     iVar1 = ((e.r32(g(e, 0x10440))) as i32);
     { let a0 = (e.r32(g(e, 0x10440))).wrapping_add(0x16cu32); let a1 = (e.r32((e.r32(g(e, 0x10440))).wrapping_add(0x16cu32)) | 2u32); e.w32(a0, a1) };
-    fVar2 = { let a1 = ((e.r32(param_1)) as f32); APImath::myfabs(e, a1) };
+    fVar2 = { let a1 = f32::from_bits(e.r32(param_1)); APImath::myfabs(e, a1) };
     e.wf((((iVar1).wrapping_add(712i32)) as u32), fVar2);
-    fVar2 = { let a1 = ((e.r32((param_1).wrapping_add((1u32).wrapping_mul(4)))) as f32); APImath::myfabs(e, a1) };
+    fVar2 = { let a1 = f32::from_bits(e.r32((param_1).wrapping_add((1u32).wrapping_mul(4)))); APImath::myfabs(e, a1) };
     e.wf((((iVar1).wrapping_add(716i32)) as u32), fVar2);
     return Ok(0u64);
 }
@@ -1878,9 +1878,9 @@ pub fn heroFUNC_IsAnythingBetweenUs(e: &mut Engine, mut param_1: f32, mut param_
                 e.wf((frame + 0xa8), param_1);
                 let _ = APIgameobj::GetPosition(e, param_2, 0x7fffffffu32, (frame + 0x70));
                 if !(param_3 == 0i32) { pc = 1; continue 'sm; }
-                { let a1 = ((e.r32((param_4).wrapping_add((2u32).wrapping_mul(4)))) as f32); e.wf(((frame + 0x80)).wrapping_add(8), a1) };
-                { let a1 = ((e.r32((param_4).wrapping_add((1u32).wrapping_mul(4)))) as f32); e.wf(((frame + 0x80)).wrapping_add(4), a1) };
-                { let a1 = ((e.r32(param_4)) as f32); e.wf(((frame + 0x80)).wrapping_add(0), a1) };
+                { let a1 = f32::from_bits(e.r32((param_4).wrapping_add((2u32).wrapping_mul(4)))); e.wf(((frame + 0x80)).wrapping_add(8), a1) };
+                { let a1 = f32::from_bits(e.r32((param_4).wrapping_add((1u32).wrapping_mul(4)))); e.wf(((frame + 0x80)).wrapping_add(4), a1) };
+                { let a1 = f32::from_bits(e.r32(param_4)); e.wf(((frame + 0x80)).wrapping_add(0), a1) };
                 { pc = 2; continue 'sm; }
                 pc = 1;
             }
@@ -2367,7 +2367,7 @@ pub fn heroST_Move_Loop(e: &mut Engine, mut param_1: i32) -> LResult<()> {
 /// 0x000232b8
 pub fn heroInit_Sneaking(e: &mut Engine, mut param_1: i32) -> LResult<()> {
     let mut uVar1: u64 = 0;
-    uVar1 = ((heroFUNC_StartAnim(e, 1036831949.0, (-1981i32), 2i32, 0i32)?) as u64);
+    uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), (-1981i32), 2i32, 0i32)?) as u64);
     e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar1) as i32));
     let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0x10054u32);
     let _ = { let a1 = e.ri32((((param_1).wrapping_add(392i32)) as u32)); APIinput::InputConfigSetState(e, a1, (-0x7ffffd11i32)) };
@@ -2448,7 +2448,7 @@ pub fn heroST_Sneaking_Loop(e: &mut Engine, mut param_1: i32) -> LResult<()> {
 /// 0x00023798
 pub fn heroInit_Break(e: &mut Engine, mut param_1: i32) -> LResult<()> {
     let mut uVar1: u64 = 0;
-    uVar1 = ((heroFUNC_StartAnim(e, 1048576000.0, (-1970i32), 1i32, 5i32)?) as u64);
+    uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3e800000), (-1970i32), 1i32, 5i32)?) as u64);
     e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar1) as i32));
     let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0x10000050u32);
     let _ = { let a1 = e.ri32((((param_1).wrapping_add(392i32)) as u32)); APIinput::InputConfigSetState(e, a1, i32::MIN) };
@@ -2971,7 +2971,7 @@ pub fn heroFUNC_MessageHandler(e: &mut Engine, mut param_1: u32, mut param_2: u3
                 e.w32((((iVar5).wrapping_add(340i32)) as u32), 0x2ac78u32);
             }
             if ((param_2 & 0x400u32) != 0u32) {
-                uVar7 = ((heroFUNC_StartAnim(e, 1041865114.0, 5i32, 2i32, 0i32)?) as u64);
+                uVar7 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3e19999a), 5i32, 2i32, 0i32)?) as u64);
                 e.wi32((((iVar5).wrapping_add(536i32)) as u32), ((uVar7) as i32));
             }
         } else if (param_1 < 211u32) {
@@ -2985,7 +2985,7 @@ pub fn heroFUNC_MessageHandler(e: &mut Engine, mut param_1: u32, mut param_2: u3
         } else if (param_1 == 215u32) {
             let _ = { let a2 = e.r32((e.r32(g(e, 0x10440))).wrapping_add(0x18cu32)); APIphysic::PrimSetIntAttribBits(e, 0x2a000000u32, a2, 0u32, 128u32) };
         } else if ((param_1 == 0x15eu32) && (e.ri32((e.r32(g(e, 0x10440))).wrapping_add(0x17cu32)) == 0x2a00001bi32)) {
-            { let a0 = (e.r32(g(e, 0x10440))).wrapping_add(0x170u32); let a1 = (e.r32((e.r32(g(e, 0x10440))).wrapping_add(0x170u32)) | g(e, 0x10000)); e.w32(a0, a1) };
+            { let a0 = (e.r32(g(e, 0x10440))).wrapping_add(0x170u32); let a1 = (e.r32((e.r32(g(e, 0x10440))).wrapping_add(0x170u32)) | 0x10000u32); e.w32(a0, a1) };
         }
     } else if (param_1 == 0x1d3u32) {
         { let a0 = (e.r32(g(e, 0x10440))).wrapping_add(0x170u32); let a1 = (e.r32((e.r32(g(e, 0x10440))).wrapping_add(0x170u32)) | 0x1000000u32); e.w32(a0, a1) };
@@ -3167,7 +3167,7 @@ pub fn heroInit_Scare(e: &mut Engine, mut param_1: i32) -> LResult<()> {
                 let _ = APIphysic::SetFlags(e, 0x2a000000u32, 1u32);
                 let _ = APIphysic::SetVelocity(e, 0x2a000000u32, 0.0, 0.0, 0.0);
                 e.w32((((param_1).wrapping_add(544i32)) as u32), 72u32);
-                uVar2 = ((heroFUNC_StartAnim(e, 1045220557.0, (-1933i32), 1i32, 5i32)?) as u64);
+                uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3e4ccccd), (-1933i32), 1i32, 5i32)?) as u64);
                 e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
                 { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) | 0x2000000u32); e.w32(a0, a1) };
                 { let a1 = e.r32((((param_1).wrapping_add(588i32)) as u32)); e.w32((((param_1).wrapping_add(568i32)) as u32), a1) };
@@ -3182,7 +3182,7 @@ pub fn heroInit_Scare(e: &mut Engine, mut param_1: i32) -> LResult<()> {
         } else {
             let _ = heroFUNC_DebugTime(e)?;
             e.w32((((param_1).wrapping_add(544i32)) as u32), 71u32);
-            uVar2 = ((heroFUNC_StartAnim(e, 1036831949.0, (-1932i32), 1i32, 5i32)?) as u64);
+            uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), (-1932i32), 1i32, 5i32)?) as u64);
             e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
             let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 80u32);
             { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) | 0x2000000u32); e.w32(a0, a1) };
@@ -3190,7 +3190,7 @@ pub fn heroInit_Scare(e: &mut Engine, mut param_1: i32) -> LResult<()> {
     } else {
         let _ = heroFUNC_DebugTime(e)?;
         e.w32((((param_1).wrapping_add(544i32)) as u32), 70u32);
-        uVar2 = ((heroFUNC_StartAnim(e, 1036831949.0, (-1934i32), 1i32, 5i32)?) as u64);
+        uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), (-1934i32), 1i32, 5i32)?) as u64);
         e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
         let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0x250u32);
         { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) | 0x2000000u32); e.w32(a0, a1) };
@@ -3227,7 +3227,7 @@ pub fn heroST_Scare_Loop(e: &mut Engine, mut param_1: i32) -> LResult<()> {
             if ((e.ri32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(8u32)) == e.ri32((e.r32(g(e, 0x10440))).wrapping_add(0x17cu32))) && (e.rf((((param_1).wrapping_add(888i32)) as u32)) < fVar2)) {
                 fVar2 = APIextra::TimerGetTime(e, 0x90000000u32);
                 e.wf((((param_1).wrapping_add(888i32)) as u32), (fVar2 + 0.25));
-                let _ = heroFUNC_CallVibration(e, 1059648963.0, 0.0, 1048576000.0, 1048576000.0)?;
+                let _ = heroFUNC_CallVibration(e, f32::from_bits(0x3f28f5c3), 0.0, f32::from_bits(0x3e800000), f32::from_bits(0x3e800000))?;
             }
         }
     } else {
@@ -3235,7 +3235,7 @@ pub fn heroST_Scare_Loop(e: &mut Engine, mut param_1: i32) -> LResult<()> {
         let _ = APIphysic::ResetFlags(e, 0x2a000000u32, 1u32);
         let _ = APIgameobj::LeaveParent(e, 0x2a000000u32, 0u32);
         if ((e.ri32((((param_1).wrapping_add(544i32)) as u32)) == 72i32) && (e.ri32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(8u32)) == e.ri32((e.r32(g(e, 0x10440))).wrapping_add(0x17cu32)))) {
-            let _ = heroFUNC_CallVibration(e, 1065353216.0, 0.0, 1051260355.0, 0.0)?;
+            let _ = heroFUNC_CallVibration(e, f32::from_bits(0x3f800000), 0.0, f32::from_bits(0x3ea8f5c3), 0.0)?;
         }
         if (e.ri32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(8u32)) == e.ri32((e.r32(g(e, 0x10440))).wrapping_add(0x17cu32))) {
             let _ = { let a1 = e.r32((((param_1).wrapping_add(448i32)) as u32)); APIphysic::DMSetActive(e, a1, 0u32) };
@@ -3393,12 +3393,12 @@ pub fn heroInit_Panic(e: &mut Engine, mut param_1: i32) -> LResult<()> {
         }
         e.w32((((param_1).wrapping_add(896i32)) as u32), uVar3);
         e.w32((((param_1).wrapping_add(736i32)) as u32), 0x40200000u32);
-        uVar2 = ((heroFUNC_StartAnim(e, 1036831949.0, (-1929i32), 2i32, 0i32)?) as u64);
+        uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), (-1929i32), 2i32, 0i32)?) as u64);
         e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
         let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0x451u32);
         let _ = { let a1 = e.ri32((((param_1).wrapping_add(392i32)) as u32)); APIinput::InputConfigSetState(e, a1, (-0x7ffffffei32)) };
     } else {
-        uVar2 = ((heroFUNC_StartAnim(e, 1036831949.0, (-1926i32), 2i32, 0i32)?) as u64);
+        uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), (-1926i32), 2i32, 0i32)?) as u64);
         e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
         let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0u32);
     }
@@ -3424,7 +3424,7 @@ pub fn heroST_Panic_Loop(e: &mut Engine, mut param_1: i32) -> LResult<()> {
     { let a1 = (e.rf(((frame + 0x10)).wrapping_add(4)) - e.rf(((frame + 0x0)).wrapping_add(4))); e.wf(((frame + 0x20)).wrapping_add(4), a1) };
     { let a1 = (e.rf(((frame + 0x10)).wrapping_add(8)) - e.rf(((frame + 0x0)).wrapping_add(8))); e.wf(((frame + 0x20)).wrapping_add(8), a1) };
     if (0.15 < (((e.rf(((frame + 0x20)).wrapping_add(0)) * e.rf(((frame + 0x20)).wrapping_add(0))) + (e.rf(((frame + 0x20)).wrapping_add(4)) * e.rf(((frame + 0x20)).wrapping_add(4)))) + (e.rf(((frame + 0x20)).wrapping_add(8)) * e.rf(((frame + 0x20)).wrapping_add(8))))) {
-        { let a1 = ((APIanim::GetTime(e, 0x2a000000u32, 0xfffff877u32)) as i64 as u32); e.w32(((frame + 0x30)).wrapping_add((0u32).wrapping_mul(4)), a1) };
+        { let a1 = (APIanim::GetTime(e, 0x2a000000u32, 0xfffff877u32)).to_bits() /* P32 R50: disasm swc1 $f0 (float bits) */; e.w32(((frame + 0x30)).wrapping_add((0u32).wrapping_mul(4)), a1) };
         let _ = { let a1 = e.r32((((param_1).wrapping_add(384i32)) as u32)); APIgameobj::LeaveParent(e, a1, 0u32) };
         let _ = { let a2 = e.r32((((param_1).wrapping_add(388i32)) as u32)); let a3 = e.r32((((param_1).wrapping_add(384i32)) as u32)); APIgameobj::AddChild(e, 0x2a000000u32, a2, a3, 9u32) };
         let _ = { let a1 = e.r32((((param_1).wrapping_add(384i32)) as u32)); APIgameobj::SendMessageTo(e, a1, NULL, 138u32, 0x4000000u32, (frame + 0x30)) };
@@ -3859,13 +3859,13 @@ pub fn heroCB_SCARED(e: &mut Engine, ep1: u32) -> LResult<u64> {
             if ((e.r32((((param_1).wrapping_add(20i32)) as u32)) & 32u32) == 0u32) {
                 if ((e.r32((((param_1).wrapping_add(20i32)) as u32)) & 64u32) == 0u32) {
                     if ((e.r32((((param_1).wrapping_add(20i32)) as u32)) & 128u32) != 0u32) {
-                        let _ = heroFUNC_CallVibration(e, 1065353216.0, 0.0, 1051260355.0, 0.0)?;
+                        let _ = heroFUNC_CallVibration(e, f32::from_bits(0x3f800000), 0.0, f32::from_bits(0x3ea8f5c3), 0.0)?;
                     }
                 } else {
-                    let _ = heroFUNC_CallVibration(e, 1059648963.0, 0.0, 1051260355.0, 0.0)?;
+                    let _ = heroFUNC_CallVibration(e, f32::from_bits(0x3f28f5c3), 0.0, f32::from_bits(0x3ea8f5c3), 0.0)?;
                 }
             } else {
-                let _ = heroFUNC_CallVibration(e, 1051260355.0, 0.0, 1051260355.0, 0.0)?;
+                let _ = heroFUNC_CallVibration(e, f32::from_bits(0x3ea8f5c3), 0.0, f32::from_bits(0x3ea8f5c3), 0.0)?;
             }
             if (((e.ri32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(8u32)) == 0x2a00001bi32) && ((e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) & 2u32) != 0u32)) && (e.ri32((e.r32((e.r32(g(e, 0x10444))).wrapping_add((4u32).wrapping_mul(4)))).wrapping_add(4u32)) == 2048i32)) {
                 { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) & 0xfffffffdu32); e.w32(a0, a1) };
@@ -3970,7 +3970,7 @@ pub fn heroInit_SnorkelTrackEdge(e: &mut Engine, mut param_1: i32) -> LResult<()
     let mut uVar1: u64 = 0;
     let frame = e.alloca(0xc0);
     let _ = heroFUNC_DebugTime(e)?;
-    uVar1 = ((heroFUNC_StartAnim(e, 1036831949.0, 1i32, 2i32, 0i32)?) as u64);
+    uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), 1i32, 2i32, 0i32)?) as u64);
     e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar1) as i32));
     { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) | 0x1000010u32); e.w32(a0, a1) };
     let _ = { let a1 = e.ri32((((param_1).wrapping_add(392i32)) as u32)); APIinput::InputConfigSetState(e, a1, (-0x7ffffd22i32)) };
@@ -4043,10 +4043,10 @@ pub fn heroST_SnorkelTrackEdge_Loop(e: &mut Engine, mut param_1: i32) -> LResult
     let mut bVar1: bool = false;
     let mut uVar2: u64 = 0;
     let frame = e.alloca(0x80);
-    bVar1 = heroIsTrackWPReached(e, 1036831949.0, param_1)?;
+    bVar1 = heroIsTrackWPReached(e, f32::from_bits(0x3dcccccd), param_1)?;
     if bVar1 {
         let _ = APIphysic::SetPriority(e, 0x2a000000u32, 4u32);
-        uVar2 = ((heroFUNC_StartAnim(e, 1036831949.0, 5i32, 2i32, 0i32)?) as u64);
+        uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), 5i32, 2i32, 0i32)?) as u64);
         e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
         let _ = APIphysic::SetVelocity(e, 0x2a000000u32, 0.0, 0.0, 0.0);
         let _ = { let a2 = e.r32((((param_1).wrapping_add(620i32)) as u32)); APIgameobj::TakeOrientation(e, 0x2a000000u32, a2, 0x7fffffffu32) };
@@ -4063,7 +4063,7 @@ pub fn heroST_SnorkelTrackEdge_Loop(e: &mut Engine, mut param_1: i32) -> LResult
                 { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(52u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(52u32)) & 0xffffedffu32); e.w32(a0, a1) };
                 let _ = { let a1 = e.r32((((param_1).wrapping_add(384i32)) as u32)); APIgameobj::SendMessageTo(e, a1, NULL, 107u32, 0u32, NULL) };
             }
-            uVar2 = ((heroFUNC_StartAnim(e, 1036831949.0, 5i32, 2i32, 0i32)?) as u64);
+            uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), 5i32, 2i32, 0i32)?) as u64);
             e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
             let _ = APIphysic::SetVelocity(e, 0x2a000000u32, 0.0, 0.0, 0.0);
             let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0u32);
@@ -4104,7 +4104,7 @@ pub fn heroInit_SnorkelTrackAway(e: &mut Engine, mut param_1: i32) -> LResult<()
     let mut uVar1: u64 = 0;
     let frame = e.alloca(0xc0);
     let _ = heroFUNC_DebugTime(e)?;
-    uVar1 = ((heroFUNC_StartAnim(e, 1036831949.0, 1i32, 2i32, 0i32)?) as u64);
+    uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), 1i32, 2i32, 0i32)?) as u64);
     e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar1) as i32));
     { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) | 0x1000010u32); e.w32(a0, a1) };
     let _ = { let a1 = e.ri32((((param_1).wrapping_add(392i32)) as u32)); APIinput::InputConfigSetState(e, a1, i32::MIN) };
@@ -4162,7 +4162,7 @@ pub fn heroST_SnorkelTrackAway_Loop(e: &mut Engine, mut param_1: i32) -> LResult
     let mut bVar1: bool = false;
     let mut uVar2: u64 = 0;
     let _ = APIphysic::SetVelocity(e, 0x2a000000u32, 0.0, 0.0, 0.0);
-    bVar1 = heroIsTrackWPReached(e, 1045220557.0, param_1)?;
+    bVar1 = heroIsTrackWPReached(e, f32::from_bits(0x3e4ccccd), param_1)?;
     if (bVar1 || { { bVar1 = IsOutOfTime(e)?; bVar1 }; bVar1 }) {
         let _ = APIphysic::SetPriority(e, 0x2a000000u32, 4u32);
         { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) & 0xfeffffffu32); e.w32(a0, a1) };
@@ -4171,7 +4171,7 @@ pub fn heroST_SnorkelTrackAway_Loop(e: &mut Engine, mut param_1: i32) -> LResult
             { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(52u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(52u32)) & 0xffffedffu32); e.w32(a0, a1) };
             let _ = { let a1 = e.r32((((param_1).wrapping_add(384i32)) as u32)); APIgameobj::SendMessageTo(e, a1, NULL, 107u32, 0u32, NULL) };
         }
-        uVar2 = ((heroFUNC_StartAnim(e, 1036831949.0, 5i32, 2i32, 0i32)?) as u64);
+        uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), 5i32, 2i32, 0i32)?) as u64);
         e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
         let _ = APIphysic::SetVelocity(e, 0x2a000000u32, 0.0, 0.0, 0.0);
         let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0u32);
@@ -4186,7 +4186,7 @@ pub fn heroInit_SnorkelEdgeDown(e: &mut Engine, mut param_1: i32) -> LResult<()>
     let mut uVar1: u64 = 0;
     let _ = heroFUNC_DebugTime(e)?;
     { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) | 0x1000800u32); e.w32(a0, a1) };
-    uVar1 = ((heroFUNC_StartAnim(e, 1036831949.0, 3i32, 1i32, 5i32)?) as u64);
+    uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), 3i32, 1i32, 5i32)?) as u64);
     e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar1) as i32));
     let _ = { let a2 = e.r32((((param_1).wrapping_add(396i32)) as u32)); APIphysic::PrimResetIntAttribBits(e, 0x2a000000u32, a2, 5u32, 3u32) };
     let _ = { let a1 = e.r32((((param_1).wrapping_add(484i32)) as u32)); APIphysic::DMSetActive(e, a1, 1u32) };
@@ -4216,7 +4216,7 @@ pub fn heroST_SnorkelEdgeDown_Loop(e: &mut Engine, mut param_1: i32) -> LResult<
 pub fn heroInit_SnorkelEdgeUp(e: &mut Engine, mut param_1: i32) -> LResult<()> {
     let mut uVar1: u64 = 0;
     let _ = heroFUNC_DebugTime(e)?;
-    uVar1 = ((heroFUNC_StartAnim(e, 1036831949.0, 4i32, 1i32, 5i32)?) as u64);
+    uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), 4i32, 1i32, 5i32)?) as u64);
     e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar1) as i32));
     { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) | 0x1000800u32); e.w32(a0, a1) };
     let _ = { let a1 = e.ri32((((param_1).wrapping_add(392i32)) as u32)); APIinput::InputConfigSetState(e, a1, i32::MIN) };
@@ -4248,7 +4248,7 @@ pub fn heroInit_SnorkelSwimStand(e: &mut Engine, mut param_1: i32) -> LResult<()
     let _ = heroFUNC_DebugTime(e)?;
     let _ = { let a2 = e.r32((((param_1).wrapping_add(396i32)) as u32)); APIphysic::PrimSetIntAttribBits(e, 0x2a000000u32, a2, 5u32, 3u32) };
     let _ = { let a1 = e.r32((((param_1).wrapping_add(484i32)) as u32)); APIphysic::DMSetActive(e, a1, 0u32) };
-    uVar1 = ((heroFUNC_StartAnim(e, 1048576000.0, 6i32, 2i32, 0i32)?) as u64);
+    uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3e800000), 6i32, 2i32, 0i32)?) as u64);
     e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar1) as i32));
     { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) | 16u32); e.w32(a0, a1) };
     let _ = { let a1 = e.ri32((((param_1).wrapping_add(392i32)) as u32)); APIinput::InputConfigSetState(e, a1, (-0x7fffff6ei32)) };
@@ -4293,7 +4293,7 @@ pub fn heroEXIT_SnorkelSwimStand(e: &mut Engine, mut param_1: i32) -> LResult<()
 pub fn heroInit_SnorkelSwimming(e: &mut Engine, mut param_1: i32) -> LResult<()> {
     let mut uVar1: u64 = 0;
     let _ = heroFUNC_DebugTime(e)?;
-    uVar1 = ((heroFUNC_StartAnim(e, 1036831949.0, 7i32, 2i32, 0i32)?) as u64);
+    uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), 7i32, 2i32, 0i32)?) as u64);
     e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar1) as i32));
     { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) & 0xffffffefu32); e.w32(a0, a1) };
     let _ = { let a1 = e.ri32((((param_1).wrapping_add(392i32)) as u32)); APIinput::InputConfigSetState(e, a1, (-0x7fffff6di32)) };
@@ -4351,7 +4351,7 @@ pub fn heroInit_SnorkelHideIn(e: &mut Engine, mut param_1: i32) -> LResult<()> {
     let mut uVar1: u64 = 0;
     let _ = heroFUNC_DebugTime(e)?;
     { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) | 32u32); e.w32(a0, a1) };
-    uVar1 = ((heroFUNC_StartAnim(e, 1036831949.0, 13i32, 1i32, 5i32)?) as u64);
+    uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), 13i32, 1i32, 5i32)?) as u64);
     e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar1) as i32));
     let _ = { let a1 = e.ri32((((param_1).wrapping_add(392i32)) as u32)); APIinput::InputConfigSetState(e, a1, (-0x7ffffe80i32)) };
     let _ = APIphysic::SetFlags(e, 0x2a000000u32, 1u32);
@@ -4381,7 +4381,7 @@ pub fn heroST_SnorkelHideIn_Loop(e: &mut Engine, mut param_1: i32) -> LResult<()
 pub fn heroInit_SnorkelHiding(e: &mut Engine, mut param_1: i32) -> LResult<()> {
     let mut uVar1: u64 = 0;
     let _ = heroFUNC_DebugTime(e)?;
-    uVar1 = ((heroFUNC_StartAnim(e, 1036831949.0, 12i32, 2i32, 0i32)?) as u64);
+    uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), 12i32, 2i32, 0i32)?) as u64);
     e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar1) as i32));
     let _ = { let a1 = e.ri32((((param_1).wrapping_add(392i32)) as u32)); APIinput::InputConfigSetState(e, a1, (-0x7ffffe80i32)) };
     let _ = { let a1 = e.ri32((((param_1).wrapping_add(960i32)) as u32)); APIparticle::EmitterStart(e, a1, 1u32) };
@@ -4408,7 +4408,7 @@ pub fn heroST_SnorkelHiding_Loop(e: &mut Engine, mut param_1: i32) -> LResult<()
         let _ = { let a3 = ((e.rf((((param_1).wrapping_add(712i32)) as u32)) * 5.0) * 0.017453292); APIgameobj::Rotate(e, 0x2a000000u32, (frame + 0x0), a3) };
     }
     fVar4 = { herosnorkelFUNC_AlignEmitter(e, param_1)?; 0.0 };
-    let _ = APIgame::GetFrameDeltaTime(e);
+    fVar4 = APIgame::GetFrameDeltaTime(e); // Ghidra dropped the f1 return
     { let a0 = e.r32((e.r32(g(e, 0x10444))).wrapping_add(16u32)); let a1 = (e.rf(e.r32((e.r32(g(e, 0x10444))).wrapping_add(16u32))) - (fVar4 / 10.0)); e.wf(a0, a1) };
     uVar1 = e.r32((((param_1).wrapping_add(364i32)) as u32));
     bVar2 = (e.rf(e.r32((e.r32(g(e, 0x10444))).wrapping_add(16u32))) < 0.0);
@@ -4470,7 +4470,7 @@ pub fn heroInit_SnorkelHideOut(e: &mut Engine, mut param_1: i32) -> LResult<()> 
     let mut uVar1: u64 = 0;
     let _ = heroFUNC_DebugTime(e)?;
     { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) & 0xffffffdfu32); e.w32(a0, a1) };
-    uVar1 = ((heroFUNC_StartAnim(e, 1036831949.0, 11i32, 1i32, 5i32)?) as u64);
+    uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), 11i32, 1i32, 5i32)?) as u64);
     e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar1) as i32));
     let _ = APIphysic::ResetFlags(e, 0x2a000000u32, 1u32);
     let _ = { let a1 = e.ri32((((param_1).wrapping_add(392i32)) as u32)); APIinput::InputConfigSetState(e, a1, i32::MIN) };
@@ -4505,7 +4505,7 @@ pub fn heroInit_SnorkelScare(e: &mut Engine, mut param_1: i32) -> LResult<()> {
     if ((e.r32((((param_1).wrapping_add(592i32)) as u32)) & 3u32) != 0u32) {
         let _ = UpdateTimerOutOfTime(e, 1.0)?;
         if ((e.r32((((iVar1).wrapping_add(20i32)) as u32)) & 0x400u32) != 0u32) {
-            uVar2 = ((heroFUNC_StartAnim(e, 1036831949.0, 9i32, 1i32, 5i32)?) as u64);
+            uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), 9i32, 1i32, 5i32)?) as u64);
             e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
             let _ = APIanim::SetSpeed(e, 0x2a000000u32, 9u32, 1.0);
         }
@@ -4513,7 +4513,7 @@ pub fn heroInit_SnorkelScare(e: &mut Engine, mut param_1: i32) -> LResult<()> {
         let _ = { let a1 = e.r32((((param_1).wrapping_add(500i32)) as u32)); APIextra::TimerReset(e, a1) };
         let _ = { let a1 = e.r32((((param_1).wrapping_add(500i32)) as u32)); APIextra::TimerSetFrequency(e, a1, 2.0) };
         let _ = { let a2 = e.r32((((param_1).wrapping_add(500i32)) as u32)); APIextra::TimerRegisterNotify(e, 0x2a000000u32, a2, 10u32) };
-        let _ = heroFUNC_CallVibration(e, 1059648963.0, 0.0, 1051260355.0, 0.0)?;
+        let _ = heroFUNC_CallVibration(e, f32::from_bits(0x3f28f5c3), 0.0, f32::from_bits(0x3ea8f5c3), 0.0)?;
         { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) & 0xffffffdfu32); e.w32(a0, a1) };
         let _ = APIphysic::ResetFlags(e, 0x2a000000u32, 1u32);
         let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 80u32);
@@ -5354,21 +5354,21 @@ pub fn heroFUNC_SelectSleep(e: &mut Engine, mut param_1: i32, mut param_2: u32) 
     let mut uVar1: u64 = 0;
     let frame = e.alloca(0x38);
     if (param_2 == 0xfffff837u32) {
-        uVar1 = ((heroFUNC_StartAnim(e, 1028443341.0, (-1992i32), 1i32, 5i32)?) as u64);
+        uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3d4ccccd), (-1992i32), 1i32, 5i32)?) as u64);
         return Ok(uVar1);
     }
     if (param_2 < 0xfffff838u32) {
         if (param_2 == 0xfffff836u32) {
-            uVar1 = ((heroFUNC_StartAnim(e, 1028443341.0, (-1993i32), 2i32, 0i32)?) as u64);
+            uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3d4ccccd), (-1993i32), 2i32, 0i32)?) as u64);
             return Ok(uVar1);
         }
     } else {
         if (param_2 == 0xfffff838u32) {
-            uVar1 = ((heroFUNC_StartAnim(e, 1028443341.0, (-1993i32), 2i32, 0i32)?) as u64);
+            uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3d4ccccd), (-1993i32), 2i32, 0i32)?) as u64);
             return Ok(uVar1);
         }
         if (param_2 == 0xfffff841u32) {
-            uVar1 = ((heroFUNC_StartAnim(e, 1028443341.0, (-1982i32), 2i32, 0i32)?) as u64);
+            uVar1 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3d4ccccd), (-1982i32), 2i32, 0i32)?) as u64);
             return Ok(uVar1);
         }
     }
@@ -5678,7 +5678,7 @@ pub fn heroInit_Switch(e: &mut Engine, mut param_1: i32) -> LResult<()> {
     let mut bVar1: bool = false;
     let mut uVar2: u64 = 0;
     let frame = e.alloca(0x50);
-    uVar2 = ((heroFUNC_StartAnim(e, 1036831949.0, 1i32, 2i32, 0i32)?) as u64);
+    uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), 1i32, 2i32, 0i32)?) as u64);
     e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
     if (e.ri32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(8u32)) == e.ri32((e.r32(g(e, 0x10440))).wrapping_add(0x17cu32))) {
         { let a0 = (e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x10444)))).wrapping_add(20u32)) | 0x110u32); e.w32(a0, a1) };
@@ -5712,7 +5712,7 @@ pub fn heroST_Switch_Loop(e: &mut Engine, mut param_1: i32) -> LResult<()> {
     if ((e.r32((((param_1).wrapping_add(360i32)) as u32)) & 1u32) == 0u32) {
         if (((e.r32((((param_1).wrapping_add(356i32)) as u32)) & 1u32) == 0u32) && { { bVar1 = ((({ let a3 = e.r32((((param_1).wrapping_add(384i32)) as u32)); LIBApiCFunctions::CheckRangeObject(e, 1.5, 0x2a000000u32, a3, 1i32) } as u32)) != 0); bVar1 }; bVar1 }) {
             { let a1 = (e.r32((((param_1).wrapping_add(356i32)) as u32)) | 1u32); e.w32((((param_1).wrapping_add(356i32)) as u32), a1) };
-            uVar2 = ((heroFUNC_StartAnim(e, 1036831949.0, (-1984i32), 1i32, 5i32)?) as u64);
+            uVar2 = ((heroFUNC_StartAnim(e, f32::from_bits(0x3dcccccd), (-1984i32), 1i32, 5i32)?) as u64);
             e.wi32((((param_1).wrapping_add(536i32)) as u32), ((uVar2) as i32));
             let _ = APIgameobj::SetContextFlag(e, 0x2a000000u32, 0x800050u32);
         }

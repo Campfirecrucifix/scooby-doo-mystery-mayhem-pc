@@ -331,9 +331,80 @@ impl SpriteCamera {
         let (cx, cy, cz) = (dot(m.right), dot(m.up), dot(m.at));
         [0.5 * cz - 0.5 * cx / self.view_window[0], 0.5 * cz - 0.5 * cy / self.view_window[1], cz]
     }
+
+    /// P40 R6: the centre cull of the VU1 sprite microcode both PLEmitter::RenderBatch and
+    /// EFBillboardGroup upload (VU1TestCode, EE 0x002846c0, `_$LOOP` at VU 0x16; tools/vu1dis.py 0x2846c0).
+    /// Per sprite, on the view-matrix centre p' = (x', y', z):
+    /// CLIPw vs near + FCOR 0xffffef (z > near), CLIPw vs far + FCAND 0x10 (skip z > far),
+    /// CLIPw vs z*recipViewWindow.x (ourGlobals+0x70) + FCAND 0xf (skip |x'| or |y'| > that); a culled
+    /// sprite is skipped whole (branch to `_$NEXT`). `GAME_SPRITE_CULL=0` turns it off (A/B).
+    pub fn Vu1SpriteVisible(&self, p: [f32; 3]) -> bool {
+        let [x, y, z] = self.Transform(p);
+        let g = z * (1.0 / self.view_window[0]);
+        z > self.near.abs() && z <= self.far.abs() && x.abs() <= g.abs() && y.abs() <= g.abs()
+    }
+
+    /// P40 R7: GS XYZ2 window position (pixels) of a world point as VU1TestCode computes it:
+    /// p' = view matrix * p, Q = 1/z, xy = p'.xy * Q * (width, height) + (2048 - width/2, 2048 - height/2)
+    /// (PLEmitter::PrepareVU: gsVuParam = raster w/h, +0x10 = 2048 - (w >> 1) / 2048 - (h >> 1)); FTOI4
+    /// then sends it as 12.4 fixed point in 16 bits, so the GS sees it modulo 4096.
+    pub fn GsXY(&self, p: [f32; 3]) -> [f32; 2] {
+        let [x, y, z] = self.Transform(p);
+        let q = 1.0 / z;
+        [x * q * self.width as f32 + (2048 - (self.width >> 1)) as f32, y * q * self.height as f32 + (2048 - (self.height >> 1)) as f32]
+    }
+
+    /// P40 R7: true when every corner lies inside the GS 4096 x 4096 coordinate window [0, 4096)
+    pub fn GsWindowOk(&self, corners: &[[f32; 3]; 4]) -> bool {
+        corners.iter().all(|&c| self.GsXY(c).iter().all(|&v| (0.0..4096.0).contains(&v)))
+    }
+
+    /// inverse of [`Self::Transform`] + the screen projection (px = p.x / p.z * width): the world
+    /// point at screen pixel (px, py) and camera depth `cz`
+    pub fn Unproject(&self, px: f32, py: f32, cz: f32) -> [f32; 3] {
+        let (w, h) = (self.width as f32, self.height as f32);
+        let cx = (0.5 * cz - px * cz / w) * 2.0 * self.view_window[0];
+        let cy = (0.5 * cz - py * cz / h) * 2.0 * self.view_window[1];
+        let m = &self.ltm;
+        [0, 1, 2].map(|k| m.pos[k] + m.right[k] * cx + m.up[k] * cy + m.at[k] * cz)
+    }
 }
 
-/// One RwIm2DVertex of a sprite quad (screen pixels; colour bytes as floats, 0x80 = 1.0 on GS).
+/// P40 R7: the four world-space corners VU1TestCode (EE 0x002846c0, VU 0x1a..0x2b) builds for a
+/// PLEmitter / EFBillboardGroup sprite, in its triangle-strip order (ST (0,0), (1,0), (0,1), (1,1)).
+/// R / U = the camera frame's LTM right / up (ourGlobals+4 -> +0x50 / +0x60), (c, s) =
+/// DTTable128::mCos / mSin[rot_index], h = the packed size (already * 0.75):
+/// c0 = p - h(R c + U s), c1 = p + h(R s - U c), c2 = p - h(R s - U c), c3 = p + h(R c + U s).
+/// The corners are `h` from the centre: a square of side h*sqrt2, turned 45 degrees against R/U.
+pub fn Vu1SpriteCorners(r: [f32; 3], u: [f32; 3], p: [f32; 3], h: f32, rot_index: u8) -> [[f32; 3]; 4] {
+    let a = (rot_index & 0x7f) as f32 * 0.049087387;
+    let (s, c) = a.sin_cos();
+    let d0 = [0, 1, 2].map(|k| h * (r[k] * c + u[k] * s));
+    let d1 = [0, 1, 2].map(|k| h * (r[k] * s - u[k] * c));
+    let off = |d: [f32; 3], sg: f32| [0, 1, 2].map(|k| p[k] + sg * d[k]);
+    [off(d0, -1.0), off(d1, 1.0), off(d1, -1.0), off(d0, 1.0)]
+}
+
+impl OccludedSprite {
+    /// P33 R3: the RenderSpriteNewOcc sample square (`sample`, PS2 pixels of a `w` x `h` screen) in
+    /// screen uv of a view `ow` PS2 pixels wide (Hor+: the extra width is split left/right, as for
+    /// the overlay sprites), as x0, y0, x1, y1
+    pub fn SampleUv(&self, w: f32, h: f32, ow: f32) -> [f32; 4] {
+        let s = self.sample.map(|v| v as f32);
+        [0.5 + (s[0] - 0.5 * w) / ow, s[1] / h, 0.5 + (s[2] - 0.5 * w) / ow, s[3] / h]
+    }
+
+    /// P33 R3: world corners of the sample square at the sprite's camera depth (GS pass 2 draws it at
+    /// the sprite's own Z with ZTST GEQUAL)
+    pub fn SampleQuad(&self, cam: &SpriteCamera) -> [[f32; 3]; 4] {
+        let cz = 1.0 / self.recip_z;
+        let s = self.sample.map(|v| v as f32);
+        [(s[0], s[1]), (s[2], s[1]), (s[2], s[3]), (s[0], s[3])].map(|(x, y)| cam.Unproject(x, y, cz))
+    }
+}
+
+/// One RwIm2DVertex of a sprite quad (screen pixels; RwRGBA colour bytes as floats: 255 = 1.0, the RW sky
+/// pipeline sends 255 -> GS 0x80, P26 R42).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SpriteVertex2D {
     pub x: f32,

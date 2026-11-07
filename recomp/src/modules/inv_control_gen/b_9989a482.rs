@@ -489,7 +489,7 @@ pub fn inv_controlST_FIRSTMOVE(e: &mut Engine, ep1: u32) -> LResult<u64> {
         { let a0 = (e.r32(g(e, 0x10038))).wrapping_add(44u32); e.w32(a0, 1u32) };
     }
     { let a0 = (e.r32(g(e, 0x10038))).wrapping_add(20u32); e.w32(a0, 0u32) };
-    { let a0 = (e.r32(g(e, 0x10038))).wrapping_add(24u32); let a1 = g(e, 0x40400000); e.w32(a0, a1) };
+    { let a0 = (e.r32(g(e, 0x10038))).wrapping_add(24u32); let a1 = 0x40400000u32 /* fix (B15): C `&SUB_40400000` is the constant 3.0f, not a data address */; e.w32(a0, a1) };
     { let a0 = (e.r32(g(e, 0x10038))).wrapping_add(28u32); e.w32(a0, 0x42200000u32) };
     uVar2 = APIextra::TimerCreate(e);
     { let a0 = (e.r32(g(e, 0x10038))).wrapping_add(12u32); e.w32(a0, uVar2) };
@@ -662,7 +662,7 @@ pub fn inv_controlFUNC_MessageFunction(e: &mut Engine, mp1: u32, mp2: u32, mp3: 
                     let _ = inv_controlFUNC_EndLevel_while_blackscreen(e, 0i32)?;
                     let _ = { let a1 = e.r32((e.r32(g(e, 0x10038))).wrapping_add(36u32)); let a2 = e.r32((e.r32(g(e, 0x10038))).wrapping_add(44u32)); inv_controlFUNC_InitLevel(e, a1, a2)? };
                     let _ = { let a1 = e.r32((e.r32(g(e, 0x10038))).wrapping_add(0x110u32)); APIhud::WindowSetFlags(e, a1, 0x100u32) };
-                    { let a0 = (e.r32(g(e, 0x10038))).wrapping_add(24u32); let a1 = g(e, 0x40400000); e.w32(a0, a1) };
+                    { let a0 = (e.r32(g(e, 0x10038))).wrapping_add(24u32); let a1 = 0x40400000u32 /* fix (B15): C `&SUB_40400000` is the constant 3.0f, not a data address */; e.w32(a0, a1) };
                     pAVar2 = e.r32(g(e, 0x10064));
                     iVar1 = ((e.r32(g(e, 0x10038))) as i32);
                     uVar4 = ((((f32::from_bits(e.r32((e.r32(g(e, 0x10038))).wrapping_add(24u32)))) as u32)) as u64);

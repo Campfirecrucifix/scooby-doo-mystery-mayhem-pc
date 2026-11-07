@@ -11,6 +11,7 @@ impl EFNewAudioMgr {
         let r = self.ObjPlaySound(obj, id, None);
         if std::env::var_os("GAME_SNDLOG").is_some() {
             eprintln!("snd: APInewSound::Play obj {obj:#x} id {id:#x} -> {r}");
+            for v in self.voices.iter().filter(|v| v.owner == obj) { eprintln!("snd:   voice {:?}", (v.handle, v.event_id, v.bank, v.sample, &v.stream, v.looped, v.paused, v.virt, v.delay, v.pitch)); }
         }
         r
     }

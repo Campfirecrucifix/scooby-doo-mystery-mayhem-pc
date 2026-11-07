@@ -205,6 +205,12 @@ pub fn SetPath(e: &mut Engine, name: i32, ctx: i32) -> u8 {
     e.w16(ctx + 6, 0xffff);
     let id = GetPathID(e, name as Ptr);
     e.w16(ctx + 4, id as u16);
+    // P20 R52 debug: GAME_PATHLOG=1 lists the path's nodes (x,y,z,radius) at SetPath
+    if id != -1 && std::env::var_os("GAME_PATHLOG").is_some() {
+        let p = path(e, id);
+        let v: Vec<String> = (0..i16at(e, p)).map(|i| { let n = node(e, p, i); let a = vec3(e, n); format!("({:.1},{:.1},{:.1} r{:.1})", a[0], a[1], a[2], e.rf(n + 0xc)) }).collect();
+        eprintln!("PATHLOG SetPath id {id} flat {} nodes {}", e.r32(ctx + 0xc), v.join(" "));
+    }
     (id != -1) as u8
 }
 

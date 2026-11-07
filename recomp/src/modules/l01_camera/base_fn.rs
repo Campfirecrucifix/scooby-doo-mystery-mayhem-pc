@@ -215,7 +215,7 @@ pub fn Camera_BaseFUNC_GetCameraMode(e: &mut Engine) -> LResult<u32> {
         e.w32(g + 100, v);
     }
     let ev = e.r32(GB0(e) + 100) >> 0x18;
-    FloorEventManager(e, ev as i32);
+    FloorEventManager(e, ev as i32)?;
     let cur = e.r32(fa + 8);
     if cur != e.r32(l + 0x144) {
         e.w32(l + 0x144, cur);

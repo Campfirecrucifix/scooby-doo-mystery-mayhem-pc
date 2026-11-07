@@ -4,7 +4,7 @@
 //!
 //! Unlike the other families, the globals area of the image differs in size and layout between builds
 //! (per-level window tables), so every build loads its OWN image ([`image::image`], relocated by
-//! `panel_build_init`) and globals are reached through the per-build symbol table [`image::SYMS`]
+//! `panel_build_init`) and globals are reached through the per-build symbol table [`image::syms`]
 //! (`G(e, S_x)`), never through the reference build's addresses. Window-table addresses passed to
 //! `panel_baseFUNC_CreateHudWins` and window handles (`0xf000xxx`) are per-build literals (`k()`).
 //!
@@ -97,7 +97,7 @@ pub fn build_index(sha8: &str) -> Option<usize> {
 /// Address of a module global of the current build (`S_*` index into [`image::SYM_NAMES`]).
 #[inline]
 pub(crate) fn G(e: &Engine, s: usize) -> Ptr {
-    let a = image::SYMS[e.rt.cur_build()].1[s];
+    let a = image::syms(e.rt.cur_build()).1[s];
     assert!(a != 0, "panel global {} absent from this build", image::SYM_NAMES[s]);
     e.rt.cur_data() + (a - 0x10000)
 }
@@ -111,6 +111,13 @@ pub(crate) fn img(e: &Engine, a: u32) -> Ptr {
 pub(crate) fn LB(e: &Engine) -> Ptr {
     e.r32(G(e, S_pLocalData_BasePanel))
 }
+/// Port-side test hook (P32 R85): the panel's current menu row (`pLocalData_BasePanel + 0xa8`, the row
+/// MenuRefresh puts the selection flower on); the address is recorded by panel_baseST_OPTIONS (0 = not yet).
+pub fn menu_row(e: &Engine) -> Option<u32> {
+    let a = MENU_ROW_AT.load(std::sync::atomic::Ordering::Relaxed);
+    (a != 0).then(|| e.r32(a))
+}
+pub(crate) static MENU_ROW_AT: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
 /// `pLocalData_Panel`
 #[inline]
 pub(crate) fn LP(e: &Engine) -> Ptr {
@@ -183,9 +190,18 @@ mod lit_tests {
     /// present in, their own level builds.
     #[test]
     fn lit_strings_present() {
+        // WP-T1: the panel images come from the disc (cwd = recomp/ under cargo test)
+        // P40 R6: found from any worktree (SCOOBY_ISO / GAME_ISO / worktree root / main checkout)
+        let Some(iso) = crate::engine::gamedata::find_test_iso() else {
+            eprintln!("SKIP lit_strings_present: ISO not found (set SCOOBY_ISO)");
+            return;
+        };
+        crate::engine::gamedata::set_iso_path(&iso);
+        // P40 R7 (P32 R93 race): a P39 test may have opened a temp image first (ISO_PATH keeps the first)
+        crate::engine::gamedata::register_iso_elfs(&iso);
         let lits: &[&str] = &["BACK FROM FADE\n","Controller Used in Base Panel: %d\n","INTRO","NO INPUT \n\n ","NOCONTROLLER WINDOW AVAILABLE!!!\n\n","TOD_Normal_Meter","drama_masks","invalid _iTypeTraitement\n",];
         let mut miss = Vec::new();
-        for (b, (sha, img)) in (0..super::image::SYMS.len()).map(|b| super::image::image(b)).map(|x| (x.0, x.1)).enumerate() {
+        for (b, (sha, img)) in (0..super::builds::BUILDS.len()).map(|b| super::image::image(b)).map(|x| (x.0, x.1)).enumerate() {
             for s in lits {
                 let mut pat = s.as_bytes().to_vec();
                 pat.push(0);
@@ -195,5 +211,36 @@ mod lit_tests {
             }
         }
         eprintln!("missing:\n{}", miss.join("\n"));
+    }
+}
+
+/// P33 R10: every shape group of every disc build reaches a ported arm of the panel_base functions
+/// that panic with `unported_shape` (BossMeter group 3 = `<absent>`, never dispatched).
+#[cfg(test)]
+#[test]
+fn p33_r10_panel_shape_groups_covered() {
+    use builds::*;
+    let lim = [
+        (G_panel_baseFUNC_Init, 1),
+        (G_panel_baseST_IN_GAME, 2),
+        (G_panel_baseCB_PAUSE_MENU_OPEN, 1),
+        (G_panel_baseCB_MENU_OUT_LF, 1),
+        (G_panel_baseCB_INGAME_LTRIGGER1, 2),
+        (G_panel_baseCB_TRIANGLE, 1),
+        (G_panel_baseFUNC_MessageHandler, 5),
+        (G_panel_baseFUNC_PauseOff, 2),
+        (G_panel_baseFUNC_RerunMenuConfirm, 1),
+        (G_panel_baseFUNC_YesNoConfirm, 1),
+        (G_panel_baseFUNC_ShowInGame, 1),
+        (G_panel_baseFUNC_MoveMetersOut, 1),
+        (G_panel_baseFUNC_EpFilesClueTexFade, 1),
+        (G_panel_baseFUNC_EpFilesMonstersUpdate, 3),
+        (G_panel_baseFUNC_InOut_ActNotification, 1),
+        (G_panel_baseFUNC_MessageHandlerBossMeter, 3),
+    ];
+    for b in BUILDS.iter() {
+        for &(gi, max) in &lim {
+            assert!(b.g[gi] <= max, "build {} group index {gi}: group {} not ported", b.sha8, b.g[gi]);
+        }
     }
 }

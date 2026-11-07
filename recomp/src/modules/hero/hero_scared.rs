@@ -153,6 +153,7 @@ pub fn heroExit_Scare(e: &mut Engine) -> LResult<()> {
 /// 0x00028f08 (532 bytes) `void heroInit_PanicIn(int param_1)`
 pub fn heroInit_PanicIn(e: &mut Engine, param_1: Ptr) -> LResult<()> {
     let gb = GB0(e); // iStack_40
+    if std::env::var_os("GAME_DEADTRACE").is_some() { eprintln!("PANICTRACE in hero {param_1:#x} meter {} gb34 {:#x} gb14 {:#x} st158 {:#x}", e.rf(e.r32(GD(e) + 4)), e.r32(gb + 0x34), e.r32(gb + 0x14), e.r32(param_1 + 0x158)); }
     debug_time(e, "heroInit_PanicIn", 0, 0)?;
     UpdateTimerOutOfTime(e, 1.0)?;
     APIphysic::PrimResetIntAttribBits(e, SELF, e.r32(param_1 + 0x18c), 2, 4);
@@ -326,6 +327,7 @@ pub fn heroST_Panic_Loop(e: &mut Engine, param_1: Ptr) -> LResult<()> {
         e.w32(u40, 0xbfc0_0000);
         e.w32(u40 + 4, 0);
         e.w32(u40 + 8, z40);
+        if std::env::var_os("GAME_DEADTRACE").is_some() { eprintln!("PANICTRACE loop meter {}", meter(e)); }
         if heroFUNC_ValidateTarget(e, d50)? != 0
             && heroFUNC_ValidateTarget(e, d70)? != 0
             && heroFUNC_ValidateTarget(e, u40)? != 0
@@ -438,6 +440,8 @@ pub fn heroExit_Panic(e: &mut Engine, param_1: Ptr) -> LResult<()> {
 
 /// 0x0002a4d0 (900 bytes) `void heroInit_Dead(int param_1)`
 pub fn heroInit_Dead(e: &mut Engine, param_1: Ptr) -> LResult<()> {
+    if std::env::var_os("GAME_DEADTRACE").is_some() { eprintln!("DEADTRACE hero {param_1:#x} ev170 {:#x} gb0.14 {:#x}
+{}", e.r32(param_1 + 0x170), e.r32(GB0(e) + 0x14), std::backtrace::Backtrace::force_capture()); }
     let set14 = |e: &mut Engine, and: u32, or: u32| {
         let a = GB0(e) + 0x14;
         let v = e.r32(a);
@@ -599,6 +603,7 @@ pub fn heroCB_SCARED(e: &mut Engine, p: u32) -> LResult<u64> {
         return Ok(0);
     }
     debug_time(e, "CB_SCARED succeded", 0, 0)?;
+    if std::env::var_os("GAME_DEADTRACE").is_some() { { let sid = APIgameobj::GetID(e, e.r32(param_1 + 8), 0); let nm = e.get_game_object(sid, 0).and_then(|h| e.rt.obj(h).inst.code).map_or("-", |c| e.rt.codes[c].def.name); eprintln!("SCAREDTRACE ({nm}) from {:#x} dmg {:#x} flags {:#x} gb34 {:#x} cool {}", APIgameobj::GetID(e, e.r32(param_1 + 8), 0), e.r32(param_1 + 0x10), e.r32(param_1 + 0x14), e.r32(GB0(e) + 0x34), e.rf(GB0(e) + 0x38)); } if e.r32(param_1 + 0x10) >= 0x10_0000 { eprintln!("{}", std::backtrace::Backtrace::force_capture()); } }
     if e.r32(param_1 + 0x14) & 8 != 0 && APIgameobj::GetID(e, e.r32(param_1 + 8), 0) != 0x7fff_fffe {
         APIgameobj::SendMessageTo(e, e.r32(param_1 + 8), 0, 199, 0, 0);
     }

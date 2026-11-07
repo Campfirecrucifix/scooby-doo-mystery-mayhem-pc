@@ -61,7 +61,7 @@ pub fn EnemyMCartCB_NOTIFY_COLLIDE_OBJ(e: &mut Engine, ep1: u32) -> LResult<u64>
                 let _ = EnemyMCartFUNC_Tell_Riders(e, 166u32)?;
             } else if ((iVar1 == 2i32) && (e.ri32((e.r32(g(e, 0x1002c))).wrapping_add(32u32)) != 0i32)) {
                 let _ = EnemyMCartFUNC_Tell_Riders(e, 170u32)?;
-            } else if (((iVar1) as u32) == g(e, 0x10000)) {
+            } else if (((iVar1) as u32) == 0x10000u32) {
                 let _ = { let a1 = e.cstr("------LA MUMMY SE KILL ELLE MEME\n"); APIextra::null_printf(e, a1, 0u32) };
                 let _ = EnemyMCartFUNC_Kill(e)?;
             }
@@ -95,20 +95,20 @@ pub fn EnemyMCartFUNC_AdjustSpeed(e: &mut Engine) -> LResult<()> {
     e.wf((frame + 0x54), 0.0);
     e.wi32((frame + 0x58), 0i32);
     let _ = APIgameobj::GetPosition(e, 0x2a000000u32, 0x7fffffffu32, (frame + 0x0));
-    if (((e.r32((e.r32((frame + 0x50))).wrapping_add((13u32).wrapping_mul(4)))) as f32) < (((e.r32((e.r32((frame + 0x50))).wrapping_add((7u32).wrapping_mul(4)))) as f32) + 17.0)) {
-        { let a1 = (((e.r32((e.r32((frame + 0x50))).wrapping_add((13u32).wrapping_mul(4)))) as f32) + 0.05); e.wf((frame + 0x54), a1) };
+    if (f32::from_bits(e.r32((e.r32((frame + 0x50))).wrapping_add((13u32).wrapping_mul(4)))) < (f32::from_bits(e.r32((e.r32((frame + 0x50))).wrapping_add((7u32).wrapping_mul(4)))) + 17.0)) {
+        { let a1 = (f32::from_bits(e.r32((e.r32((frame + 0x50))).wrapping_add((13u32).wrapping_mul(4)))) + 0.05); e.wf((frame + 0x54), a1) };
         e.wi32((frame + 0x58), 1i32);
-    } else if (((((e.r32((e.r32((frame + 0x50))).wrapping_add((7u32).wrapping_mul(4)))) as f32) + 17.0) <= ((e.r32((e.r32((frame + 0x50))).wrapping_add((13u32).wrapping_mul(4)))) as f32)) && (((e.r32((e.r32((frame + 0x50))).wrapping_add((13u32).wrapping_mul(4)))) as f32) < (((e.r32((e.r32((frame + 0x50))).wrapping_add((7u32).wrapping_mul(4)))) as f32) + 35.0))) {
+    } else if (((f32::from_bits(e.r32((e.r32((frame + 0x50))).wrapping_add((7u32).wrapping_mul(4)))) + 17.0) <= f32::from_bits(e.r32((e.r32((frame + 0x50))).wrapping_add((13u32).wrapping_mul(4))))) && (f32::from_bits(e.r32((e.r32((frame + 0x50))).wrapping_add((13u32).wrapping_mul(4)))) < (f32::from_bits(e.r32((e.r32((frame + 0x50))).wrapping_add((7u32).wrapping_mul(4)))) + 35.0))) {
         let _ = { let a3 = (e.r32((frame + 0x50))).wrapping_add((((14i32) as u32)).wrapping_mul(4)); APIgameobj::GetLookAt(e, 0x2a000000u32, 0u32, a3) };
-        if ((0.1 <= ((e.r32((e.r32((frame + 0x50))).wrapping_add((15u32).wrapping_mul(4)))) as f32)) || (((e.r32((e.r32((frame + 0x50))).wrapping_add((15u32).wrapping_mul(4)))) as f32) <= -0.1)) {
-            { let a1 = (((e.r32((e.r32((frame + 0x50))).wrapping_add((13u32).wrapping_mul(4)))) as f32) - (((e.r32((e.r32((frame + 0x50))).wrapping_add((15u32).wrapping_mul(4)))) as f32) / 3.0)); e.wf((frame + 0x54), a1) };
+        if ((0.1 <= f32::from_bits(e.r32((e.r32((frame + 0x50))).wrapping_add((15u32).wrapping_mul(4))))) || (f32::from_bits(e.r32((e.r32((frame + 0x50))).wrapping_add((15u32).wrapping_mul(4)))) <= -0.1)) {
+            { let a1 = (f32::from_bits(e.r32((e.r32((frame + 0x50))).wrapping_add((13u32).wrapping_mul(4)))) - (f32::from_bits(e.r32((e.r32((frame + 0x50))).wrapping_add((15u32).wrapping_mul(4)))) / 3.0)); e.wf((frame + 0x54), a1) };
         } else {
-            { let a1 = (((e.r32((e.r32((frame + 0x50))).wrapping_add((13u32).wrapping_mul(4)))) as f32) - 0.1); e.wf((frame + 0x54), a1) };
+            { let a1 = (f32::from_bits(e.r32((e.r32((frame + 0x50))).wrapping_add((13u32).wrapping_mul(4)))) - 0.1); e.wf((frame + 0x54), a1) };
         }
         e.wi32((frame + 0x58), 1i32);
     }
     if (e.ri32((frame + 0x58)) != 0i32) {
-        { let a0 = (e.r32((frame + 0x50))).wrapping_add((13u32).wrapping_mul(4)); let a1 = ((e.rf((frame + 0x54))) as i64 as u32); e.w32(a0, a1) };
+        { let a0 = (e.r32((frame + 0x50))).wrapping_add((13u32).wrapping_mul(4)); let a1 = ((e.rf((frame + 0x54))).to_bits()); e.w32(a0, a1) };
         let _ = { let a1 = e.r32(e.r32((frame + 0x50))); APIphysic::DMGetParams(e, a1, (frame + 0x10)) };
         { let a1 = e.r32((e.r32((frame + 0x50))).wrapping_add((13u32).wrapping_mul(4))); e.w32((frame + 0x20), a1) };
         let _ = { let a1 = e.r32(e.r32((frame + 0x50))); APIphysic::DMSetParams(e, a1, (frame + 0x10)) };
@@ -268,16 +268,16 @@ pub fn EnemyMCartFUNC_MessageFunction(e: &mut Engine, mp1: u32, mp2: u32, mp3: P
         fVar2 = e.rf((param_3).wrapping_add((((1i32) as u32)).wrapping_mul(8)));
         let _ = APIgameobj::GetPosition(e, 0x2a000000u32, 0x7fffffffu32, (frame + 0x50));
         e.wf((frame + 0x0), ((uVar4) as f32));
-        { let a1 = ((e.rf((frame + 0x0)) + ((e.r32((puVar3).wrapping_add((17u32).wrapping_mul(4)))) as f32)) + 10.5); e.wf((frame + 0x0), a1) };
+        { let a1 = ((e.rf((frame + 0x0)) + f32::from_bits(e.r32((puVar3).wrapping_add((17u32).wrapping_mul(4))))) + 10.5); e.wf((frame + 0x0), a1) };
         { let a1 = (e.rf(((frame + 0x50)).wrapping_add(0)) - e.rf((frame + 0x0))); e.wf((frame + 0x64), a1) };
-        { let a1 = (e.rf(((frame + 0x50)).wrapping_add(8)) - (fVar2 + (((e.r32((puVar3).wrapping_add((17u32).wrapping_mul(4)))) as f32) - 10.5))); e.wf((frame + 0x68), a1) };
+        { let a1 = (e.rf(((frame + 0x50)).wrapping_add(8)) - (fVar2 + (f32::from_bits(e.r32((puVar3).wrapping_add((17u32).wrapping_mul(4)))) - 10.5))); e.wf((frame + 0x68), a1) };
         { let a1 = { let a1 = ((e.rf((frame + 0x64)) * e.rf((frame + 0x64))) + (e.rf((frame + 0x68)) * e.rf((frame + 0x68)))); APImath::sqrtf(e, a1) }; e.wf((frame + 0x60), a1) };
         if (e.rf((frame + 0x0)) < e.rf(((frame + 0x50)).wrapping_add(0))) {
-            if (7.0 < (((e.r32((puVar3).wrapping_add((13u32).wrapping_mul(4)))) as f32) - e.rf((frame + 0x60)))) {
-                { let a1 = (((((e.r32((puVar3).wrapping_add((13u32).wrapping_mul(4)))) as f32) - e.rf((frame + 0x60)))) as i64 as u32); e.w32((puVar3).wrapping_add((13u32).wrapping_mul(4)), a1) };
+            if (7.0 < (f32::from_bits(e.r32((puVar3).wrapping_add((13u32).wrapping_mul(4)))) - e.rf((frame + 0x60)))) {
+                { let a1 = (((f32::from_bits(e.r32((puVar3).wrapping_add((13u32).wrapping_mul(4)))) - e.rf((frame + 0x60)))).to_bits()); e.w32((puVar3).wrapping_add((13u32).wrapping_mul(4)), a1) };
             }
-        } else if ((e.rf(((frame + 0x50)).wrapping_add(0)) < e.rf((frame + 0x0))) && ((((e.r32((puVar3).wrapping_add((13u32).wrapping_mul(4)))) as f32) + e.rf((frame + 0x60))) < 45.0)) {
-            { let a1 = (((((e.r32((puVar3).wrapping_add((13u32).wrapping_mul(4)))) as f32) + e.rf((frame + 0x60)))) as i64 as u32); e.w32((puVar3).wrapping_add((13u32).wrapping_mul(4)), a1) };
+        } else if ((e.rf(((frame + 0x50)).wrapping_add(0)) < e.rf((frame + 0x0))) && ((f32::from_bits(e.r32((puVar3).wrapping_add((13u32).wrapping_mul(4)))) + e.rf((frame + 0x60))) < 45.0)) {
+            { let a1 = (((f32::from_bits(e.r32((puVar3).wrapping_add((13u32).wrapping_mul(4)))) + e.rf((frame + 0x60)))).to_bits()); e.w32((puVar3).wrapping_add((13u32).wrapping_mul(4)), a1) };
         }
         let _ = { let a1 = e.r32(puVar3); APIphysic::DMGetParams(e, a1, (frame + 0x10)) };
         { let a1 = e.r32((puVar3).wrapping_add((13u32).wrapping_mul(4))); e.w32((frame + 0x20), a1) };
@@ -292,7 +292,7 @@ pub fn EnemyMCartFUNC_MessageFunction(e: &mut Engine, mp1: u32, mp2: u32, mp3: P
             uVar4 = e.r64(param_3);
             uVar1 = e.r32((param_3).wrapping_add((((1i32) as u32)).wrapping_mul(8)));
             e.wf((frame + 0x0), ((uVar4) as f32));
-            { let a0 = (e.r32(g(e, 0x1002c))).wrapping_add((4u32).wrapping_mul(4)); let a1 = ((e.rf((frame + 0x0))) as i64 as u32); e.w32(a0, a1) };
+            { let a0 = (e.r32(g(e, 0x1002c))).wrapping_add((4u32).wrapping_mul(4)); let a1 = ((e.rf((frame + 0x0))).to_bits()); e.w32(a0, a1) };
             e.w32((frame + 0x4), (((uVar4).wrapping_shr(32u32)) as u32));
             { let a1 = e.r32((frame + 0x4)); e.w32((puVar3).wrapping_add((5u32).wrapping_mul(4)), a1) };
             e.w32((puVar3).wrapping_add((6u32).wrapping_mul(4)), uVar1);

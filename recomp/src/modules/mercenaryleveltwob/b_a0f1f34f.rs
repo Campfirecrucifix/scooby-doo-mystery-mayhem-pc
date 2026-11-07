@@ -275,7 +275,7 @@ pub fn SetClipping(e: &mut Engine) -> LResult<()> {
     e.w32((frame + 0x10), 0x42480000u32);
     e.w32((frame + 0x1c), 0xbf800000u32);
     e.w32((frame + 0xc), 0x10000000u32);
-    { let a1 = g(e, 0x10000047); e.w32((frame + 0x8), a1) };
+    { let a1 = 0x10000047u32; e.w32((frame + 0x8), a1) };
     e.w32((frame + 0x18), 64u32);
     e.w32((frame + 0x14), 0x6a7u32);
     e.w32((frame + 0x24), 0x6a7u32);
@@ -2038,7 +2038,7 @@ pub fn Mercenary_BaseFUNC_GameEventSignaler_Truck(e: &mut Engine) -> LResult<()>
         { let a1 = { let a2 = e.r32((e.r32(e.r32(g(e, 0x102b4)))).wrapping_add(8u32)); LIBApiCFunctions::GetDistance(e, 0x2a000000i32, a2, 0x7fffffffi32, 0i32) }; e.wf((frame + 0x10), a1) };
         { let a1 = { let a1 = e.ri32((((iVar2).wrapping_add(408i32)) as u32)); let a2 = e.r32((e.r32(e.r32(g(e, 0x102b4)))).wrapping_add(8u32)); LIBApiCFunctions::GetDistance(e, a1, a2, 0x7fffffffi32, 0i32) }; e.wf((frame + 0x14), a1) };
         let _ = { let a1 = e.r32((((iVar2).wrapping_add(408i32)) as u32)); APIgameobj::GetPosition(e, a1, 0x7fffffffu32, (frame + 0x0)) };
-        { let a1 = ((Mercenary_Base_FuncVectorDist(e, 0x2a000000u32, (frame + 0x0))?) as i64 as u32); e.w32((frame + 0x18), a1) };
+        { let a1 = (Mercenary_Base_FuncVectorDist(e, 0x2a000000u32, (frame + 0x0))?).to_bits(); e.w32((frame + 0x18), a1) }; // P32 R50: swc1 (dead store)
         let _ = APIgameobj::GetPosition(e, 0x2a000000u32, 0x7fffffffu32, (frame + 0x30));
         let _ = { let a1 = e.r32((e.r32(e.r32(g(e, 0x102b4)))).wrapping_add(8u32)); APIgameobj::GetPosition(e, a1, 0x7fffffffu32, (frame + 0x40)) };
         { let a1 = { let a1 = ((e.rf(((frame + 0x30)).wrapping_add(4)) - e.rf(((frame + 0x40)).wrapping_add(4))) * (e.rf(((frame + 0x30)).wrapping_add(4)) - e.rf(((frame + 0x40)).wrapping_add(4)))); APImath::sqrtf(e, a1) }; e.wf((frame + 0x20), a1) };
@@ -2338,7 +2338,7 @@ pub fn mercenary_baseConstructor(e: &mut Engine, mut api: Ptr, mut instanceCount
                 uVar2 = APIextra::TimerCreate(e);
                 { let a0 = (e.r32(g(e, 0x102c0))).wrapping_add(0x188u32); e.w32(a0, uVar2) };
                 pAVar1 = e.r32(g(e, 0x10294));
-                let _ = APIextra::TimerGetTime(e, 0x90000000u32);
+                fVar4 = APIextra::TimerGetTime(e, 0x90000000u32);
                 let _ = APIstdlib::srand(e, ((((fVar4) as i32)) as u32));
                 let _ = LIBMiscFunc::MiscFunc_ChangeClipping(e, 0x2a000000u32, 2u32, NULL, 0u32);
                 { let a0 = (e.r32(g(e, 0x102c0))).wrapping_add(0x178u32); e.w32(a0, 0u32) };

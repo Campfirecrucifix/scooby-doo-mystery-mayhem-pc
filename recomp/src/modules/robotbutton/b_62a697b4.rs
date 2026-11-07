@@ -180,8 +180,8 @@ pub fn robotswitchState_Contact_Execute(e: &mut Engine, mut param_1: u32) -> LRe
             pvVar2 = APIgameobj::GetID(e, 0x2a000000u32, NULL);
             let _ = { let a1 = e.r32((param_1).wrapping_add((5u32).wrapping_mul(4))); APIgameobj::SendMessageTo(e, a1, NULL, 153u32, 0u32, pvVar2) };
             fVar3 = APIextra::TimerGetTime(e, 0x90000000u32);
-            e.w32((param_1).wrapping_add((8u32).wrapping_mul(4)), (((fVar3 + 1.0)) as i64 as u32));
-        } else if (((e.r32((e.r32(g(e, 0x10048))).wrapping_add(4u32)) & 8u32) != 0u32) && { { fVar3 = APIextra::TimerGetTime(e, 0x90000000u32); fVar3 }; ((((e.r32((param_1).wrapping_add((8u32).wrapping_mul(4)))) as f32) < fVar3) && { { { let a0 = (e.r32(g(e, 0x10048))).wrapping_add(4u32); let a1 = (e.r32((e.r32(g(e, 0x10048))).wrapping_add(4u32)) & 0xfffffff7u32); e.w32(a0, a1) }; e.r32((e.r32(g(e, 0x10048))).wrapping_add(4u32)) }; ((e.r32(e.r32((e.r32(g(e, 0x1004c))).wrapping_add(4u32))) & 0x20000u32) == 0u32) }) }) {
+            e.w32((param_1).wrapping_add((8u32).wrapping_mul(4)), (fVar3 + 1.0).to_bits());
+        } else if (((e.r32((e.r32(g(e, 0x10048))).wrapping_add(4u32)) & 8u32) != 0u32) && { { fVar3 = APIextra::TimerGetTime(e, 0x90000000u32); fVar3 }; ((f32::from_bits(e.r32((param_1).wrapping_add((8u32).wrapping_mul(4)))) < fVar3) && { { { let a0 = (e.r32(g(e, 0x10048))).wrapping_add(4u32); let a1 = (e.r32((e.r32(g(e, 0x10048))).wrapping_add(4u32)) & 0xfffffff7u32); e.w32(a0, a1) }; e.r32((e.r32(g(e, 0x10048))).wrapping_add(4u32)) }; ((e.r32(e.r32((e.r32(g(e, 0x1004c))).wrapping_add(4u32))) & 0x20000u32) == 0u32) }) }) {
             let _ = APIgameobj::SendMessageTo(e, 0x2a100006u32, NULL, 49u32, 4u32, NULL);
         }
     } else {

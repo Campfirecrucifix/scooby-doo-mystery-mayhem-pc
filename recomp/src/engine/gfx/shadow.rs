@@ -8,10 +8,11 @@
 //! APPROXIMATED (VU1/GS code, not in the decompiled source): EFShadowMgr_SP::Cast renders the
 //! caster atomics into the 64/128/256 raster through the DFF / skinned-DFF shadow micro code, then
 //! ApplySoftener blurs it. Here [`CastSilhouette`] rasterises the caster's drawn triangles with the
-//! occurrence's own projection on the CPU and applies one 3x3 box blur.
-//! Not ported: flag 0x800 per-light shadows (EFShadowMgr::Prepare + PreparePerspectiveCamera +
-//! AdjustShadowIntensity) and the drop-down texture path (+0x17c bit 2 clear: needs the blob
-//! texture this+0x20 created by EFShadowMgr_SP::Initialize); the drop-down case uses the cast too.
+//! occurrence's own projection on the CPU, then runs the decoded GS softener passes ([`ApplySoftener`]).
+//! Flag 0x800 per-light shadows are ported ([`ShadowBeginLights`] -> EFShadowMgr::Prepare +
+//! PreparePerspectiveCamera + AdjustShadowIntensity). Still approximated: the drop-down texture
+//! path (+0x17c bit 2 clear: the C uses the blob texture this+0x20 created by
+//! EFShadowMgr_SP::Initialize); the drop-down case uses the cast silhouette too.
 #![allow(non_snake_case)]
 
 use super::projector::ProjectorOccurence;
@@ -97,7 +98,9 @@ pub struct ShadowOcc {
 pub fn PreparePerspectiveCamera(light: &DTMatrix, o: &DTMatrix, e: &CasterEntry, reach: f32) -> (DTMatrix, [f32; 4], [f32; 4], [f32; 3], [f32; 3], f32) {
     let lp = light.pos;
     let v: [f32; 3] = std::array::from_fn(|i| (o.pos[i] + e.center[i]) - lp[i]);
-    let vw = e.radius * (1.0 / ((v[2] * v[2] + v[0] * v[0] + v[1] * v[1]) - e.radius * e.radius).sqrt());
+    // quirk: EE FPU SQRT.S of a negative operand returns sqrt(|x|) (light inside the caster sphere: the
+    // PS2 still gets a finite view window; IEEE sqrt would give NaN and drop the shadow)
+    let vw = e.radius * (1.0 / ((v[2] * v[2] + v[0] * v[0] + v[1] * v[1]) - e.radius * e.radius).abs().sqrt());
     let at = norm(v);
     let mut right = cross([0.0, 1.0, 0.0], at);
     if dot(right, right) < 0.4 {
@@ -179,27 +182,28 @@ pub fn Prepare(uid: u32, l: &ShadowLight, o: &DTMatrix, e: &CasterEntry, p: &[u3
 
 /// EFShadowMgr::Begin. _ShadowParams words (+0x17c..): [0 flags, 1 lod, 2 color, 3 reach,
 /// 4 dropdown param, 5 size, 6, 7 light color, 8 light reach, 9 light size, 10 fade threshold].
-/// Not tracked here: the per-viewport +0x114 / +0x110 (bits 0x10 / 8) caster words (treated as
-/// visible / enabled).
-pub fn ShadowBeginLights(casters: &[(u32, u32, [u32; 11], DTMatrix, CasterEntry)], lights: &[ShadowLight]) -> Vec<ShadowOcc> {
+/// `clip` per caster = the rendering camera's EFGameObject +0x114 (ClipFrustumTest result: casters
+/// outside the camera frustum cast nothing) / +0x110 (clipping word: bit 0x10 = no drop-down / parallel
+/// shadow, bit 8 = no light shadows).
+pub fn ShadowBeginLights(casters: &[(u32, u32, [u32; 11], DTMatrix, CasterEntry, (u16, u32))], lights: &[ShadowLight]) -> Vec<ShadowOcc> {
     let mut out: Vec<ShadowOcc> = Vec::new();
     for c in casters {
-        let (uid, fl, p, o, e) = c;
-        if p[0] & 4 != 0 {
+        let (uid, fl, p, o, e, (vis, word)) = *c;
+        if vis == 0 || p[0] & 4 != 0 {
             continue;
         }
-        if out.len() < 8 {
-            out.extend(ShadowBegin(std::slice::from_ref(c)));
+        if out.len() < 8 && word & 0x10 == 0 {
+            out.extend(ShadowBegin(&[(uid, fl, p, o, e)]));
         }
         if out.len() > 7 {
             break;
         }
-        if fl & 0x800 == 0 {
+        if fl & 0x800 == 0 || word & 8 != 0 {
             continue;
         }
         for l in lights {
             if l.1 & 0x30 != 0 && l.5 && l.4 & 0x40000 == 0 {
-                if let Some(s) = Prepare(*uid, l, o, e, p) {
+                if let Some(s) = Prepare(uid, l, &o, &e, &p) {
                     out.push(s);
                 }
                 if out.len() > 7 {
@@ -253,8 +257,96 @@ pub fn ShadowBegin(casters: &[(u32, u32, [u32; 11], DTMatrix, CasterEntry)]) -> 
 
 /// APPROXIMATION of EFShadowMgr_SP::Cast + ApplySoftener: caster triangles (world space) rasterised
 /// into a size x size coverage mask in the occurrence's projection (same UVs as the receiver pass),
-/// then a 3x3 box blur. Returns coverage 0..=255 row-major (v down).
+/// then the decoded [`ApplySoftener`]. Returns coverage 0..=255 row-major (v down).
 pub fn CastSilhouette(o: &ProjectorOccurence, size: u32, tris: &[[[f32; 3]; 3]]) -> Vec<u8> {
+    // GAME_SHADOW_OLDRASTER: the R8 reference path (A/B check of the P37 R9 fast path)
+    if std::env::var_os("GAME_SHADOW_OLDRASTER").is_some() {
+        return CastSilhouetteRef(o, size, tris);
+    }
+    let n = size as usize;
+    // P37 R9: single thread on purpose: a per-caster thread split (tried) lost to the spawn cost and to
+    // Bevy's task pool (EP1/L03B silhouette 2.2 -> 7.2 ms)
+    let mut m = raster_cover(o, n, tris);
+    m = soften_fast(m, n);
+    for i in 0..n {
+        for j in [0, n - 1] {
+            m[i * n + j] = 0;
+            m[j * n + i] = 0;
+        }
+    }
+    m
+}
+
+/// P37 R9: the [`CastSilhouetteRef`] coverage loop without the per-triangle Vec, skipping texels already
+/// covered (the write is the constant 0xf8, so the result is the same)
+fn raster_cover(o: &ProjectorOccurence, n: usize, tris: &[[[f32; 3]; 3]]) -> Vec<u8> {
+    let mut m = vec![0u8; n * n];
+    let e = |a: [f32; 2], b: [f32; 2], c: [f32; 2]| (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+    for t in tris {
+        let p: [[f32; 2]; 3] = std::array::from_fn(|i| {
+            let uv = o.uv(t[i]);
+            [uv[0] * n as f32, uv[1] * n as f32]
+        });
+        let (x0, x1) = (p.iter().map(|q| q[0]).fold(f32::MAX, f32::min).floor().max(0.0) as i32, p.iter().map(|q| q[0]).fold(f32::MIN, f32::max).ceil().min(n as f32 - 1.0) as i32);
+        let (y0, y1) = (p.iter().map(|q| q[1]).fold(f32::MAX, f32::min).floor().max(0.0) as i32, p.iter().map(|q| q[1]).fold(f32::MIN, f32::max).ceil().min(n as f32 - 1.0) as i32);
+        if x1 < x0 || y1 < y0 {
+            continue;
+        }
+        let area = e(p[0], p[1], p[2]);
+        if area.abs() < 1e-9 {
+            continue;
+        }
+        for y in y0..=y1 {
+            let row = &mut m[y as usize * n..][..n];
+            for x in x0..=x1 {
+                if row[x as usize] != 0 {
+                    continue;
+                }
+                let c = [x as f32 + 0.5, y as f32 + 0.5];
+                let (w0, w1, w2) = (e(p[1], p[2], c), e(p[2], p[0], c), e(p[0], p[1], c));
+                if (w0 >= 0.0 && w1 >= 0.0 && w2 >= 0.0) || (w0 <= 0.0 && w1 <= 0.0 && w2 <= 0.0) {
+                    row[x as usize] = 0xf8;
+                }
+            }
+        }
+    }
+    m
+}
+
+/// P37 R9: [`ApplySoftener`] with one reused scratch buffer and the edge clamp only on the border
+/// rows/columns (same per-texel integer arithmetic, same pass order)
+fn soften_fast(mut m: Vec<u8>, n: usize) -> Vec<u8> {
+    if n < 3 {
+        return ApplySoftener(m, n);
+    }
+    if n >= 0x80 {
+        for v in m.iter_mut() {
+            *v = (((*v as u32 * 0x10) >> 7) as u8) & 0xf8;
+        }
+    }
+    const D: [(i32, i32); 8] = [(-1, -1), (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, -1), (-1, 0)];
+    let mut src = vec![0u8; n * n];
+    let f = |a: u8, b: u8| ((a as u32 + ((b as u32 * 0x40) >> 7)).min(255) as u8) & 0xf8;
+    for (dx, dy) in D {
+        std::mem::swap(&mut src, &mut m);
+        for y in 0..n {
+            let yy = (y as i32 + dy).clamp(0, n as i32 - 1) as usize;
+            let (dst, s, sn) = (&mut m[y * n..][..n], &src[y * n..][..n], &src[yy * n..][..n]);
+            // interior columns 1..n-1: x + dx is always in range
+            for x in 1..n - 1 {
+                dst[x] = f(s[x], sn[(x as i32 + dx) as usize]);
+            }
+            for x in [0, n - 1] {
+                let xx = (x as i32 + dx).clamp(0, n as i32 - 1) as usize;
+                dst[x] = f(s[x], sn[xx]);
+            }
+        }
+    }
+    m
+}
+
+/// The R8 [`CastSilhouette`] (reference for the fast path; GAME_SHADOW_OLDRASTER)
+pub fn CastSilhouetteRef(o: &ProjectorOccurence, size: u32, tris: &[[[f32; 3]; 3]]) -> Vec<u8> {
     let n = size as usize;
     let mut m = vec![0u8; n * n];
     for t in tris {
@@ -274,28 +366,13 @@ pub fn CastSilhouette(o: &ProjectorOccurence, size: u32, tris: &[[[f32; 3]; 3]])
                 let c = [x as f32 + 0.5, y as f32 + 0.5];
                 let (w0, w1, w2) = (e(p[1], p[2], c), e(p[2], p[0], c), e(p[0], p[1], c));
                 if (w0 >= 0.0 && w1 >= 0.0 && w2 >= 0.0) || (w0 <= 0.0 && w1 <= 0.0 && w2 <= 0.0) {
-                    m[y as usize * n + x as usize] = 255;
+                    // RGBAQ 0x80ffffff into the 16-bit raster: 0xff stored as 5 bits = texel 0xf8
+                    m[y as usize * n + x as usize] = 0xf8;
                 }
             }
         }
     }
-    let mut b = vec![0u8; n * n];
-    for y in 0..n {
-        for x in 0..n {
-            let mut s = 0u32;
-            let mut k = 0u32;
-            for dy in -1i32..=1 {
-                for dx in -1i32..=1 {
-                    let (xx, yy) = (x as i32 + dx, y as i32 + dy);
-                    if xx >= 0 && yy >= 0 && (xx as usize) < n && (yy as usize) < n {
-                        s += m[yy as usize * n + xx as usize] as u32;
-                        k += 1;
-                    }
-                }
-            }
-            b[y * n + x] = (s / k) as u8;
-        }
-    }
+    let mut b = ApplySoftener(m, n);
     // ClearOuterLine: border texels cleared (GS clamp would smear the edge)
     for i in 0..n {
         for j in [0, n - 1] {
@@ -304,6 +381,38 @@ pub fn CastSilhouette(o: &ProjectorOccurence, size: u32, tris: &[[[f32; 3]; 3]])
         }
     }
     b
+}
+
+/// EFShadowMgr_SP::ApplySoftener (0x00258a10) as the GS executes its packet (raster = the caster drawn
+/// 0x80ffffff on black, so one channel is enough):
+/// - ApplyClearPass (only if width >= 0x80): full-raster sprite, ALPHA_2 0x10000000a9 = Cd*0x10>>7.
+/// - EF_SHADOW_SOFT_PASS_TECHNIQUE 2, COUNT 1, EF_SHADOW_SOFT_PASS[0] = 1.0 texel: 8 ApplySoftenerPass
+///   sprites reading the raster itself (TEX0 = ourGlobals+0x60, ST shifted by (dx,dy) texels, RGBAQ 0x80 =
+///   modulate 1.0, nearest) with ALPHA_2 0x40_00000068 = Cs*0x40>>7 + Cd, clamped.
+/// quirk: the 7th offset repeats (-1,-1) instead of (-1,+1) (as in the C).
+/// P26 R7: the raster is 16-bit (RwRasterCreate(n,n,0x10,5)): every pass writes 5 bits per channel, so
+/// each result is truncated to `& 0xf8` (what the next pass / the projector samples).
+/// Replacement: the GS texture/frame feedback is taken per pass from the pre-pass raster (what PCSX2 does
+/// for a draw that samples its own target); outside texels clamp to the edge.
+pub fn ApplySoftener(mut m: Vec<u8>, n: usize) -> Vec<u8> {
+    if n >= 0x80 {
+        for v in m.iter_mut() {
+            *v = (((*v as u32 * 0x10) >> 7) as u8) & 0xf8;
+        }
+    }
+    const D: [(i32, i32); 8] = [(-1, -1), (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, -1), (-1, 0)];
+    for (dx, dy) in D {
+        let src = m.clone();
+        for y in 0..n {
+            let yy = (y as i32 + dy).clamp(0, n as i32 - 1) as usize;
+            for x in 0..n {
+                let xx = (x as i32 + dx).clamp(0, n as i32 - 1) as usize;
+                let v = src[y * n + x] as u32 + ((src[yy * n + xx] as u32 * 0x40) >> 7);
+                m[y * n + x] = (v.min(255) as u8) & 0xf8;
+            }
+        }
+    }
+    m
 }
 
 #[cfg(test)]
@@ -325,7 +434,28 @@ mod tests {
         assert!((uv[0] - 0.5).abs() < 1e-3 && (uv[1] - 0.5).abs() < 1e-3, "{uv:?}");
         let m = CastSilhouette(&s[0].occ, 64, &[[[4.8, 0.5, 4.8], [5.2, 0.5, 4.8], [5.0, 0.5, 5.2]]]);
         assert!(m[32 * 64 + 32] > 0);
+        // P37 R9: the fast raster/softener path is bit-identical to the reference (random caster soup,
+        // several triangle counts, every raster size)
+        let mut r = 0x1234_5678u32;
+        let mut rnd = || {
+            r ^= r << 13;
+            r ^= r >> 17;
+            r ^= r << 5;
+            (r as f32 / u32::MAX as f32) * 1.6 - 0.8
+        };
+        let soup: Vec<[[f32; 3]; 3]> = (0..3000).map(|_| std::array::from_fn(|_| [5.0 + rnd(), 0.5 + rnd() * 0.5, 5.0 + rnd()])).collect();
+        for n in [0x40u32, 0x80, 0x100] {
+            for k in [1usize, 7, 1500, 3000] {
+                assert_eq!(CastSilhouette(&s[0].occ, n, &soup[..k]), CastSilhouetteRef(&s[0].occ, n, &soup[..k]), "n {n} k {k}");
+            }
+        }
         p[0] = 4;
         assert!(ShadowBegin(&[(7, 0xc00, p, o, e)]).is_empty());
+        // EFShadowMgr::Begin: +0x114 = 0 (outside the camera frustum) casts nothing, +0x110 bit 0x10
+        // drops the 0x400 shadow
+        p[0] = 0;
+        assert_eq!(ShadowBeginLights(&[(7, 0xc00, p, o, e, (1, 0))], &[]).len(), 1);
+        assert!(ShadowBeginLights(&[(7, 0xc00, p, o, e, (0, 0))], &[]).is_empty());
+        assert!(ShadowBeginLights(&[(7, 0xc00, p, o, e, (1, 0x10))], &[]).is_empty());
     }
 }

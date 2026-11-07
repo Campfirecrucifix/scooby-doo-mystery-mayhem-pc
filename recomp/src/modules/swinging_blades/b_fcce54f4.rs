@@ -129,10 +129,10 @@ pub fn Swing(e: &mut Engine) -> LResult<()> {
     { let a1 = { let a1 = e.r32(e.r32(g(e, 0x10028))); APIextra::TimerGetTime(e, a1) }; e.wf((frame + 0x10), a1) };
     fVar1 = { let a1 = (((e.rf((frame + 0x1c)) * 3.1415927) * ((1.0 / (e.rf((frame + 0x1c)) + e.rf((frame + 0x1c)))) + e.rf((frame + 0x10)))) + e.rf((frame + 0x20))); APImath::cosf(e, a1) };
     { let a1 = (e.rf((frame + 0x14)) + (fVar1 * e.rf((frame + 0x18)))); e.wf((frame + 0x14), a1) };
-    if (((e.rf((frame + 0x14)) < 0.0) && (0.0 < ((e.r32((e.r32(g(e, 0x10028))).wrapping_add((2u32).wrapping_mul(4)))) as f32))) || ((0.0 < e.rf((frame + 0x14))) && (((e.r32((e.r32(g(e, 0x10028))).wrapping_add((2u32).wrapping_mul(4)))) as f32) < 0.0))) {
+    if (((e.rf((frame + 0x14)) < 0.0) && (0.0 < f32::from_bits(e.r32((e.r32(g(e, 0x10028))).wrapping_add((2u32).wrapping_mul(4)))))) || ((0.0 < e.rf((frame + 0x14))) && (f32::from_bits(e.r32((e.r32(g(e, 0x10028))).wrapping_add((2u32).wrapping_mul(4)))) < 0.0))) {
         let _ = APInewSound::Play(e, 0x2a000000u32, 0x40000007u32, 0u32);
     }
-    { let a0 = (e.r32(g(e, 0x10028))).wrapping_add((2u32).wrapping_mul(4)); let a1 = ((e.rf((frame + 0x14))) as i64 as u32); e.w32(a0, a1) };
+    { let a0 = (e.r32(g(e, 0x10028))).wrapping_add((2u32).wrapping_mul(4)); let a1 = ((e.rf((frame + 0x14))).to_bits()); e.w32(a0, a1) };
     let _ = { let a3 = e.rf((frame + 0x14)); APIgameobj::SetRotation(e, 0x2a000000u32, (frame + 0x0), a3) };
     return Ok(());
     #[allow(unreachable_code)]

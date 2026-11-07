@@ -641,9 +641,12 @@ pub fn SavePanelFUNC_TransferBuffer_Save(e: &mut Engine) -> LResult<u32> {
 
 /// 0x0001aab8
 pub fn SavePanelFUNC_SetSavedConfig(e: &mut Engine) -> LResult<()> {
-    let _ = { let a1 = e.r32((e.r32(g(e, 0x11428))).wrapping_add(8u32)); LIBMiscHUD::miscHUDFUNC_SetMusicVolume(e, a1) };
-    let _ = { let a1 = e.r32((e.r32(g(e, 0x11428))).wrapping_add(8u32)); LIBMiscHUD::miscHUDFUNC_SetFXVolume(e, a1) };
-    let _ = { let a1 = e.r32((e.r32(g(e, 0x11428))).wrapping_add(8u32)); LIBMiscHUD::miscHUDFUNC_SetMoviesVolume(e, a1) };
+    // P32 R48: Ghidra showed the GB3 pointer; disasm 0x1aac8..0x1ab2c passes the floats in $f12:
+    // music = opt[0], FX = opt[+8], movies = opt[+4] (opt = GB3, the 0x40-byte options buffer)
+    let opt = e.r32((e.r32(g(e, 0x11428))).wrapping_add(8u32));
+    let _ = { let a1 = e.r32(opt); LIBMiscHUD::miscHUDFUNC_SetMusicVolume(e, a1) };
+    let _ = { let a1 = e.r32(opt.wrapping_add(8)); LIBMiscHUD::miscHUDFUNC_SetFXVolume(e, a1) };
+    let _ = { let a1 = e.r32(opt.wrapping_add(4)); LIBMiscHUD::miscHUDFUNC_SetMoviesVolume(e, a1) };
     return Ok(());
     #[allow(unreachable_code)]
     Ok(())

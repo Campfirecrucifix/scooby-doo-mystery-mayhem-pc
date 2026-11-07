@@ -677,7 +677,7 @@ pub fn inv_controlFUNC_CreateLights(e: &mut Engine) -> LResult<()> {
     let mut uVar2: u32 = 0;
     let frame = e.alloca(0x30);
     uVar2 = e.r32(g(e, 0x10fb8));
-    uVar1 = ((e.r32(g(e, 0x10fb0))) as u64);
+    uVar1 = e.r64(g(e, 0x10fb0)); // P32 R36: undefined8 (ldl/ldr)
     { let a0 = e.r32(g(e, 0x100c8)); e.w32(a0, 0x12800000u32) };
     { let a0 = (e.r32(g(e, 0x100c8))).wrapping_add((1u32).wrapping_mul(4)); e.w32(a0, 3u32) };
     e.w32((frame + 0x0), ((uVar1) as u32));
@@ -686,7 +686,7 @@ pub fn inv_controlFUNC_CreateLights(e: &mut Engine) -> LResult<()> {
     { let a0 = (e.r32(g(e, 0x100c8))).wrapping_add((3u32).wrapping_mul(4)); let a1 = e.r32((frame + 0x4)); e.w32(a0, a1) };
     { let a0 = (e.r32(g(e, 0x100c8))).wrapping_add((4u32).wrapping_mul(4)); e.w32(a0, uVar2) };
     uVar2 = e.r32(g(e, 0x10fb8));
-    uVar1 = ((e.r32(g(e, 0x10fb0))) as u64);
+    uVar1 = e.r64(g(e, 0x10fb0)); // P32 R36: undefined8 (ldl/ldr)
     { let a0 = (e.r32(g(e, 0x100c8))).wrapping_add((12u32).wrapping_mul(4)); e.w32(a0, 0x12800001u32) };
     { let a0 = (e.r32(g(e, 0x100c8))).wrapping_add((13u32).wrapping_mul(4)); e.w32(a0, 3u32) };
     e.w32((frame + 0x0), ((uVar1) as u32));

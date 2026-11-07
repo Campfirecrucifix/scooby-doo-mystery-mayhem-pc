@@ -17,7 +17,7 @@
 //! Replaced (rule 2): Sony libmc (sceMcInit/GetInfo/Mkdir/Chdir/GetDir/Open/Close/Read/Write/Seek/
 //! Delete/Format/GetEntSpace/Sync) by [`MemCard`]: an 8 MB PS2 card in memory card slot 1 (port 0,
 //! slot 0) whose file system is the host directory `GAME_SAVEDIR` (default `saves/memcard1`, relative
-//! to the working directory). Every sce call is asynchronous like the real one: the result (and the
+//! to the working directory; the windowed game binary sets it to [`user_card_dir`], P37 R2). Every sce call is asynchronous like the real one: the result (and the
 //! data the IOP would DMA into EE memory) is delivered by sceMcSync after a latency in manager
 //! updates (see `latency`). `GAME_NOCARD=1` = empty slot (GetInfo -10, type 0 -> error 0x12).
 //! Card model: 8000 KB of 1 KB clusters; a file uses ceil(size/1KB) clusters, a directory
@@ -27,6 +27,95 @@
 use crate::engine::*;
 use crate::logic::CodeFn;
 use std::path::{Path, PathBuf};
+
+/// P37 R2: the shipped game's memory card 1: `%LOCALAPPDATA%\ScoobyMM\saves\memcard1` (next to P34's
+/// settings and the crash log's `logs`), so saves no longer depend on the working directory and work
+/// from a read-only install folder. None without LOCALAPPDATA.
+pub fn user_card_dir() -> Option<PathBuf> {
+    // P39: crashlog::user_dir (empty / relative LOCALAPPDATA -> USERPROFILE\AppData\Local)
+    crate::crashlog::user_dir().map(|d| d.join("saves").join("memcard1"))
+}
+
+/// P39 R7: only a windowed (player) game takes the memory-card lock. Headless runs (dev lanes, tests, all
+/// day, often on the default card) never lock, so they can't make the player's game report "already running".
+pub fn should_lock_card(headless: bool) -> bool {
+    !headless
+}
+
+/// P39 R6: one game per memory card. A second game.exe on the same card (double-clicked twice, the
+/// launcher's Play pressed again) would interleave its saves with the first one's; the PS2 never had two
+/// consoles on one card. `<card>.lock` (next to the card folder, not inside it: the card lists its root) is
+/// held open without sharing for the game's lifetime (Windows drops it when the process ends, also on a
+/// crash). Err = another game holds it (the player message); Ok(None) = the lock file can't be made
+/// (read-only folder: run without it, as before).
+pub fn lock_card(root: &Path) -> Result<Option<std::fs::File>, String> {
+    let name = root.file_name().map_or_else(|| "memcard1".into(), |n| n.to_string_lossy().into_owned());
+    let lock = root.with_file_name(format!("{name}.lock"));
+    if let Some(d) = lock.parent().filter(|d| !d.as_os_str().is_empty()) {
+        let _ = std::fs::create_dir_all(d);
+    }
+    let mut o = std::fs::OpenOptions::new();
+    o.write(true).create(true).truncate(false);
+    #[cfg(windows)]
+    std::os::windows::fs::OpenOptionsExt::share_mode(&mut o, 0);
+    match o.open(&lock) {
+        Ok(f) => Ok(Some(f)),
+        // ERROR_SHARING_VIOLATION / ERROR_LOCK_VIOLATION: held by another game
+        Err(e) if matches!(e.raw_os_error(), Some(32 | 33)) => Err(format!(
+            "Scooby-Doo! Mystery Mayhem is already running with this memory card ({}). Close the other game window first, then start the game again.",
+            root.display()
+        )),
+        Err(e) => {
+            log::warn!("memory card lock {}: {e} (running without it)", lock.display());
+            Ok(None)
+        }
+    }
+}
+
+fn dir_has_entries(p: &Path) -> bool {
+    std::fs::read_dir(p).map(|mut r| r.next().is_some()).unwrap_or(false)
+}
+
+fn copy_tree(from: &Path, to: &Path) -> std::io::Result<()> {
+    std::fs::create_dir_all(to)?;
+    for e in std::fs::read_dir(from)? {
+        let e = e?;
+        let dst = to.join(e.file_name());
+        if e.file_type()?.is_dir() {
+            copy_tree(&e.path(), &dst)?;
+        } else {
+            std::fs::copy(e.path(), dst)?;
+        }
+    }
+    Ok(())
+}
+
+/// P37 R2: one-time migration of an old working-directory card (`saves/memcard1` next to the exe /
+/// in the cwd, the pre-R2 default) into `new`: copied (never moved) when `new` is missing or empty
+/// and a candidate has entries. Returns the card copied from.
+pub fn migrate_card(legacy: &[PathBuf], new: &Path) -> Option<PathBuf> {
+    if dir_has_entries(new) {
+        return None;
+    }
+    let src = legacy.iter().find(|p| dir_has_entries(p) && p.canonicalize().ok() != new.canonicalize().ok())?;
+    // copy into a side folder, then rename: a failed copy never leaves a half card behind
+    let tmp = new.with_extension("migrating");
+    let _ = std::fs::remove_dir_all(&tmp);
+    let r = copy_tree(src, &tmp).and_then(|()| {
+        if new.exists() {
+            std::fs::remove_dir(new)?;
+        }
+        std::fs::rename(&tmp, new)
+    });
+    match r {
+        Ok(()) => Some(src.clone()),
+        Err(e) => {
+            let _ = std::fs::remove_dir_all(&tmp);
+            log::warn!("memory card migration {} -> {} failed: {e}", src.display(), new.display());
+            None
+        }
+    }
+}
 
 /// card error for "no card in the port" (EFLoadSaveMgr_SP::SetWorkingMemoryCard, card type 0)
 pub const ERR_NO_CARD: u32 = 0x12;
@@ -1115,7 +1204,13 @@ impl MemCard {
         self.fds = (0..MAX_FDS).map(|_| None).collect();
         if !self.nocard && !self.root.exists() {
             // a new card from the shop: formatted, empty
-            let _ = std::fs::create_dir_all(&self.root);
+            if let Err(err) = std::fs::create_dir_all(&self.root) {
+                // P39: the game will report the card as unformatted and its format will fail too:
+                // say why in the logs instead of failing silently
+                let m = format!("cannot create the memory card folder {}: {err} (saving is not possible; set GAME_SAVEDIR to a writable folder)", self.root.display());
+                log::error!("{m}");
+                crate::crashlog::note("SAVES UNAVAILABLE", &m);
+            }
         }
         log::info!("memory card 1: {} ({})", self.root.display(), if self.nocard { "GAME_NOCARD: empty slot" } else { "PS2 8MB" });
     }
@@ -1358,7 +1453,8 @@ pub fn sceMcGetDir(e: &mut Engine, port: i32, slot: i32, name: Ptr, _mode: i32, 
         }
         let mut list: Vec<_> = rd.flatten().filter_map(|d| Some((d.file_name().into_string().ok()?, d.metadata().ok()?))).collect();
         list.sort_by(|a, b| a.0.cmp(&b.0));
-        ents.extend(list.into_iter().filter(|(n, _)| glob(&pat, n)));
+        // P39 R6: a write_atomic temp file left by a hard crash / power cut mid-save is not a card entry
+        ents.extend(list.into_iter().filter(|(n, _)| glob(&pat, n) && !n.ends_with(".tmp")));
         ents.truncate(maxent.max(0) as usize);
         for (i, (n, md)) in ents.iter().enumerate() {
             let mut b = vec![0u8; 0x40];
@@ -1441,33 +1537,57 @@ pub fn sceMcSeek(e: &mut Engine, fd: i32, ofs: i32, whence: i32) {
     issue(e, 4, r, vec![], 0);
 }
 
+/// P39 R4: the largest read whose unread tail [`sceMcRead`] fills (an 8 MB card)
+const MC_MAX_READ: i32 = 8 << 20;
+
 pub fn sceMcRead(e: &mut Engine, fd: i32, buf: Ptr, n: i32) {
-    use std::io::{Read, Seek, SeekFrom};
     let mut w = Vec::new();
     let r = match fd_mut(e, fd) {
         None => -4,
         Some(f) if f.mode & 1 == 0 => -5,
-        Some(f) => {
-            let mut b = Vec::new();
-            let ok = std::fs::File::open(&f.path).and_then(|mut h| {
-                h.seek(SeekFrom::Start(f.pos))?;
-                h.take(n.max(0) as u64).read_to_end(&mut b)
-            });
-            match ok {
-                Ok(k) => {
-                    f.pos += k as u64;
-                    w.push((buf, b));
-                    k as i32
-                }
-                Err(_) => -4,
+        Some(f) => match card_read(&f.path, f.pos, n) {
+            Ok((k, b)) => {
+                f.pos += k as u64;
+                w.push((buf, b));
+                k as i32
             }
-        }
+            Err(_) => -4,
+        },
     };
     issue(e, 5, r, w, n.max(0) as usize);
 }
 
+/// sceMcRead's host read: (bytes really read, the `n` bytes the buffer receives).
+/// P39 R4: a read past the end of a damaged PC card file (0-byte / truncated save) leaves the unread tail as
+/// erased card flash (0xFF), not the host's zeroed malloc: with zeros a 0-byte save summed to its (unread,
+/// zero) CRC word and loaded as an all-zero game (five "main library" slots -> EP1/L01) instead of the
+/// original's "save game data ... damaged" dialog. The count is still the real one, as libmc.
+pub fn card_read(path: &Path, pos: u64, n: i32) -> std::io::Result<(usize, Vec<u8>)> {
+    use std::io::{Read, Seek, SeekFrom};
+    let mut b = Vec::new();
+    let mut h = std::fs::File::open(path)?;
+    h.seek(SeekFrom::Start(pos))?;
+    let k = h.take(n.max(0) as u64).read_to_end(&mut b)?;
+    if k < n.max(0) as usize && n <= MC_MAX_READ {
+        b.resize(n as usize, 0xff);
+    }
+    Ok((k, b))
+}
+
+/// P39: sceMcWrite's host write: `data` at `pos` of `path` (no truncation, as libmc), done as a
+/// whole-file rewrite via a temp file + rename, so a full disk / a write error mid-save keeps the
+/// previous save intact instead of leaving it half overwritten (saves are a few KB)
+pub fn card_write(path: &Path, pos: u64, data: &[u8]) -> std::io::Result<()> {
+    let mut b = std::fs::read(path)?;
+    let (pos, end) = (pos as usize, pos as usize + data.len());
+    if b.len() < end {
+        b.resize(end, 0);
+    }
+    b[pos..end].copy_from_slice(data);
+    crate::engine::settings::write_atomic(path, &b)
+}
+
 pub fn sceMcWrite(e: &mut Engine, fd: i32, buf: Ptr, n: i32) {
-    use std::io::{Seek, SeekFrom, Write};
     let n = n.max(0) as u32;
     let data: Vec<u8> = (0..n).map(|i| e.r8(buf + i)).collect();
     let free = e.rt.loadsave.card.free_kb();
@@ -1481,16 +1601,15 @@ pub fn sceMcWrite(e: &mut Engine, fd: i32, buf: Ptr, n: i32) {
             if grow > free {
                 -3
             } else {
-                let ok = std::fs::OpenOptions::new().write(true).open(&f.path).and_then(|mut h| {
-                    h.seek(SeekFrom::Start(f.pos))?;
-                    h.write_all(&data)
-                });
-                match ok {
+                match card_write(&f.path, f.pos, &data) {
                     Ok(()) => {
                         f.pos += n as u64;
                         n as i32
                     }
-                    Err(_) => -4,
+                    Err(err) => {
+                        log::error!("memory card: cannot write {}: {err}", f.path.display());
+                        -4
+                    }
                 }
             }
         }
@@ -1653,5 +1772,126 @@ pub fn Update(e: &mut Engine) {
     if e.rt.loadsave.mgr != 0 {
         let m = e.rt.loadsave.mgr;
         EFLoadSaveMgr_SP::SpecificUpdate(e, m);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // P37 R2: the old cwd card is copied once into an empty per-user card, never over an existing one
+    #[test]
+    fn p37_card_migration() {
+        let w = std::env::temp_dir().join(format!("p37_card_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&w);
+        let old = w.join("old").join("memcard1");
+        std::fs::create_dir_all(old.join("BASLUS-20642")).unwrap();
+        std::fs::write(old.join("BASLUS-20642").join("save.dat"), b"slot").unwrap();
+        let empty = w.join("empty");
+        let new = w.join("local").join("saves").join("memcard1");
+        // first candidate empty / missing -> the next one is used
+        assert_eq!(migrate_card(&[empty.clone(), old.clone()], &new), Some(old.clone()));
+        assert_eq!(std::fs::read(new.join("BASLUS-20642").join("save.dat")).unwrap(), b"slot");
+        assert!(old.join("BASLUS-20642").join("save.dat").exists(), "copied, not moved");
+        assert!(!new.with_extension("migrating").exists());
+        // the new card has data: a second start never overwrites it
+        std::fs::write(new.join("BASLUS-20642").join("save.dat"), b"newer").unwrap();
+        assert_eq!(migrate_card(&[old.clone()], &new), None);
+        assert_eq!(std::fs::read(new.join("BASLUS-20642").join("save.dat")).unwrap(), b"newer");
+        // an existing but empty new card (game started once, nothing saved) still migrates
+        let new2 = w.join("local2").join("memcard1");
+        std::fs::create_dir_all(&new2).unwrap();
+        assert_eq!(migrate_card(&[old.clone()], &new2), Some(old.clone()));
+        assert!(new2.join("BASLUS-20642").join("save.dat").exists());
+        // nothing to migrate
+        assert_eq!(migrate_card(&[empty], &w.join("local3")), None);
+        let _ = std::fs::remove_dir_all(&w);
+    }
+    #[test]
+    fn p39_card_write_keeps_old_save_on_failure() {
+        let w = std::env::temp_dir().join(format!("p39_card_{}", std::process::id())).join("Jürgen Ñ 测试").join("OneDrive");
+        let _ = std::fs::remove_dir_all(&w);
+        std::fs::create_dir_all(&w).unwrap();
+        let f = w.join("BASLUS-20701");
+        std::fs::write(&f, b"0123456789").unwrap();
+        // in place, no truncation; past the end grows the file
+        card_write(&f, 2, b"ab").unwrap();
+        card_write(&f, 12, b"Z").unwrap();
+        assert_eq!(std::fs::read(&f).unwrap(), b"01ab456789\0\0Z");
+        // a failing write (here: the temp file cannot be created, as on a full disk) is an error and
+        // leaves the previous save untouched
+        // P39 R6: injected after the temp file was written (disk full); no temp file is left behind
+        crate::engine::settings::FAIL_WRITE.with(|f| f.set(true));
+        assert!(card_write(&f, 0, &[0xff; 100]).is_err());
+        assert_eq!(std::fs::read(&f).unwrap(), b"01ab456789\0\0Z");
+        assert_eq!(std::fs::read_dir(&w).unwrap().count(), 1);
+        // a vanished file (card folder deleted / OneDrive placeholder gone): error, no panic
+        assert!(card_write(&w.join("gone"), 0, b"x").is_err());
+        // P39 R9: a read-only save file (restored from a backup / a CD copy): an error (the game shows its
+        // save-failed message), the save keeps its bytes, no temp file is left behind
+        let mut p = std::fs::metadata(&f).unwrap().permissions();
+        p.set_readonly(true);
+        std::fs::set_permissions(&f, p.clone()).unwrap();
+        assert!(card_write(&f, 0, b"XX").is_err());
+        assert_eq!(std::fs::read(&f).unwrap(), b"01ab456789\0\0Z");
+        assert_eq!(std::fs::read_dir(&w).unwrap().count(), 1);
+        #[allow(clippy::permissions_set_readonly_false)]
+        p.set_readonly(false);
+        std::fs::set_permissions(&f, p).unwrap();
+        let _ = std::fs::remove_dir_all(w.parent().unwrap().parent().unwrap());
+    }
+
+    /// P39 R6: a second game on the same card is refused while the first holds it; free again once dropped;
+    /// an unusable lock location (a folder in its place) runs without a lock
+    #[test]
+    fn p39_card_lock_one_game_per_card() {
+        // P39 R7: windowed games lock, headless runs never do
+        assert!(should_lock_card(false) && !should_lock_card(true));
+        let d = std::env::temp_dir().join(format!("p39_lock_{}", std::process::id())).join("Jürgen Ñ 测试");
+        let _ = std::fs::remove_dir_all(&d);
+        let card = d.join("saves").join("memcard1");
+        let first = lock_card(&card).unwrap().expect("lock held");
+        let m = lock_card(&card).unwrap_err();
+        assert!(m.contains("already running") && m.contains("memcard1"), "{m}");
+        assert!(lock_card(&d.join("saves").join("memcard2")).unwrap().is_some(), "another card is independent");
+        drop(first);
+        assert!(lock_card(&card).unwrap().is_some());
+        std::fs::create_dir_all(d.join("saves").join("memcard3.lock")).unwrap();
+        assert!(lock_card(&d.join("saves").join("memcard3")).unwrap().is_none());
+        let _ = std::fs::remove_dir_all(d.parent().unwrap());
+    }
+
+    /// P39 R4: short reads of a damaged card file fill the tail with 0xFF (CRC then fails -> damaged dialog)
+    #[test]
+    fn p39_card_read_short_file() {
+        let d = std::env::temp_dir().join(format!("scooby_p39_mcread_{}", std::process::id()));
+        std::fs::create_dir_all(&d).unwrap();
+        let f = d.join("save");
+        std::fs::write(&f, b"").unwrap();
+        // 0-byte save: the CRC word and the data read get 0xFF, never zeros (zero CRC == zero sum = "valid")
+        assert_eq!(card_read(&f, 0, 4).unwrap(), (0, vec![0xff; 4]));
+        std::fs::write(&f, b"abcdef").unwrap();
+        assert_eq!(card_read(&f, 0, 4).unwrap(), (4, b"abcd".to_vec()));
+        assert_eq!(card_read(&f, 4, 4).unwrap(), (2, vec![b'e', b'f', 0xff, 0xff]));
+        assert_eq!(card_read(&f, 100, 3).unwrap(), (0, vec![0xff; 3]));
+        assert_eq!(card_read(&f, 0, 0).unwrap(), (0, vec![]));
+        assert_eq!(card_read(&f, 0, -5).unwrap(), (0, vec![]));
+        // a huge request is not inflated
+        assert_eq!(card_read(&f, 0, i32::MAX).unwrap(), (6, b"abcdef".to_vec()));
+        assert!(card_read(&d.join("missing"), 0, 4).is_err());
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    #[test]
+    fn p39_user_dir_without_localappdata() {
+        use crate::crashlog::user_dir_from;
+        let os = |s: &str| Some(std::ffi::OsString::from(s));
+        assert_eq!(user_dir_from(os(r"C:\Users\Jürgen Ñ\AppData\Local"), None), Some(PathBuf::from(r"C:\Users\Jürgen Ñ\AppData\Local\ScoobyMM")));
+        // unset / empty / relative LOCALAPPDATA: the profile's AppData\Local, never a cwd-relative folder
+        for local in [None, os(""), os("ScoobyMM")] {
+            assert_eq!(user_dir_from(local, os(r"C:\Users\测试")), Some(PathBuf::from(r"C:\Users\测试\AppData\Local\ScoobyMM")));
+        }
+        assert_eq!(user_dir_from(None, None), None);
+        assert_eq!(user_dir_from(os(""), os("")), None);
     }
 }

@@ -17,8 +17,8 @@ pub fn hs_soundST_FIRSTMOVE(e: &mut Engine, ep1: u32) -> LResult<u64> {
     e.w32((frame + 0xc), 0u32);
     e.w32((frame + 0x8), 0u32);
     e.w32((frame + 0x10), 0xbf800000u32);
-    { let a1 = g(e, 0x100006a7); e.w32((frame + 0x18), a1) };
-    { let a1 = g(e, 0x100006a7); e.w32((frame + 0x14), a1) };
+    { let a1 = 0x100006a7u32; e.w32((frame + 0x18), a1) };
+    { let a1 = 0x100006a7u32; e.w32((frame + 0x14), a1) };
     let _ = APIgameobj::SetClippingParams(e, 0x2a000000u32, (frame + 0x0), 0u32);
     let _ = APIgameobj::SetNextState(e, 0x2a000000u32, 1u32);
     return Ok(0u64);

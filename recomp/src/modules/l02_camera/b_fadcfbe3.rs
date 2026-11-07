@@ -2695,10 +2695,10 @@ pub fn Camera_BaseFUNC_GetCameraMode(e: &mut Engine) -> LResult<u32> {
     e.w32((frame + 0x10), 0xbf800000u32);
     iVar3 = ((APIphysic::CheckRayIntersection(e, (frame + 0x0), (frame + 0x30))) as i32);
     if (iVar3 == 2i32) {
-        { let a0 = g(e, 0x10238); let a1 = ((e.r64((frame + 0x4c))) as u32); e.w32(a0, a1) };
-        { let a0 = g(e, 0x10248); let a1 = ((e.r64((frame + 0x5c))) as u32); e.w32(a0, a1) };
-        { let a0 = g(e, 0x10250); let a1 = ((e.r64((frame + 0x64))) as u32); e.w32(a0, a1) };
-        { let a0 = g(e, 0x10240); let a1 = ((((e.r64((frame + 0x54))) as i32)) as u32); e.w32(a0, a1) };
+        { let a0 = g(e, 0x10238); let a1 = e.r64((frame + 0x4c)); /* P32 R36: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
+        { let a0 = g(e, 0x10248); let a1 = e.r64((frame + 0x5c)); /* P32 R36: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
+        { let a0 = g(e, 0x10250); let a1 = e.r64((frame + 0x64)); /* P32 R36: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
+        { let a0 = g(e, 0x10240); let a1 = e.r64((frame + 0x54)); /* P32 R36: 8-byte sdl/sdr copy */ e.w64(a0, a1) };
         uVar2 = e.r64((frame + 0x54));
         { let a0 = (e.r32(e.r32(g(e, 0x1029c)))).wrapping_add(100u32); let a1 = ((e.r32(g(e, 0x10240))) as i32); e.wi32(a0, a1) };
         { let a0 = g(e, 0x10240); e.w64(a0, (uVar2) as u64) };

@@ -92,21 +92,21 @@ pub fn SwampWaterCB_NOTIFY_COLLIDE_OBJ(e: &mut Engine, ep1: u32) -> LResult<u64>
             if (e.rf(pfVar1) <= fVar2) {
                 let _ = { let a1 = e.r32((((param_1).wrapping_add(8i32)) as u32)); SwampWaterFUNC_WaterSplash(e, a1)? };
                 fVar2 = APIextra::TimerGetTime(e, 0x90000000u32);
-                { let a0 = e.r32(g(e, 0x10018)); e.w32(a0, (((fVar2 + 0.4)) as i64 as u32)) };
+                { let a0 = e.r32(g(e, 0x10018)); e.w32(a0, (fVar2 + 0.4).to_bits()) };
             }
         } else if (e.ri32((((param_1).wrapping_add(8i32)) as u32)) == 0x2a00004ci32) {
             fVar2 = APIextra::TimerGetTime(e, 0x90000000u32);
             if (e.rf((pfVar1).wrapping_add((1u32).wrapping_mul(4))) <= fVar2) {
                 let _ = { let a1 = e.r32((((param_1).wrapping_add(8i32)) as u32)); SwampWaterFUNC_WaterSplash(e, a1)? };
                 fVar2 = APIextra::TimerGetTime(e, 0x90000000u32);
-                { let a0 = (e.r32(g(e, 0x10018))).wrapping_add((1u32).wrapping_mul(4)); e.w32(a0, (((fVar2 + 0.6)) as i64 as u32)) };
+                { let a0 = (e.r32(g(e, 0x10018))).wrapping_add((1u32).wrapping_mul(4)); e.w32(a0, (fVar2 + 0.6).to_bits()) };
             }
         } else {
             fVar2 = APIextra::TimerGetTime(e, 0x90000000u32);
             if (e.rf((pfVar1).wrapping_add((2u32).wrapping_mul(4))) <= fVar2) {
                 let _ = { let a1 = e.r32((((param_1).wrapping_add(8i32)) as u32)); SwampWaterFUNC_WaterSplash(e, a1)? };
                 fVar2 = APIextra::TimerGetTime(e, 0x90000000u32);
-                { let a0 = (e.r32(g(e, 0x10018))).wrapping_add((2u32).wrapping_mul(4)); e.w32(a0, (((fVar2 + 0.8)) as i64 as u32)) };
+                { let a0 = (e.r32(g(e, 0x10018))).wrapping_add((2u32).wrapping_mul(4)); e.w32(a0, (fVar2 + 0.8).to_bits()) };
             }
         }
     }

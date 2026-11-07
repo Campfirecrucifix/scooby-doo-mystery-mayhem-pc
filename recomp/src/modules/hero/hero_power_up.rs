@@ -27,6 +27,16 @@ const SELF: u32 = 0x2a00_0000;
 fn ep3(e: &Engine) -> bool {
     builds::BUILDS[e.rt.cur_build()].sha8 == "c33ca2c4"
 }
+/// Per-build snorkel ids (hero_power_up.c): (Scooby, snorkel object, camera, msg 0x47 In/Out P2, sound).
+/// 79185eb3 = EP4/L02B, df8bf53b = EP4/L02A, 7e698dff = EP4/L01.
+struct Ids { hero: u32, obj: u32, cam: u32, cam_in: u32, cam_out: u32, snd: u32 }
+fn ids(e: &Engine) -> Ids {
+    match builds::BUILDS[e.rt.cur_build()].sha8 {
+        "df8bf53b" => Ids { hero: 0x2a00_0044, obj: 0x2a00_00e6, cam: 0x2a00_000f, cam_in: 0xc, cam_out: 0xd, snd: 0x4000_0042 },
+        "7e698dff" => Ids { hero: 0x2a00_0024, obj: 0x2a00_00be, cam: 0x2a00_000e, cam_in: 0xb, cam_out: 2, snd: 0x4000_005b },
+        _ => Ids { hero: 0x2a00_001b, obj: 0x2a00_00c0, cam: 0x2a00_0012, cam_in: 0xc, cam_out: 0xd, snd: 0x4000_0045 },
+    }
+}
 fn pu_id(e: &Engine) -> u32 {
     if ep3(e) { 0x200 } else { 0x400 }
 }
@@ -54,7 +64,7 @@ pub fn heroValidPowerUp(e: &mut Engine) -> LResult<u32> {
         debug_info_value(e, "ValidPowerUp -> power up still locked", sel + 4, 1);
         return Ok(0);
     }
-    let obj = if ep3(e) { 0x2a00_010e } else { 0x2a00_00c0 };
+    let obj = if ep3(e) { 0x2a00_010e } else { ids(e).obj };
     if APIgameobj::GetID(e, obj, 0) == 0x7fff_fffe {
         return Ok(0);
     }
@@ -87,9 +97,10 @@ pub fn heroInit_PowerUpIn(e: &mut Engine, param_1: Ptr) -> LResult<()> {
     debug_info(e, "heroInit_PowerUpIn -> GS_POWER_UP_SNORKEL");
     gb14(e, u32::MAX, 0x40);
     gb14(e, u32::MAX, 0x4000_0000);
-    let p = APIgameobj::GetPosition(e, 0x2a00_001b, 0x7fff_ffff, c0);
-    APIgameobj::SetTranslation(e, 0x2a00_00c0, p);
-    APIgameobj::TakeOrientation(e, 0x2a00_00c0, 0x2a00_001b, 0x7fff_ffff);
+    let d = ids(e);
+    let p = APIgameobj::GetPosition(e, d.hero, 0x7fff_ffff, c0);
+    APIgameobj::SetTranslation(e, d.obj, p);
+    APIgameobj::TakeOrientation(e, d.obj, d.hero, 0x7fff_ffff);
     if e.r32(GB0(e) + 0x34) & 0x10 != 0 {
         let a = GB0(e) + 0x34;
         let x = e.r32(a);
@@ -127,10 +138,10 @@ pub fn heroInit_PowerUpIn(e: &mut Engine, param_1: Ptr) -> LResult<()> {
         }
     }
     heroResetAction(e, param_1)?;
-    APIgameobj::SendMessageTo(e, 0x2a00_00c0, 0, 0xd2, 0x6a, 0);
-    APIgameobj::SendMessageTo(e, 0x2a00_001b, 0, 0xd2, 0x595, 0);
-    APIgameobj::SendMessageTo(e, 0x2a00_0012, 0, 0x47, 0xc, 0);
-    APInewSound::Play(e, SELF, 0x4000_0045, 0);
+    APIgameobj::SendMessageTo(e, d.obj, 0, 0xd2, 0x6a, 0);
+    APIgameobj::SendMessageTo(e, d.hero, 0, 0xd2, 0x595, 0);
+    APIgameobj::SendMessageTo(e, d.cam, 0, 0x47, d.cam_in, 0);
+    APInewSound::Play(e, SELF, d.snd, 0);
     e.w32(param_1 + 0x158, addr_pu::heroST_PowerUpIn_Loop);
     Ok(())
 }
@@ -182,12 +193,13 @@ pub fn heroInit_PowerUpOut(e: &mut Engine, param_1: Ptr) -> LResult<()> {
     let v = e.alloca(0x10);
     debug_info(e, "heroInit_PowerUpOut -> GS_POWER_UP_SNORKEL");
     gb14(e, 0xffff_ffbf, 0);
-    let p = APIgameobj::GetPosition(e, 0x2a00_00c0, 0x7fff_ffff, v);
-    APIgameobj::SetTranslation(e, 0x2a00_001b, p);
-    APIgameobj::TakeOrientation(e, 0x2a00_001b, 0x2a00_00c0, 0x7fff_ffff);
-    APIgameobj::SendMessageTo(e, 0x2a00_001b, 0, 0xd2, 0x6a, 0);
-    APIgameobj::SendMessageTo(e, 0x2a00_00c0, 0, 0xd2, 0x595, 0);
-    APIgameobj::SendMessageTo(e, 0x2a00_0012, 0, 0x47, 0xd, 0);
+    let d = ids(e);
+    let p = APIgameobj::GetPosition(e, d.obj, 0x7fff_ffff, v);
+    APIgameobj::SetTranslation(e, d.hero, p);
+    APIgameobj::TakeOrientation(e, d.hero, d.obj, 0x7fff_ffff);
+    APIgameobj::SendMessageTo(e, d.hero, 0, 0xd2, 0x6a, 0);
+    APIgameobj::SendMessageTo(e, d.obj, 0, 0xd2, 0x595, 0);
+    APIgameobj::SendMessageTo(e, d.cam, 0, 0x47, d.cam_out, 0);
     e.w32(param_1 + 0x158, addr_pu::heroST_PowerUpOut_Loop);
     Ok(())
 }

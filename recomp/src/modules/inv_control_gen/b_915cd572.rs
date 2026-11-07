@@ -582,8 +582,8 @@ pub fn inv_controlFUNC_CreateLights(e: &mut Engine) -> LResult<()> {
     { let a0 = (e.r32(g(e, 0x10008))).wrapping_add((108u32).wrapping_mul(4)); e.w32(a0, 0x12800000u32) };
     { let a0 = (e.r32(g(e, 0x10008))).wrapping_add((109u32).wrapping_mul(4)); e.w32(a0, 1u32) };
     { let a0 = (e.r32(g(e, 0x10008))).wrapping_add((110u32).wrapping_mul(4)); e.w32(a0, 7u32) };
-    uVar2 = ((e.r32(g(e, 0x10ec8))) as u64);
-    uVar1 = ((e.r32(g(e, 0x10ec0))) as u64);
+    uVar2 = e.r64(g(e, 0x10ec8)); // P32 R36: undefined8 (ldl/ldr)
+    uVar1 = e.r64(g(e, 0x10ec0)); // P32 R36: undefined8 (ldl/ldr)
     { let a0 = (e.r32(g(e, 0x10008))).wrapping_add((120u32).wrapping_mul(4)); e.w32(a0, 0x12800002u32) };
     { let a0 = (e.r32(g(e, 0x10008))).wrapping_add((121u32).wrapping_mul(4)); e.w32(a0, 4u32) };
     e.w32((frame + 0x0), ((uVar1) as u32));

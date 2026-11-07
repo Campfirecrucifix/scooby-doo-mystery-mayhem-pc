@@ -8,8 +8,10 @@
 //! SetClipPlane / FadeInOut / SetWindows / InitCamera / ResetMode), CameraFree.c (follow camera
 //! `cameraST_CAMERA_FOLLOW` + attractor), BaseCamNewLibrary ManageEventDefault, FloorEventSystem,
 //! ep1_camera.c and L01_camera.c (0xd3 / 0x59 / 0xda). Sub-files: l01_camera/{base_cb,base_fn,
-//! base_user,msg,free,free2}.rs. ManageEvent001..008 are not ported: they are only reachable through
-//! the floor-event table pEventBuffer, which is NULL/0 in l01 (see FloorEventConstructor).
+//! base_user,msg,free,free2}.rs. BaseCamNewLibrary ManageEvent001..008 (P28 R1): reached through the
+//! floor-event table Events[9] @0x101f0 (pEventBuffer = &Events, i32EventBufferSize = 9, relocated
+//! code pointers in the module image): floor material word2 >> 24 == 1 switches to the side-on rail
+//! camera (SetCameraUser mode 0 = EFDMCameraFlex spline camera), 2..8 attract to 0x2a00007f..85.
 #![allow(non_snake_case, non_upper_case_globals, unused_variables)]
 
 use crate::engine::*;
@@ -34,32 +36,17 @@ pub static MODULE: ModuleDef = ModuleDef {
     ctor: l01_cameraConstructor,
     dtor: l01_cameraDestructor,
     register: None,
-    init: &[
-        // goHeroesData[18] {id, leader, follower, team count/flags, alt id} (module image .text+0)
-        (
-            0x10000,
-            &[
-                1, 0x2a00_0091, 0x2a00_0092, 2, 0, //
-                2, 0x2a00_0092, 0x2a00_0091, 1, 0, //
-                3, 0x2a00_0143, 0x2a00_0142, 0x2a, 0, //
-                4, 0x2a00_0142, 0x2a00_0143, 0x29, 0, //
-                0xb, 0x2a00_0136, 0x2a00_0091, 0x2b, 2,
-            ],
-        ),
-        // CameraFlags.. fSpeedFactor
-        (0x10168, &[0, 0, 0x3f99_999a, 0x7fff_ffff, 0x3f40_0000, 0]),
-        // fCameraCurve[6][2] {hauteur, distance} + the 3 CheckWall ray dirs (0x101b0/c0/d0), module image
-        (
-            0x10180,
-            &[
-                0, 0x4026_6666, 0x3f80_0000, 0x4000_0000, 0x4000_0000, 0x3fd9_999a, //
-                0x4040_0000, 0x4019_999a, 0x4080_0000, 0x4040_0000, 0x40a0_0000, 0x409c_cccd, //
-                0, 0, 0x3f80_0000, 0, 0x3f5d_b22d, 0, 0xbf00_0000, 0, 0xbf5d_b22d, 0, 0xbf00_0000, 0,
-            ],
-        ),
-    ],
-    build_init: None,
+    // module image 0x10000..0x10264 (goHeroesData, CameraFlags.. fSpeedFactor, fCameraCurve, CheckWall ray
+    // dirs, Events / pEventBuffer / i32EventBufferSize, szFileName, uiNbPics, pFloorAttribs, bInCamAnim) is
+    // read from the module on the disc by build_init (WP-X4), relocations applied (P28 R1)
+    init: &[],
+    build_init: Some(l01_camera_build_init),
 };
+
+fn l01_camera_build_init(m: &mut Mem, data: Ptr, _build: usize) {
+    // the only relocations in 0x10000..0x10264 are the 9 Events code pointers and pEventBuffer
+    crate::engine::gamedata::apply_image(m, data, "0549a125", &[(0x10000, 0x10264)]);
+}
 
 // ---- module globals (_globals.h, symtab) ----
 pub const goHeroesData: u32 = 0x10000;
@@ -115,16 +102,28 @@ pub const fCameraTourTimeIn: u32 = 0x10654;
 // function statics (addresses from the code where visible, else chosen in free .bss gaps)
 /// BaseCamNewLibrary moCameraParams_102 (fields +0x24/+0x3c/+0x40/+0x44 at DAT_0001041c/34/38/3c)
 pub const moCameraParams_102: u32 = 0x103f8;
+/// ManageEvent001 moCameraParams_106 (+0x3c/+0x40/+0x44 at DAT_00010484/88/8c)
+pub const moCameraParams_106: u32 = 0x10448;
+/// ManageEvent002..008 attractor params (0x20 bytes each)
+pub const moCameraParams_110: u32 = 0x10498;
+pub const moCameraParams_114: u32 = 0x104b8;
+pub const moCameraParams_118: u32 = 0x104d8;
+pub const moCameraParams_122: u32 = 0x104f8;
+pub const moCameraParams_126: u32 = 0x10518;
+pub const moCameraParams_130: u32 = 0x10538;
+pub const moCameraParams_134: u32 = 0x10558;
 /// L01_camera moCameraParams_291 (+4.. DAT_000105a4/c4/c8/cc)
 pub const moCameraParams_291: u32 = 0x10588;
-pub const bInCamAnim_288: u32 = 0x10568;
-pub const cmLookAt_290: u32 = 0x1056c;
-pub const oCamPosStartCut_289: u32 = 0x10570;
-/// camera_base statics: addresses not visible in the code; placed at the end of the 0x1310 image
-pub const pFloorAttribs: u32 = 0x11280;
-pub const uiNbPics: u32 = 0x112a0;
-/// szFileName_204 (snapshot name, debug R3 only; the initial string is not recovered)
-pub const szFileName: u32 = 0x112a4;
+/// P28 R1: real addresses from the module symtab (bInCamAnim.288, oCamPosStartCut.289, cmLookAt.290);
+/// the old guesses 0x10568..0x10570 overlapped moCameraParams.134 (ManageEvent008)
+pub const bInCamAnim_288: u32 = 0x10260;
+pub const cmLookAt_290: u32 = 0x10584;
+pub const oCamPosStartCut_289: u32 = 0x10578;
+/// camera_base statics (symtab pFloorAttribs.233, uiNbPics.205, szFileName.204; initial data in the image)
+pub const pFloorAttribs: u32 = 0x10240;
+pub const uiNbPics: u32 = 0x10238;
+/// szFileName_204 (snapshot name, debug R3 only)
+pub const szFileName: u32 = 0x10220;
 pub const i32ActualFloorEvent: u32 = 0x10398;
 pub const i32FloorEventBufferSize: u32 = 0x1039c;
 pub const pEventCall: u32 = 0x103a0;
@@ -192,7 +191,7 @@ pub fn Camera_BaseCB_INIT(e: &mut Engine, _: u32) -> LResult<u64> {
     Ok(1)
 }
 
-/// 0x00017900 BaseCamNewLibrary ManageEventDefault: follow camera on the leader
+/// 0x00017890 BaseCamNewLibrary ManageEventDefault: follow camera on the leader
 pub fn ManageEventDefault(e: &mut Engine, param_1: i32) -> LResult<()> {
     if param_1 == 1 {
         let m = G(e, moCameraParams_102);
@@ -391,34 +390,144 @@ pub fn Camera_BaseFUNC_Create_Game(e: &mut Engine) {
         e.w32(pfVar1 + i * 4, t);
     }
     let (b, n) = (e.r32(G(e, pEventBuffer)), e.ri32(G(e, i32EventBufferSize)));
-    FloorEventConstructor(e, b, n);
+    // ManageEvent*(0) do nothing
+    let _ = FloorEventConstructor(e, b, n);
 }
 
-/// 0x00018238 FloorEventManager. The event table (pEventCall as a function array) is empty in l01
-/// (i32FloorEventBufferSize 0): only the bookkeeping is reachable.
-pub fn FloorEventManager(e: &mut Engine, param_1: i32) {
-    if param_1 < e.ri32(G(e, i32FloorEventBufferSize)) {
-        // deviation: event function calls (none exist in l01) not dispatched
-        let a = G(e, i32ActualFloorEvent);
-        e.w32(a, param_1 as u32);
+/// 0x00017978 BaseCamNewLibrary ManageEvent001: side-on rail camera (SetCameraUser mode 0 = CameraFlex
+/// spline camera; flags 0xe0000000, 0x20000000 also turns off the right-stick camera control)
+pub fn ManageEvent001(e: &mut Engine, param_1: i32) -> LResult<()> {
+    if param_1 == 1 {
+        let m = G(e, moCameraParams_106);
+        e.w32(m, 0);
+        e.w32(m + 0x3c, 0);
+        e.w32(m + 0x40, 0);
+        e.w32(m + 0x44, 0xe000_0000);
+        Camera_BaseFUNC_SetCameraUser(e, m)?;
+    }
+    Ok(())
+}
+
+/// 0x00017a40..0x00018058 BaseCamNewLibrary ManageEvent002..008 (identical bodies): state 1 = attractor on
+/// object `id` (SetCameraAttract mode `mode`, 1.0, 1.0, 8.0), state 3 = ReleaseAttractor
+fn ManageEventAttract(e: &mut Engine, param_1: i32, params: u32, mode: u32, id: u32) -> LResult<()> {
+    match param_1 {
+        1 => {
+            let m = G(e, params);
+            e.w32(m, mode);
+            e.w32(m + 4, id);
+            e.w32(m + 0x10, 0x3f80_0000);
+            e.w32(m + 0x14, 0x3f80_0000);
+            e.w32(m + 0x18, 0x4100_0000);
+            Camera_BaseFUNC_SetCameraAttract(e, m)?;
+        }
+        3 => ReleaseAttractor(e),
+        _ => {}
+    }
+    Ok(())
+}
+
+/// calls the floor event function `f` (an Events word: relocated code pointer data + addr - 0x10000)
+/// with state `st` (0 init, 1 enter, 2 stay, 3 leave, 4 destroy, 5 force)
+fn CallFloorEvent(e: &mut Engine, f: u32, st: i32) -> LResult<()> {
+    match f.wrapping_sub(e.rt.cur_data()).wrapping_add(0x10000) {
+        0x17890 => ManageEventDefault(e, st),
+        0x17978 => ManageEvent001(e, st),
+        0x17a40 => ManageEventAttract(e, st, moCameraParams_110, 0, 0x2a00_007f),
+        0x17b40 => ManageEventAttract(e, st, moCameraParams_114, 0, 0x2a00_0080),
+        0x17c40 => ManageEventAttract(e, st, moCameraParams_118, 0, 0x2a00_0081),
+        0x17d40 => ManageEventAttract(e, st, moCameraParams_122, 4, 0x2a00_0082),
+        0x17e48 => ManageEventAttract(e, st, moCameraParams_126, 4, 0x2a00_0083),
+        0x17f50 => ManageEventAttract(e, st, moCameraParams_130, 4, 0x2a00_0084),
+        0x18058 => ManageEventAttract(e, st, moCameraParams_134, 0, 0x2a00_0085),
+        a => panic!("l01_camera: floor event through unknown code pointer {a:#x}"),
     }
 }
 
-/// 0x000183c8 (no events in l01)
-pub fn FloorEventForceState(e: &mut Engine, param_1: i32) {}
+fn FloorEvent(e: &Engine, i: i32) -> u32 {
+    e.r32(e.r32(G(e, pEventCall)) + (i as u32) * 4)
+}
+
+/// 0x00018158 FloorEventManager: same event -> state 2; new event -> old state 3 (old -1 becomes 0),
+/// new state 1
+pub fn FloorEventManager(e: &mut Engine, param_1: i32) -> LResult<()> {
+    if param_1 < e.ri32(G(e, i32FloorEventBufferSize)) {
+        let act = e.ri32(G(e, i32ActualFloorEvent));
+        if act == param_1 {
+            let f = FloorEvent(e, act);
+            if f != 0 {
+                CallFloorEvent(e, f, 2)?;
+            }
+        } else {
+            let mut act = act;
+            if act == -1 {
+                act = 0;
+                let a = G(e, i32ActualFloorEvent);
+                e.w32(a, 0);
+            }
+            let f = FloorEvent(e, act);
+            if f != 0 {
+                CallFloorEvent(e, f, 3)?;
+            }
+            let a = G(e, i32ActualFloorEvent);
+            e.w32(a, param_1 as u32);
+            let f = FloorEvent(e, param_1);
+            if f != 0 {
+                CallFloorEvent(e, f, 1)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+/// 0x000183c8 FloorEventForceState (msg 0xc1: state 5)
+pub fn FloorEventForceState(e: &mut Engine, param_1: i32) -> LResult<()> {
+    let mut i = 0;
+    while i < e.ri32(G(e, i32FloorEventBufferSize)) {
+        let f = FloorEvent(e, i);
+        if f != 0 {
+            CallFloorEvent(e, f, param_1)?;
+        }
+        i += 1;
+    }
+    Ok(())
+}
 
 /// 0x0001f3f8
 pub fn CameraFUNC_SetLocalParams(e: &mut Engine) {}
 
-/// 0x000182e8 FloorEventSystem: runs every event's init (pEventBuffer is NULL/0 in l01: no events)
-pub fn FloorEventConstructor(e: &mut Engine, api: Ptr, instanceCount: i32) {
+/// 0x000182e8 FloorEventConstructor: runs every event's init (state 0)
+pub fn FloorEventConstructor(e: &mut Engine, api: Ptr, instanceCount: i32) -> LResult<()> {
     let a = G(e, i32FloorEventBufferSize);
     e.w32(a, instanceCount as u32);
     let a = G(e, pEventCall);
     e.w32(a, api);
-    // deviation: the event function table is empty in l01 (i32EventBufferSize 0), loop not ported
+    let mut i = 0;
+    while i < e.ri32(G(e, i32FloorEventBufferSize)) {
+        let f = FloorEvent(e, i);
+        if f != 0 {
+            CallFloorEvent(e, f, 0)?;
+        }
+        i += 1;
+    }
     let a = G(e, i32ActualFloorEvent);
     e.w32(a, 0xffff_ffff);
+    Ok(())
+}
+
+/// 0x00018478 FloorEventDestructor (module entry, no caller in the C)
+pub fn FloorEventDestructor(e: &mut Engine, instanceCount: i32) -> LResult<()> {
+    let mut i = 0;
+    while i < e.ri32(G(e, i32FloorEventBufferSize)) {
+        let f = FloorEvent(e, i);
+        if f != 0 {
+            CallFloorEvent(e, f, 4)?;
+        }
+        i += 1;
+    }
+    let a = G(e, i32ActualFloorEvent);
+    e.w32(a, 0xffff_ffff);
+    Ok(())
 }
 
 /// 0x0001ed58

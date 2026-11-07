@@ -48,10 +48,10 @@ pub fn DestroyGlow(e: &mut Engine) -> LResult<()> {
 pub fn CreateEmitterPos(e: &mut Engine) -> LResult<()> {
     let uVar1 = e.r32(LM(e) + 0x44);
     let t: &[(u32, u32)] = match uVar1 {
-        2 => EMITTER_POS_2,
-        1 => EMITTER_POS_1,
-        3 => EMITTER_POS_3,
-        0x13 => EMITTER_POS_13,
+        2 => &EMITTER_POS_2,
+        1 => &EMITTER_POS_1,
+        3 => &EMITTER_POS_3,
+        0x13 => &EMITTER_POS_13,
         _ => return Ok(()),
     };
     let l = L(e);

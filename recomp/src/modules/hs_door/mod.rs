@@ -7,7 +7,7 @@
 //! Port of `Game Logic Modules/*/Objects/HOTSPOTS/*/hs_door{,_l01,_l03}__<sha8>/hs_door{,_L01,_L03}.c`.
 #![allow(non_snake_case, non_upper_case_globals, unused_variables)]
 
-mod builds;
+pub mod builds;
 pub use builds::VARS;
 
 use super::hs_door_l01 as base;
@@ -16,6 +16,7 @@ use crate::engine::*;
 use crate::logic::{LResult, ModuleDef};
 
 /// per-build parameters of hs_door_base.c (module-relative addresses)
+#[derive(Debug)]
 pub struct Var {
     pub name: &'static str,
     /// number of goCustomDataDoor entries scanned by ST_FIRSTMOVE

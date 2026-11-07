@@ -106,8 +106,8 @@ pub fn candleFUNC_MessageHandler(e: &mut Engine, mp1: u32, mp2: u32, mp3: Ptr) -
 pub fn createParticles(e: &mut Engine) -> LResult<()> {
     let mut uVar1: u32 = 0;
     let frame = e.alloca(0x30);
-    { let a1 = (((e.r32(g(e, 0x10cd8))) as u64)) as u64; e.w64(((frame + 0x0)).wrapping_add(0), a1) };
-    { let a1 = ((e.r32(g(e, 0x10ce0))) as f32); e.wf(((frame + 0x0)).wrapping_add(8), a1) };
+    { let a1 = e.r64(g(e, 0x10cd8)); /* P32 R36: 8-byte ldl/ldr copy */ e.w64(((frame + 0x0)).wrapping_add(0), a1) };
+    { let a1 = e.rf(g(e, 0x10ce0)); /* P32 R36: float bits, not int->float */ e.wf(((frame + 0x0)).wrapping_add(8), a1) };
     uVar1 = { let a1 = ((e.r32((e.r32(g(e, 0x10020))).wrapping_add((1u32).wrapping_mul(4)))) as i32); APIparticle::EmitterCreate(e, a1) };
     { let a0 = (e.r32(g(e, 0x1001c))).wrapping_add(12u32); e.w32(a0, uVar1) };
     let _ = { let a1 = ((e.r32(g(e, 0x10008))) as i32); let a2 = e.r32((e.r32(g(e, 0x1001c))).wrapping_add(12u32)); LIBMiscFunc::MiscFunc_EmitterUpdateFlags(e, a1, a2, 192u32, 1i32) };

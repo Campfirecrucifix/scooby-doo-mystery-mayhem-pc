@@ -309,6 +309,8 @@ pub enum NodeKind {
     /// EFTextureAnimNode (DTOperator type 2)
     Texture(Box<EFTextureAnimNode>),
     Blend(Box<EFAnimBlendNode>),
+    /// EFCameraAnimNode (DTOperator type 7)
+    Camera(Box<crate::engine::camera::EFCameraAnimNode>),
 }
 
 #[derive(Debug, Clone)]
@@ -339,6 +341,7 @@ impl TreeNode {
             NodeKind::HAnim(_) => 1,
             NodeKind::Texture(_) => 2,
             NodeKind::Blend(_) => 4,
+            NodeKind::Camera(_) => 7,
         }
     }
     fn state_mut(&mut self) -> Option<&mut u32> {
@@ -347,6 +350,7 @@ impl TreeNode {
             NodeKind::HAnim(h) => Some(&mut h.state),
             NodeKind::Texture(t) => Some(&mut t.state),
             NodeKind::Blend(b) => Some(&mut b.state),
+            NodeKind::Camera(c) => Some(&mut c.state),
         }
     }
     pub fn state(&self) -> u32 {
@@ -355,6 +359,7 @@ impl TreeNode {
             NodeKind::HAnim(h) => h.state,
             NodeKind::Texture(t) => t.state,
             NodeKind::Blend(b) => b.state,
+            NodeKind::Camera(c) => c.state,
         }
     }
 }
@@ -520,6 +525,14 @@ impl EFAnimationMgr {
                 }
                 false
             }
+            7 => {
+                // EFCameraAnimNode::Stop
+                self.LeaveParent(i);
+                if let NodeKind::Camera(c) = &mut self.node_mut(i).kind {
+                    c.Stop();
+                }
+                false
+            }
             4 => {
                 // EFAnimBlendNode::Stop
                 self.LeaveParent(i);
@@ -558,8 +571,10 @@ impl EFAnimationMgr {
                 self.stop_delete(i);
             }
             self.ConnectNode(i);
-            if let NodeKind::Texture(t) = &mut self.node_mut(i).kind {
-                t.Play(flags, time);
+            match &mut self.node_mut(i).kind {
+                NodeKind::Texture(t) => t.Play(flags, time),
+                NodeKind::Camera(c) => c.Play(flags, time),
+                _ => {}
             }
         }
     }
@@ -602,6 +617,27 @@ impl EFAnimationMgr {
         i
     }
 
+    /// AddAnim for a camera anim node (EFGameObject::CreateInstances, class 0x53)
+    pub fn AddCameraAnim(&mut self, node: crate::engine::camera::EFCameraAnimNode, id: u32) -> NodeId {
+        let n = TreeNode { parent: None, child: None, next: None, cnt: DT_MAX_FLOAT, excl: node.excl, obj: node.obj, out: Vec::new(), coll: Default::default(), coll_snap: Default::default(), kind: NodeKind::Camera(Box::new(node)) };
+        let i = self.alloc(n);
+        let k = id.wrapping_sub(self.base) as usize;
+        if k >= self.anims.len() {
+            self.anims.resize(k + 1, None);
+        }
+        self.anims[k] = Some(i);
+        i
+    }
+
+    /// the camera anim node of anim `id` (None for other node types)
+    pub fn camera_mut(&mut self, id: u32) -> Option<&mut crate::engine::camera::EFCameraAnimNode> {
+        let i = self.anim(id)?;
+        match &mut self.node_mut(i).kind {
+            NodeKind::Camera(c) => Some(c),
+            _ => None,
+        }
+    }
+
     /// anim table entry (this+4)[id - this+0]
     pub fn anim_node(&self, id: u32) -> Option<NodeId> {
         self.anim(id)
@@ -614,6 +650,7 @@ impl EFAnimationMgr {
         match &self.node(i).kind {
             NodeKind::HAnim(h) => Some((ex, h.state, h.time, h.duration, h.speed)),
             NodeKind::Texture(t) => Some((ex, t.state, t.time, t.duration, t.speed)),
+            NodeKind::Camera(c) => Some((ex, c.state, c.time, c.duration, c.speed)),
             _ => None,
         }
     }
@@ -624,6 +661,8 @@ impl EFAnimationMgr {
         match &mut self.node_mut(i).kind {
             NodeKind::HAnim(h) => h.SetTime(t),
             NodeKind::Texture(x) => x.time = t,
+            // EFAnimNode::SetTime (0x001eac60)
+            NodeKind::Camera(x) => x.time = t,
             _ => {}
         }
     }
@@ -637,6 +676,10 @@ impl EFAnimationMgr {
                 h.speed = s;
             }
             NodeKind::Texture(x) => {
+                x.state &= !state::FINISHED;
+                x.speed = s;
+            }
+            NodeKind::Camera(x) => {
                 x.state &= !state::FINISHED;
                 x.speed = s;
             }
@@ -678,7 +721,7 @@ impl EFAnimationMgr {
         match &self.node(i).kind {
             NodeKind::HAnim(h) => h.coll.clone(),
             NodeKind::Blend(_) => self.node(i).coll.clone(),
-            NodeKind::Root | NodeKind::Texture(_) => CollPrimList::default(),
+            NodeKind::Root | NodeKind::Texture(_) | NodeKind::Camera(_) => CollPrimList::default(),
         }
     }
 
@@ -700,7 +743,7 @@ impl EFAnimationMgr {
         match &self.node(i).kind {
             NodeKind::HAnim(h) => h.transfos.clone(),
             NodeKind::Blend(_) => self.node(i).out.clone(),
-            NodeKind::Root | NodeKind::Texture(_) => Vec::new(),
+            NodeKind::Root | NodeKind::Texture(_) | NodeKind::Camera(_) => Vec::new(),
         }
     }
 
@@ -1131,6 +1174,11 @@ impl EFAnimationMgr {
                 }
             }
             4 => self.UpdateBlend(dt, i),
+            7 => {
+                if let NodeKind::Camera(c) = &mut self.node_mut(i).kind {
+                    c.Update(dt);
+                }
+            }
             _ => {}
         }
     }

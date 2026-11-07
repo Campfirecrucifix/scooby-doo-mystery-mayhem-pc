@@ -42,6 +42,13 @@ pub mod addr {
 /// `(**(code **)(L + 0x178))()`: run the current sub-state.
 pub fn call_state(e: &mut Engine) -> LResult<()> {
     let f = e.r32(L(e) + 0x178);
+    if std::env::var_os("P22_BOSSDBG").is_some() {
+        let l = L(e);
+        let hero = e.r32(e.r32(GDM(e)) + 8);
+        let d = LIBApiCFunctions::GetDistance(e, SELF as i32, hero, ALL as i32, 0);
+        let gb0 = e.r32(GDZ(e));
+        eprintln!("BOSSDBG f{} st {f:#x} d {d:.2} pw {} ph {} ev {:#x} cond {:#x} g14 {:#x} lock {} cool {}", crate::engine::runtime::TRACE_FRAME.load(std::sync::atomic::Ordering::Relaxed), e.rf(l + 0x1fc), e.r32(l + 0x198), e.r32(l + 0x17c), e.r32(l + 0x180), e.r32(gb0 + 0x14), e.r32(gb0 + 0x74), e.rt.game_buffers.get(&1).map_or(-1.0, |b| e.mem.rf(b.0)));
+    }
     match f {
         addr::ZombieBossST_DEFENSIVE_ATTACK_SET => ZombieBossST_DEFENSIVE_ATTACK_SET(e),
         addr::ZombieBossST_DEFENSIVE_ATTACK_LOOP => ZombieBossST_DEFENSIVE_ATTACK_LOOP(e),

@@ -150,7 +150,10 @@ pub fn heroCB_EDGEDETECT(e: &mut Engine, param_1: u32) -> LResult<u64> {
     let on = e.r32(param_1 + 4) != 0;
     let q = e.r32(param_1 + 8);
     let b14 = GB0(e) + 0x14;
-    if id == 0x66 {
+    // P27 (B7): the tags are per character (Scooby 0x66/0x67, every Shaggy build 0x70/0x71, Shaggy
+    // hero_callbacks.c:178/210); the port compared Scooby's for both, so Shaggy never saw a ledge.
+    let (ledge, crawl) = if tables::CHAR_NAME[e.rt.cur_build()] == "Shaggy" { (0x70, 0x71) } else { (0x66, 0x67) };
+    if id == ledge {
         if !on {
             and_w(e, b14, 0xffff_efff);
         } else {
@@ -174,7 +177,7 @@ pub fn heroCB_EDGEDETECT(e: &mut Engine, param_1: u32) -> LResult<u64> {
             edge_quad(e, l, q, 0x2f0);
             heroFUNC_SetEdgeLimits(e, l)?;
         }
-    } else if id == 0x67 {
+    } else if id == crawl {
         if !on {
             and_w(e, b14, 0xffff_bfff);
         } else {

@@ -87,8 +87,8 @@ pub fn MyMessageFunction(e: &mut Engine, mp1: u32, mp2: u32, mp3: Ptr) -> LResul
     let frame = e.alloca(0x30);
     if (param_1 == 208i32) {
         if (e.r32((e.r32(g(e, 0x10018))).wrapping_add((3u32).wrapping_mul(4))) != 0u32) {
-            { let a1 = (((e.r32(g(e, 0x10cd0))) as u64)) as u64; e.w64(((frame + 0x0)).wrapping_add(0), a1) };
-            { let a1 = ((e.r32(g(e, 0x10cd8))) as f32); e.wf(((frame + 0x0)).wrapping_add(8), a1) };
+            { let a1 = e.r64(g(e, 0x10cd0)); /* P32 R36: 8-byte ldl/ldr copy */ e.w64(((frame + 0x0)).wrapping_add(0), a1) };
+            { let a1 = e.rf(g(e, 0x10cd8)); /* P32 R36: float bits, not int->float */ e.wf(((frame + 0x0)).wrapping_add(8), a1) };
             let _ = { let a1 = e.r32((e.r32(g(e, 0x10018))).wrapping_add((3u32).wrapping_mul(4))); APIgameobj::LeaveParent(e, a1, 0u32) };
             let _ = { let a1 = e.r32((e.r32(g(e, 0x10018))).wrapping_add((3u32).wrapping_mul(4))); let a2 = ((e.r32((e.r32(g(e, 0x10018))).wrapping_add((2u32).wrapping_mul(4)))) as i32); APIgameobj::SetGameObjectVisible(e, a1, a2) };
             let _ = { let a1 = e.r32((e.r32(g(e, 0x10018))).wrapping_add((3u32).wrapping_mul(4))); APIgameobj::SetTranslation(e, a1, (frame + 0x0)) };

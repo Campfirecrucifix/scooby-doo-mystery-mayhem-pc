@@ -46,6 +46,10 @@ pub fn fcback_NOTIFY_COLLIDE_OBJ(e: &mut Engine, ep1: u32) -> LResult<u64> {
     let mut param_1: i32 = ((ep1) as i32);
     let mut uVar1: u32 = 0;
     let frame = e.alloca(0x30);
+    if std::env::var_os("GAME_TOWERLOG").is_some() {
+        let gb0 = e.r32(e.r32(g(e, 0x10030)));
+        eprintln!("siegetower: COLLIDE_OBJ gb2 {:#x} hero {:#x} other {:#x} hero+0x14 {:#x} local+0xc {}", e.r32(e.r32((e.r32(g(e, 0x10030))).wrapping_add(4))), e.r32(gb0.wrapping_add(8)), e.r32((param_1 as u32).wrapping_add(8)), e.r32(gb0.wrapping_add(20)), e.r32((e.r32(g(e, 0x1002c))).wrapping_add(12)));
+    }
     if (((((e.r32(e.r32((e.r32(g(e, 0x10030))).wrapping_add((1u32).wrapping_mul(4)))) & 0x20000u32) == 0u32) && (e.ri32((e.r32(e.r32(g(e, 0x10030)))).wrapping_add(8u32)) == e.ri32((((param_1).wrapping_add(8i32)) as u32)))) && ((e.r32((e.r32(e.r32(g(e, 0x10030)))).wrapping_add(20u32)) & 0x6e20094du32) == 0u32)) && (e.ri32((e.r32(g(e, 0x1002c))).wrapping_add(12u32)) == 0i32)) {
         let _ = APIinput::InputConfigActivate(e, 1300i32, 1i32);
         { let a0 = (e.r32(g(e, 0x1002c))).wrapping_add(20u32); e.w32(a0, 1u32) };
@@ -86,6 +90,7 @@ pub fn fcback_InputAction_X(e: &mut Engine, ep1: u32) -> LResult<u64> {
     let mut pAVar2: u32 = 0;
     let mut uVar3: u32 = 0;
     let mut uVar4: u32 = 0;
+    if std::env::var_os("GAME_TOWERLOG").is_some() { eprintln!("siegetower: InputAction_X hero+0x14 {:#x}", e.r32((e.r32(e.r32(g(e, 0x10030)))).wrapping_add(20u32))); }
     if ((e.r32((e.r32(e.r32(g(e, 0x10030)))).wrapping_add(20u32)) & 0x6e20094du32) == 0u32) {
         let _ = APIinput::InputConfigActivate(e, 1300i32, 0i32);
         pAVar2 = e.r32(g(e, 0x10018));

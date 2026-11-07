@@ -1,7 +1,7 @@
 //! APIphysic_* host functions (Engine API (module interface)/EFApi_Physic.cpp), 1:1.
 //! `EFWorld::GetGameObject(uid)+0x28` is `mgr.PhysicOf(uid)`; module handles go through the
 //! manager's table. Param blocks are word slices (the logic VM copies them to/from Mem).
-//! Unported here: EF3dObj::CreateCollisionPrimitives; JumpOnCoor flags 4/8 (DTQuartic::Solve).
+//! EF3dObj::CreateCollisionPrimitives lives in create_prims.rs; JumpOnCoor (incl. flags 4/8) in host/physic.rs.
 //! WP-E7 added SetSpherePrimaryVolume, Prim*IntAttrib*, Prim{Get,Set}OffsetFromJoint,
 //! JumpOnCoor and the CheckRayIntersection result packing (`CheckRayIntersectionOut`).
 #![allow(non_snake_case)]
@@ -320,61 +320,6 @@ pub fn PrimSetOffsetFromJoint(m: &mut EFPhysicMgr, uid: u32, tag: u32, o: V3) ->
     q.base.offset = o;
     q.base.center = add(q.base.center, q.base.offset);
     0
-}
-
-/// JumpOnCoorParam (guest struct, 10 words): +0 target, +0xc target velocity, +0x18 max speed,
-/// +0x1c flags (1 clamp speed, 2 apex height, 4/8 quartic solves), +0x20 apex height,
-/// +0x24 DM handle whose +0x30 vector is the gravity (an EFDMAcceleration).
-/// JumpOnCoor (0x001f7940): sets the velocity that reaches the target under that gravity.
-/// The gravity is read as the module's GetParams words 0..3 (== module+0x30 for the
-/// EFDMAcceleration both callers pass). quirk: an invalid handle reads low memory in the C++;
-/// gravity (0,0,0) here. Unported: flags 4/8 (DTQuartic::Solve) keep the flag-2 time.
-pub fn JumpOnCoor(m: &mut EFPhysicMgr, uid: u32, prm: &[u32], w: &dyn PhysicWorld) {
-    let id = m.PhysicOf(uid);
-    let Some(pos) = m.Physic(id).map(|p| p.frame.pos) else { return };
-    let g = DMGetParams(m, prm[9], w).map_or([0.0; 3], |v| if v.len() >= 3 { wv(&v, 0) } else { [0.0; 3] });
-    let target = wv(prm, 0);
-    let tv = wv(prm, 3);
-    let flags = prm[7];
-    let height = wf(prm, 8);
-    let d = sub(target, pos);
-    let mut t = 0.01f32;
-    if flags & 2 != 0 {
-        let l = -RwV3dLength(g);
-        let k = 1.0 / l;
-        let n = scale(g, k);
-        let h = d[2] * n[2] + d[0] * n[0] + d[1] * n[1];
-        let vt = tv[2] * n[2] + tv[0] * n[0] + tv[1] * n[1];
-        let v0 = (l * -2.0 * height).sqrt();
-        let hh = h + height;
-        t = v0;
-        if 0.0 < hh {
-            t = vt + (l * -2.0 * hh).sqrt();
-            if t <= v0 {
-                t = v0;
-            }
-        }
-        t -= vt;
-        t = (t + (t * t + h * 2.0 * l).sqrt()) / -l;
-    }
-    if flags & 0xc != 0 {
-        log::warn!("APIphysic::JumpOnCoor: flags {flags:#x} need DTQuartic::Solve (unported)");
-    }
-    let half = scale(g, t * 0.5);
-    let mut v = sub(add(scale(d, 1.0 / t), tv), half);
-    if flags & 1 != 0 {
-        let mx = wf(prm, 6);
-        let l2 = v[2] * v[2] + v[0] * v[0] + v[1] * v[1];
-        if mx * mx < l2 {
-            v = scale(v, mx / l2.sqrt());
-        }
-    }
-    if uid != 0 {
-        if let Some(p) = m.PhysicMut(id) {
-            p.velocity = v;
-            p.falling_timer = p.falling_delay;
-        }
-    }
 }
 
 /// CheckRayIntersection(in, out) (0x001f7fa0) with the guest RayIntersectOut packing (15 words):

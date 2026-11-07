@@ -679,8 +679,8 @@ pub fn fstate_BASICMOVE_LOOP_LOCAL(e: &mut Engine, ep1: u32) -> LResult<u64> {
 /// 0x00014488
 pub fn JumpCollectable(e: &mut Engine) -> LResult<()> {
     let frame = e.alloca(0x30);
-    { let a1 = (((e.r32(g(e, 0x10e88))) as u64)) as u64; e.w64(((frame + 0x0)).wrapping_add(0), a1) };
-    { let a1 = ((e.r32(g(e, 0x10e90))) as f32); e.wf(((frame + 0x0)).wrapping_add(8), a1) };
+    { let a1 = e.r64(g(e, 0x10e88)); /* P32 R36: 8-byte ldl/ldr copy */ e.w64(((frame + 0x0)).wrapping_add(0), a1) };
+    { let a1 = e.rf(g(e, 0x10e90)); /* P32 R36: float bits, not int->float */ e.wf(((frame + 0x0)).wrapping_add(8), a1) };
     let _ = { let a3 = (e.r32(g(e, 0x100ec))).wrapping_add(100u32); APIgameobj::GetPosition(e, 0x2a000000u32, 0x7fffffffu32, a3) };
     let _ = APIgameobj::UnregisterNotify(e, 0x2a000000u32, 0xffffffffu32, 10u32);
     let _ = APIphysic::ResetFlags(e, 0x2a000000u32, 1u32);

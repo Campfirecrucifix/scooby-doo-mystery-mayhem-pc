@@ -61,6 +61,19 @@ pub struct LevelRequest {
     pub external_files: Vec<String>,
 }
 
+impl LevelRequest {
+    /// Debug hook (not in the C): `GAME_LOADLEVEL=EP1L02:frame` requests a switch like
+    /// APIgame::LoadLevel once, at `frame`. Latched by `fired`: the frame counter stays at
+    /// `frame` while the level loads, so an unlatched check re-queued the request every tick.
+    pub fn forced(spec: &str, frame: u32, fired: &mut bool) -> Option<LevelRequest> {
+        if *fired { return None; }
+        let (l, f) = spec.split_once(':')?;
+        if f.parse::<u32>().ok()? != frame { return None; }
+        *fired = true;
+        Some(LevelRequest { level: l.to_string(), pack: format!("{}.P2R", l.replace('/', "")), video: None, external_files: Vec::new() })
+    }
+}
+
 /// SOUND_ driver karaoke state (gfTVOutputVolume 0x343960 etc., values from EXE.1 .data).
 /// Replaced: there is no IOP / USB microphone; the IOP command words the driver would send are
 /// appended to `iop_commands` (StartCommand code, data...) so the behaviour is observable.
@@ -320,6 +333,7 @@ pub fn Pause(e: &mut Engine, p: u32) -> u32 {
         let Some((f, id)) = e.rt.objects[h].as_ref().map(|o| (o.logic_flags, o.id)) else { continue };
         if f & 2 != 0 {
             // SetLogicFlags(f | 0x78) / SetLogicFlags(f & ~0x78)
+            let _b = crate::logic::LogicBind::new(&mut e.rt);
             if on != 0 {
                 e.host.APIgameobj_SetLogicFlag(&mut e.mem, id, 0x78);
             } else {

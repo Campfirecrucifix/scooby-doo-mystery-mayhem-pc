@@ -71,7 +71,7 @@ pub fn BoatRadarST_SCANNING(e: &mut Engine, ep1: u32) -> LResult<u64> {
         let _ = { let a1 = e.r32((((iVar2).wrapping_add(40i32)) as u32)); APIgameobj::SendMessageTo(e, a1, NULL, 0x16bu32, 0u32, (((iVar2).wrapping_add(12i32)) as u32)) };
     } else if (uVar1 < 111u32) {
         if (uVar1 == 53u32) {
-            let _ = { let a1 = e.r32((((iVar2).wrapping_add(4i32)) as u32)); APIextra::TimerGetTime(e, a1) };
+            fVar4 = { let a1 = e.r32((((iVar2).wrapping_add(4i32)) as u32)); APIextra::TimerGetTime(e, a1) };
             e.wf((frame + 0x10), fVar4);
             if ((fVar4 <= 2.0) || { { iVar3 = ((BoatRadarFUNC_IsHeroCanBeAttacked(e, iVar2)?) as i32); iVar3 }; (iVar3 != 0i32) }) {
                 let _ = { let a1 = ((e.rf((((iVar2).wrapping_add(16i32)) as u32)) * 3.0) * 0.017453292); let a2 = e.r32((e.r32(e.r32(g(e, 0x10030)))).wrapping_add(8u32)); BoatRadarFUNC_TrackObjectSmoothly(e, a1, a2)? };

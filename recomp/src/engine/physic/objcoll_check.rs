@@ -826,6 +826,15 @@ pub mod swept {
 
         /// EFObjCollisionSweptSphere::CheckBBoxCollision (0x001d4d30). Returns 0 / 1 hit at t / 2 overlap.
         pub fn Swept_CheckBBoxCollision(&self, i: &EFCheckCollisionIn, o: &mut EFCheckCollisionOut, b: &ObjPrim) -> u32 {
+            let r = self.Swept_CheckBBoxCollision_(i, o, b);
+            // P23 R44 debug: GAME_SWBBDBG=1 prints swept-vs-bbox hits (EP6/L02 arc posts)
+            if r != 0 && std::env::var_os("GAME_SWBBDBG").is_some() {
+                let (wv, sr) = self.swept_parts();
+                eprintln!("SWBB hit c {:.2?} w {:.2?} sr {:.2} mot {:.2?} box {:.2?} r {:#x}", self.base.center, wv, sr, i.motion, b.base.center, r);
+            }
+            r
+        }
+        fn Swept_CheckBBoxCollision_(&self, i: &EFCheckCollisionIn, o: &mut EFCheckCollisionOut, b: &ObjPrim) -> u32 {
             let PrimExt::BBox { half, m: world, inv, .. } = &b.ext else { return 0 };
             let half = *half;
             let (wv, sr) = self.swept_parts();

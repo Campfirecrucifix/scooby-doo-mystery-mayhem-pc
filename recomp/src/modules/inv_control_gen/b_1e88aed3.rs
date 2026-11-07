@@ -474,7 +474,7 @@ pub fn inv_controlST_FIRSTMOVE(e: &mut Engine, ep1: u32) -> LResult<u64> {
         { let a0 = (e.r32(g(e, 0x10084))).wrapping_add(56u32); e.w32(a0, 2u32) };
     }
     { let a0 = (e.r32(g(e, 0x10084))).wrapping_add(32u32); e.w32(a0, 0u32) };
-    { let a0 = (e.r32(g(e, 0x10084))).wrapping_add(36u32); let a1 = g(e, 0x40400000); e.w32(a0, a1) };
+    { let a0 = (e.r32(g(e, 0x10084))).wrapping_add(36u32); let a1 = 0x40400000u32 /* fix (B15): C `&SUB_40400000` is the constant 3.0f, not a data address */; e.w32(a0, a1) };
     { let a0 = (e.r32(g(e, 0x10084))).wrapping_add(40u32); e.w32(a0, 0x42200000u32) };
     { let a0 = (e.r32(g(e, 0x10084))).wrapping_add(44u32); e.w32(a0, 0x40800000u32) };
     { let a0 = (e.r32(g(e, 0x10084))).wrapping_add(0x2e8u32); e.w32(a0, 0x41300000u32) };
@@ -574,7 +574,7 @@ pub fn inv_controlCB_TIMER_INITIALIZE(e: &mut Engine, ep1: u32) -> LResult<u64> 
             let _ = { let a1 = e.r32((e.r32(g(e, 0x10084))).wrapping_add(0x2fcu32)); APIhud::WindowSetFlags(e, a1, 0x100u32) };
             let _ = { let a1 = e.r32((e.r32(g(e, 0x10084))).wrapping_add(0x300u32)); APIhud::WindowResetFlags(e, a1, 0x100u32) };
             let _ = { let a1 = e.r32((e.r32(g(e, 0x10084))).wrapping_add(0x308u32)); APIhud::WindowResetFlags(e, a1, 0x100u32) };
-            { let a0 = (e.r32(g(e, 0x10084))).wrapping_add(36u32); let a1 = g(e, 0x40400000); e.w32(a0, a1) };
+            { let a0 = (e.r32(g(e, 0x10084))).wrapping_add(36u32); let a1 = 0x40400000u32 /* fix (B15): C `&SUB_40400000` is the constant 3.0f, not a data address */; e.w32(a0, a1) };
             pAVar2 = e.r32(g(e, 0x100b4));
             iVar1 = ((e.r32(g(e, 0x10084))) as i32);
             uVar4 = ((((f32::from_bits(e.r32((e.r32(g(e, 0x10084))).wrapping_add(36u32)))) as u32)) as u64);
@@ -602,7 +602,7 @@ pub fn inv_controlCB_TIMER_START(e: &mut Engine, ep1: u32) -> LResult<u64> {
     let _ = { let a1 = e.r32((((iVar2).wrapping_add(772i32)) as u32)); APIhud::TextWindowSetText(e, a1, 0x14fu32, &[((uVar4) as u32)]) };
     bVar1 = (e.rf((e.r32(g(e, 0x10084))).wrapping_add(36u32)) < 0.0);
     if bVar1 {
-        { let a0 = (e.r32(g(e, 0x10084))).wrapping_add(44u32); let a1 = g(e, 0x40400000); e.w32(a0, a1) };
+        { let a0 = (e.r32(g(e, 0x10084))).wrapping_add(44u32); let a1 = 0x40400000u32 /* fix (B15): C `&SUB_40400000` is the constant 3.0f, not a data address */; e.w32(a0, a1) };
         let _ = { let a1 = e.r32((e.r32(g(e, 0x10084))).wrapping_add(16u32)); APIextra::TimerReset(e, a1) };
         let _ = { let a2 = e.r32((e.r32(g(e, 0x10084))).wrapping_add(16u32)); APIextra::TimerRegisterNotify(e, 0x2a000000u32, a2, 20u32) };
         let _ = { let a1 = e.r32((e.r32(g(e, 0x10084))).wrapping_add(20u32)); APIextra::TimerReset(e, a1) };

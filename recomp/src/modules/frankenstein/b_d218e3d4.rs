@@ -48,7 +48,7 @@ pub fn frankensteinST_ACTIVE(e: &mut Engine, ep1: u32) -> LResult<u64> {
         { let a0 = (e.r32(g(e, 0x10028))).wrapping_add(36u32); e.w32(a0, 1u32) };
         uVar1 = e.r32((e.r32(g(e, 0x10028))).wrapping_add(40u32));
         if (uVar1 == 52u32) {
-            { let a0 = (e.r32(e.r32(g(e, 0x1002c)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x1002c)))).wrapping_add(20u32)) | g(e, 0x10000)); e.w32(a0, a1) };
+            { let a0 = (e.r32(e.r32(g(e, 0x1002c)))).wrapping_add(20u32); let a1 = (e.r32((e.r32(e.r32(g(e, 0x1002c)))).wrapping_add(20u32)) | 0x10000u32); e.w32(a0, a1) };
             iVar2 = LIBAnimMngr::PlayAnim(e, 0.1, 2i32, 2i32, 0i32);
             { let a0 = (e.r32(g(e, 0x10028))).wrapping_add(52u32); e.wi32(a0, iVar2) };
             let _ = { let a2 = (e.r32(g(e, 0x10028))).wrapping_add(172u32); APIgameobj::SetTranslation(e, 0x2a000000u32, a2) };
@@ -57,7 +57,7 @@ pub fn frankensteinST_ACTIVE(e: &mut Engine, ep1: u32) -> LResult<u64> {
         }
         if (uVar1 < 53u32) {
             if (uVar1 == 46u32) {
-                uVar3 = (({ let a2 = e.r32((e.r32(e.r32(g(e, 0x1002c)))).wrapping_add(8u32)); LIBApiCFunctions::GetDistance(e, 0x2a000000i32, a2, 0x7fffffffi32, 7i32) }) as i64 as u32);
+                uVar3 = (({ let a2 = e.r32((e.r32(e.r32(g(e, 0x1002c)))).wrapping_add(8u32)); LIBApiCFunctions::GetDistance(e, 0x2a000000i32, a2, 0x7fffffffi32, 7i32) }).to_bits()) /* quirk fix: C stores the float return bits (undefined4 = float) */;
                 { let a0 = (e.r32(g(e, 0x10028))).wrapping_add(72u32); e.w32(a0, uVar3) };
                 iVar2 = ((frankensteinFUNC_Check_Special_Case(e)?) as i32);
                 if (iVar2 == 0i32) {
@@ -169,7 +169,7 @@ pub fn frankensteinST_ACTIVE(e: &mut Engine, ep1: u32) -> LResult<u64> {
             }
             fVar4 = { let a1 = e.r32((e.r32(g(e, 0x10028))).wrapping_add(32u32)); APIextra::TimerGetTime(e, a1) };
             if (0.75 < fVar4) {
-                uVar3 = (({ let a2 = e.r32((e.r32(e.r32(g(e, 0x1002c)))).wrapping_add(8u32)); LIBApiCFunctions::GetDistance(e, 0x2a000000i32, a2, 0x7fffffffi32, 7i32) }) as i64 as u32);
+                uVar3 = (({ let a2 = e.r32((e.r32(e.r32(g(e, 0x1002c)))).wrapping_add(8u32)); LIBApiCFunctions::GetDistance(e, 0x2a000000i32, a2, 0x7fffffffi32, 7i32) }).to_bits()) /* quirk fix: C stores the float return bits (undefined4 = float) */;
                 { let a0 = (e.r32(g(e, 0x10028))).wrapping_add(72u32); e.w32(a0, uVar3) };
                 let _ = { let a1 = e.r32((e.r32(g(e, 0x10028))).wrapping_add(32u32)); APIextra::TimerReset(e, a1) };
                 uVar3 = frankensteinFUNC_GetNearestHero(e)?;
@@ -477,7 +477,8 @@ pub fn frankensteinFUNC_Calculate_Squared_Distance_On_Track(e: &mut Engine, mut 
     uVar1 = e.r64(param_1);
     fVar3 = e.rf((param_1).wrapping_add((((1i32) as u32)).wrapping_mul(8)));
     let _ = { let a1 = e.r32((e.r32(g(e, 0x10028))).wrapping_add(68u32)); APIextra::WaypointGetPos(e, a1, param_2, (frame + 0x20)) };
-    e.wf((frame + 0x0), ((uVar1) as f32));
+    // fix (B13): C `fStack_70 = (float)uVar1` keeps the low word of the 64-bit load (= x bits), not an int->float convert
+    e.wf((frame + 0x0), f32::from_bits(uVar1 as u32));
     fVar2 = { let a1 = (e.rf((frame + 0x0)) - e.rf(((frame + 0x20)).wrapping_add(0))); APImath::powf(e, a1, 2.0) };
     fVar3 = { let a1 = (fVar3 - e.rf(((frame + 0x20)).wrapping_add(8))); APImath::powf(e, a1, 2.0) };
     uVar1 = (((((fVar2 + fVar3)) as u32)) as u64);
@@ -540,10 +541,11 @@ pub fn frankensteinFUNC_PathingAI(e: &mut Engine) -> LResult<u64> {
 pub fn frankensteinFUNC_SetPathingDirection(e: &mut Engine) -> LResult<u64> {
     let frame = e.alloca(0x20);
     { let a1 = (((e.ri32((e.r32(g(e, 0x10028))).wrapping_add(92u32))).wrapping_sub(e.ri32((e.r32(g(e, 0x10028))).wrapping_add(88u32)))) as u32); e.w32((frame + 0x0), a1) };
-    if (e.r32((frame + 0x0)) < 0u32) {
+    // fix (B13): C uStack_20 is a signed int (both compares signed); c2rs made them unsigned -> dir always -1
+    if (e.ri32((frame + 0x0)) < 0i32) {
         { let a1 = (e.r32((frame + 0x0))).wrapping_add(((e.ri32((e.r32(g(e, 0x10028))).wrapping_add(64u32))) as u32)); e.w32((frame + 0x0), a1) };
     }
-    if (e.r32((frame + 0x0)) < ((((e.ri32((e.r32(g(e, 0x10028))).wrapping_add(64u32))).wrapping_div(2i32)).wrapping_add(4i32)) as u32)) {
+    if (e.ri32((frame + 0x0)) < (((e.ri32((e.r32(g(e, 0x10028))).wrapping_add(64u32))).wrapping_div(2i32)).wrapping_add(4i32))) {
         { let a0 = (e.r32(g(e, 0x10028))).wrapping_add(96u32); e.w32(a0, 1u32) };
     } else {
         { let a0 = (e.r32(g(e, 0x10028))).wrapping_add(96u32); e.w32(a0, 0xffffffffu32) };
@@ -638,9 +640,9 @@ pub fn frankensteinFUNC_IsThereAnyObstacle(e: &mut Engine, mut param_1: f32, mut
                 e.wf((frame + 0xa8), param_1);
                 let _ = APIgameobj::GetPosition(e, param_2, 0x7fffffffu32, (frame + 0x70));
                 if !(param_3 == 0i32) { pc = 1; continue 'sm; }
-                { let a1 = ((e.r32((param_4).wrapping_add((2u32).wrapping_mul(4)))) as f32); e.wf(((frame + 0x80)).wrapping_add(8), a1) };
-                { let a1 = ((e.r32((param_4).wrapping_add((1u32).wrapping_mul(4)))) as f32); e.wf(((frame + 0x80)).wrapping_add(4), a1) };
-                { let a1 = ((e.r32(param_4)) as f32); e.wf(((frame + 0x80)).wrapping_add(0), a1) };
+                { let a1 = f32::from_bits(e.r32((param_4).wrapping_add((2u32).wrapping_mul(4)))); e.wf(((frame + 0x80)).wrapping_add(8), a1) };
+                { let a1 = f32::from_bits(e.r32((param_4).wrapping_add((1u32).wrapping_mul(4)))); e.wf(((frame + 0x80)).wrapping_add(4), a1) };
+                { let a1 = f32::from_bits(e.r32(param_4)); e.wf(((frame + 0x80)).wrapping_add(0), a1) };
                 { pc = 2; continue 'sm; }
                 pc = 1;
             }

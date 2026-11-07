@@ -193,6 +193,7 @@ pub fn Wisp_baseState_Active_In(e: &mut Engine, param_1: Ptr) {
 
 /// 0x000139b8 bob in place until picked / hooked / deactivated
 pub fn Wisp_baseState_Active_Execute(e: &mut Engine, param_1: Ptr) {
+    wdbg(e, param_1, "active");
     if e.r32(param_1 + 4) & 0x1000_0000 == 0 {
         e.w32(param_1, ADDR_Inactive_In);
     } else if Wisp_baseFUNC_CheckEvents(e, 0x13) == 0 {
@@ -226,6 +227,7 @@ pub fn Wisp_baseState_Launched_In(e: &mut Engine, param_1: Ptr) {
 /// 0x00013c98 fall until the launch's ground height, then become a normal active wisp there
 pub fn Wisp_baseState_Launched_Execute(e: &mut Engine, param_1: Ptr) {
     APIgameobj::GetPosition(e, SELF, ALL, param_1 + 0x68);
+    wdbg(e, param_1, "launched");
     if e.rf(param_1 + 0x6c) < e.rf(param_1 + 0x4c) {
         APIphysic::SetVelocity(e, SELF, 0.0, 0.0, 0.0);
         let v = e.r32(param_1 + 0x4c);
@@ -248,6 +250,7 @@ pub fn Wisp_baseState_Hooked_In(e: &mut Engine, param_1: Ptr) {
 
 /// 0x00013e40 picked when within 1 unit of the book (if pickable and the power is not full)
 pub fn Wisp_baseState_Hooked_Execute(e: &mut Engine, param_1: Ptr) {
+    wdbg(e, param_1, "hooked");
     let DStack_50 = e.alloca(16);
     let DStack_40 = e.alloca(16);
     let fVar1 = APIextra::TimerGetTime(e, GAME_TIMER);
@@ -275,6 +278,7 @@ pub fn Wisp_baseState_Released_In(e: &mut Engine, param_1: Ptr) {
 
 /// 0x00014000 slow down (speed -0.4 per frame); at 1.0 stop and return home
 pub fn Wisp_baseState_Released_Exectute(e: &mut Engine, param_1: Ptr) {
+    wdbg(e, param_1, "released");
     if Wisp_baseFUNC_CheckEvents(e, 0x11) == 0 {
         let v = e.rf(param_1 + 0x9c) + -0.4;
         e.wf(param_1 + 0x9c, v);
@@ -305,6 +309,7 @@ pub fn Wisp_baseState_Return_In(e: &mut Engine, param_1: Ptr) {
 /// 0x000141d0 home: fly back (speed 5, easing x0.8 inside 5 units), active again within 0.2.
 /// Carried: given back to the carrier (message 0x120) within 0.9 units.
 pub fn Wisp_baseState_Return_Execute(e: &mut Engine, param_1: Ptr) {
+    wdbg(e, param_1, "return");
     let DStack_90 = e.alloca(16);
     let DStack_80 = e.alloca(16);
     let DStack_70 = e.alloca(16);
@@ -376,6 +381,7 @@ pub fn Wisp_baseState_Picked_In(e: &mut Engine, param_1: Ptr) {
 /// 0x00014720 refill the book: +18 small, +36 medium, +54 large, capped at 180; tell the carrier, the
 /// book (0x122 with the size when sucked), play sound 0x17 on the book, message 0x1d to 0x2a100006
 pub fn Wisp_baseState_Picked_Execute(e: &mut Engine, param_1: Ptr) {
+    wdbg(e, param_1, "picked");
     let fVar2 = APIextra::TimerGetTime(e, GAME_TIMER);
     if fVar2 <= e.rf(param_1 + 0xa4) {
         return;
@@ -429,6 +435,7 @@ pub fn Wisp_baseState_Dead_In(e: &mut Engine, param_1: Ptr) {
 
 /// 0x00014b40 respawn (flag 0x100000, message 0xc1) or remove (flag 0x200000, already collected)
 pub fn Wisp_baseState_Dead_Execute(e: &mut Engine, param_1: Ptr) {
+    wdbg(e, param_1, "dead");
     let f = e.r32(param_1 + 4);
     if f & 0x10_0000 == 0 {
         if f & 0x20_0000 != 0 {
@@ -1149,4 +1156,16 @@ pub fn wisp_baseDestructor(e: &mut Engine, instanceCount: i32) -> LResult<()> {
         LIBMiscFunc::MiscFunc_DestroyGenericFX(e, fx);
     }
     Ok(())
+}
+
+// debug: GAME_WISPDBG=<wisp uid hex> logs that wisp's state/pos per frame
+fn wdbg(e: &mut Engine, param_1: Ptr, st: &str) {
+    if let Some(v) = std::env::var_os("GAME_WISPDBG") {
+        let id = e.r32(param_1 + 0x94);
+        if u32::from_str_radix(v.to_str().unwrap_or(""), 16).is_ok_and(|w| w == id) {
+            let t = e.alloca(16);
+            APIgameobj::GetPosition(e, SELF, ALL, t);
+            eprintln!("wispdbg {st} {id:#x} pos {:?} home {:?} spd {} flags {:#x} a8 {:#x}", e.mem.rv3(t), e.mem.rv3(param_1 + 0x68), e.rf(param_1 + 0x9c), e.r32(param_1 + 4), e.r32(param_1 + 0xa8));
+        }
+    }
 }

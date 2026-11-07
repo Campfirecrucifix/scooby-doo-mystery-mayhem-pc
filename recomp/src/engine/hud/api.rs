@@ -24,6 +24,9 @@ impl EFHudMgr {
         0
     }
     pub fn APIhud_WindowResetFlags(&mut self, a0: u32, a1: u32) -> u32 {
+        if std::env::var_os("GAME_TEXTLOG").is_some() {
+            eprintln!("[hud] ResetFlags win {a0:#x} {a1:#x}");
+        }
         if let Some(w) = self.WindowMut(a0) {
             w.flags &= !a1;
         }
@@ -144,7 +147,8 @@ impl EFHudMgr {
     /// SetTextToDisplay(text id, varargs): `args` = the vararg words (up to 20).
     pub fn APIhud_TextWindowSetText(&mut self, a0: u32, a1: u32, args: &[u32]) -> u32 {
         if std::env::var_os("GAME_TEXTLOG").is_some() {
-            eprintln!("[hud] SetText win {a0:#x} text {a1:#x}");
+            let txt: String = self.text.as_ref().and_then(|x| x.GetText(a1)).map(|b| b.iter().take(160).filter(|&&c| (0x20..0x7f).contains(&c)).map(|&c| c as char).collect()).unwrap_or_default();
+            eprintln!("[hud] SetText win {a0:#x} text {a1:#x} {txt:?}");
         }
         if let Some(t) = self.WindowMut(a0).and_then(|w| w.text()) {
             t.text_id = a1;

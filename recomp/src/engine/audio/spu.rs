@@ -122,6 +122,26 @@ impl Iterator for AdpcmStream {
     }
 }
 
+/// P26 R23 (audio silence): playback speed handed to the host player (rodio `Speed`) for a voice
+/// of `rate` Hz at `pitch`. REPLACEMENT detail, not in the C: rodio 0.22.2's SampleRateConverter
+/// computes `from * pos / to` in u32 (from/to = reduced source/device rate ratio); when
+/// from * to > 2^32 (e.g. 44100 Hz x 8.1325 = 358643 Hz vs 48 kHz, gcd 1) the product wraps and its
+/// `while current_span_pos_in_chunk != req_left_sample` loop runs ~2^32 times inside the cpal
+/// callback: the whole output stalls (all audio silent, game keeps running) for minutes. Snapping
+/// rate*speed to a multiple of 100 Hz keeps gcd >= 100 with any 44.1/48/96/192 kHz device rate
+/// (from * to stays tiny); pitch error <= 50 Hz (~4 cents at 22 kHz). Pitch 1 is passed unchanged.
+pub fn rodio_safe_speed(rate: u32, pitch: f32) -> f32 {
+    if !(pitch.is_finite() && pitch > 0.0) {
+        return 1.0;
+    }
+    if pitch == 1.0 || rate == 0 {
+        return pitch;
+    }
+    let target = (rate as f64 * pitch as f64 / 100.0).round().max(1.0) * 100.0;
+    // +0.5: rodio truncates `rate as f32 * speed` to u32
+    ((target + 0.5) / rate as f64) as f32
+}
+
 /// Envelope ticks precomputed per voice; past them the last level is held (sustain).
 const ENV_TICKS: usize = 48000 * 8;
 
@@ -189,5 +209,40 @@ impl Iterator for SpuVoice {
         let t = ((self.n as f64 / self.step) as usize).min(self.env.len() - 1);
         self.n += 1;
         Some((s as f32 * self.env[t]) as i16)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// P36 R8: audio callback budget under load. Worst case = all 48 SPU channels busy, each split
+    /// into its L/R host source (96 SpuVoice ADPCM decoders, stream-style), for one device buffer
+    /// (rodio default ~50 ms -> 2048 frames at 48 kHz = 42.7 ms). The decode share of the callback
+    /// must stay well inside the period on this (busy) PC, or the device would underrun.
+    #[test]
+    fn p36_callback_budget() {
+        let mut seed = 0x1234_5678u32;
+        let mut rnd = || { seed ^= seed << 13; seed ^= seed >> 17; seed ^= seed << 5; seed };
+        let blocks: Vec<u8> = (0..4096).flat_map(|_| {
+            let mut b = [0u8; 16];
+            b[0] = (rnd() % 5) as u8 * 16 + (rnd() % 12) as u8; // filter 0..4, shift 0..11
+            for x in &mut b[2..] { *x = rnd() as u8; }
+            b
+        }).collect();
+        let data: Arc<[u8]> = blocks.into();
+        let mut voices: Vec<SpuVoice> = (0..96).map(|k| SpuVoice::new(SpuData::Adpcm(data.clone()), [22050, 32000, 44100, 48000][k % 4], 1.0, 0, true, 0.0)).collect();
+        let period = 2048.0 / 48000.0;
+        let mut worst = 0f64;
+        let mut sum = 0i64;
+        for _ in 0..60 {
+            let t = std::time::Instant::now();
+            for v in voices.iter_mut() {
+                for _ in 0..(2048.0 * v.step).ceil() as usize { sum += v.next().unwrap_or(0) as i64; }
+            }
+            worst = worst.max(t.elapsed().as_secs_f64());
+        }
+        println!("p36_callback_budget: 96 decoders, worst {:.2} ms per {:.1} ms buffer ({:.0}%) [{sum}]", worst * 1e3, period * 1e3, worst / period * 100.0);
+        assert!(worst < period * 0.5, "decode takes {:.1} ms of a {:.1} ms buffer", worst * 1e3, period * 1e3);
     }
 }

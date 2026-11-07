@@ -198,7 +198,7 @@ pub fn KeyCage_BaseCB_InputAction_X(e: &mut Engine, ep1: u32) -> LResult<u64> {
     if ((e.r32((e.r32(e.r32(g(e, 0x100a0)))).wrapping_add(20u32)) & 0x6e20090du32) == 0u32) {
         fVar3 = { LIBApiText::InitStruct(e, (frame + 0x0)); 0.0 };
         if ((e.r32((e.r32((e.r32(g(e, 0x100a0))).wrapping_add((2u32).wrapping_mul(4)))).wrapping_add(12u32)) & e.r32((e.r32(g(e, 0x1009c))).wrapping_add(48u32))) == 0u32) {
-            let _ = { let a1 = e.r32((e.r32(g(e, 0x1009c))).wrapping_add(12u32)); APIextra::TimerGetTime(e, a1) };
+            fVar3 = { let a1 = e.r32((e.r32(g(e, 0x1009c))).wrapping_add(12u32)); APIextra::TimerGetTime(e, a1) };
             if (4.0 <= fVar3) {
                 let _ = APInewSound::Play(e, 0x2a000032u32, 48u32, 0u32);
                 let _ = { let a1 = e.r32((e.r32(g(e, 0x1009c))).wrapping_add(12u32)); APIextra::TimerReset(e, a1) };

@@ -13,6 +13,7 @@ pub enum SndAct {
 
 /// heroFUNC_ValideCurrentSound of one build: the `switch(anim)` cases (default: 0xffffffff), the
 /// constants of the `STOP snore` / `STOP runaway` checks, and whether the build has the debug prints.
+#[derive(Debug)]
 pub struct ValideCurrentSound {
     pub cases: &'static [(i32, SndAct)],
     pub snore: u32,
@@ -20,122 +21,66 @@ pub struct ValideCurrentSound {
     pub debug: bool,
 }
 
-pub static VALIDE_CURRENT_SOUND: &[ValideCurrentSound] = &[
-    // scooby__11adae8e
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (22, SndAct::Const(0x2a)), (23, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (29, SndAct::Const(0x40000055)), (30, SndAct::Const(0x40000055))], snore: 0x40000055, runaway: 0x2a, debug: true },
-    // scooby__11df665e
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (26, SndAct::Const(0x2a)), (27, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (33, SndAct::Const(0x40000056)), (34, SndAct::Const(0x40000056))], snore: 0x40000056, runaway: 0x2a, debug: true },
-    // scooby__128635c3
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (21, SndAct::Const(0x2a)), (22, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (27, SndAct::Const(0x4000003e)), (28, SndAct::Const(0x4000003e))], snore: 0x4000003e, runaway: 0x2a, debug: true },
-    // scooby__242c6a48
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (26, SndAct::Const(0x2a)), (27, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (32, SndAct::Const(0x40000016)), (33, SndAct::Const(0x40000016))], snore: 0x40000016, runaway: 0x2a, debug: true },
-    // scooby__2a9862df
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (27, SndAct::Const(0x2a)), (28, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (33, SndAct::Const(0x40000066)), (34, SndAct::Const(0x40000066))], snore: 0x40000066, runaway: 0x2a, debug: true },
-    // scooby__2b32b17e
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (3, SndAct::Field(0x9c)), (24, SndAct::Const(0x40000022)), (25, SndAct::Const(0x40000022)), (-14, SndAct::Const(0x2a)), (-13, SndAct::Const(0x2a)), (2, SndAct::Const(0x2a))], snore: 0x0, runaway: 0x0, debug: false },
-    // scooby__2b9d74e4
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (21, SndAct::Const(0x2a)), (22, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (27, SndAct::Const(0x40000037)), (28, SndAct::Const(0x40000037))], snore: 0x0, runaway: 0x0, debug: false },
-    // scooby__3de43fe2
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (28, SndAct::Const(0x2a)), (29, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (35, SndAct::Const(0x40000034)), (36, SndAct::Const(0x40000034))], snore: 0x40000034, runaway: 0x2a, debug: true },
-    // scooby__402420b4
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (33, SndAct::Const(0x2a)), (34, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (39, SndAct::Const(0x40000032)), (40, SndAct::Const(0x40000032))], snore: 0x40000032, runaway: 0x2a, debug: true },
-    // scooby__415322c3
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (32, SndAct::Const(0x2a)), (33, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (38, SndAct::Const(0x4000003e)), (39, SndAct::Const(0x4000003e))], snore: 0x4000003e, runaway: 0x2a, debug: true },
-    // scooby__5257b080
-    ValideCurrentSound { cases: &[(12, SndAct::Field(0xbc)), (13, SndAct::Const(0x2a)), (16, SndAct::Const(0x2a)), (20, SndAct::Const(0x2a)), (14, SndAct::Field(0x9c)), (36, SndAct::Const(0x40000024)), (37, SndAct::Const(0x40000024))], snore: 0x40000024, runaway: 0x2a, debug: true },
-    // scooby__52d75aa5
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (22, SndAct::Const(0x2a)), (23, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (28, SndAct::Const(0x40000034)), (29, SndAct::Const(0x40000034))], snore: 0x40000034, runaway: 0x2a, debug: true },
-    // scooby__5f68ee0e
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (33, SndAct::Const(0x2a)), (34, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (39, SndAct::Const(0x40000041)), (40, SndAct::Const(0x40000041))], snore: 0x0, runaway: 0x0, debug: false },
-    // scooby__625480d1
-    ValideCurrentSound { cases: &[(5, SndAct::Field(0xbc)), (6, SndAct::Const(0x2a)), (9, SndAct::Const(0x2a)), (13, SndAct::Const(0x2a)), (7, SndAct::Field(0x9c)), (40, SndAct::Const(0x4000005b)), (43, SndAct::Const(0x4000005b))], snore: 0x4000005b, runaway: 0x2a, debug: true },
-    // scooby__6e3372f0
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (22, SndAct::Const(0x2a)), (23, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (29, SndAct::Const(0x40000044)), (30, SndAct::Const(0x40000044))], snore: 0x40000044, runaway: 0x2a, debug: true },
-    // scooby__74367063
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (30, SndAct::Const(0x2a)), (31, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (36, SndAct::Const(0x40000045)), (37, SndAct::Const(0x40000045))], snore: 0x40000045, runaway: 0x2a, debug: true },
-    // scooby__79185eb3
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (26, SndAct::Const(0x2a)), (27, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (33, SndAct::Const(0x4000003b)), (34, SndAct::Const(0x4000003b))], snore: 0x4000003b, runaway: 0x2a, debug: true },
-    // scooby__7e698dff
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (29, SndAct::Const(0x2a)), (30, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (35, SndAct::Const(0x4000004e)), (36, SndAct::Const(0x4000004e))], snore: 0x4000004e, runaway: 0x2a, debug: true },
-    // scooby__83265b14
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (26, SndAct::Const(0x2a)), (27, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (33, SndAct::Const(0x4000004c)), (34, SndAct::Const(0x4000004c))], snore: 0x4000004c, runaway: 0x2a, debug: true },
-    // scooby__aae74b1e
-    ValideCurrentSound { cases: &[(3, SndAct::Field(0xbc)), (4, SndAct::Const(0x2a)), (7, SndAct::Const(0x2a)), (11, SndAct::Const(0x2a)), (5, SndAct::Field(0x9c)), (27, SndAct::Const(0x40000046)), (28, SndAct::Const(0x40000046))], snore: 0x0, runaway: 0x0, debug: false },
-    // scooby__bc7f3c1a
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (21, SndAct::Const(0x2a)), (22, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (27, SndAct::Const(0x40000022)), (28, SndAct::Const(0x40000022))], snore: 0x0, runaway: 0x0, debug: false },
-    // scooby__c33ca2c4
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (33, SndAct::Const(0x2a)), (34, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (39, SndAct::Const(0x40000051)), (40, SndAct::Const(0x40000051))], snore: 0x40000051, runaway: 0x2a, debug: true },
-    // scooby__c55e6477
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (21, SndAct::Const(0x2a)), (22, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (27, SndAct::Const(0x40000022)), (28, SndAct::Const(0x40000022))], snore: 0x0, runaway: 0x0, debug: false },
-    // scooby__cbbf384c
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (21, SndAct::Const(0x2a)), (22, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (28, SndAct::Const(0x40000039)), (29, SndAct::Const(0x40000039))], snore: 0x40000039, runaway: 0x2a, debug: true },
-    // scooby__d8a08bbd
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (34, SndAct::Const(0x2a)), (35, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (40, SndAct::Const(0x4000003b)), (41, SndAct::Const(0x4000003b))], snore: 0x4000003b, runaway: 0x2a, debug: true },
-    // scooby__df8bf53b
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (3, SndAct::Field(0x9c)), (20, SndAct::Const(0x4000002f)), (21, SndAct::Const(0x4000002f)), (-18, SndAct::Const(0x2a)), (-17, SndAct::Const(0x2a)), (2, SndAct::Const(0x2a))], snore: 0x4000002f, runaway: 0x2a, debug: true },
-    // scooby__f28bcd0e
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (24, SndAct::Const(0x2a)), (25, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (30, SndAct::Const(0x4000002c)), (31, SndAct::Const(0x4000002c))], snore: 0x4000002c, runaway: 0x2a, debug: true },
-    // scooby__f5ff9d42
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (24, SndAct::Const(0x2a)), (25, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (30, SndAct::Const(0x40000044)), (31, SndAct::Const(0x40000044))], snore: 0x40000044, runaway: 0x2a, debug: true },
-    // scooby__ffd170d9
-    ValideCurrentSound { cases: &[(13, SndAct::Field(0xbc)), (15, SndAct::Const(0x2a)), (18, SndAct::Const(0x2a)), (22, SndAct::Const(0x2a)), (16, SndAct::Field(0x9c)), (41, SndAct::Const(0x40000023)), (42, SndAct::Const(0x40000023))], snore: 0x40000023, runaway: 0x2a, debug: true },
-    // shaggy__0117f115
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (37, SndAct::Const(0x29)), (38, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (39, SndAct::Const(0x40000052)), (40, SndAct::Const(0x40000052))], snore: 0x40000052, runaway: 0x29, debug: true },
-    // shaggy__11ffbd5f
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (30, SndAct::Const(0x29)), (31, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (32, SndAct::Const(0x40000017)), (33, SndAct::Const(0x40000017))], snore: 0x40000017, runaway: 0x29, debug: true },
-    // shaggy__160eeb3e
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (35, SndAct::Const(0x29)), (36, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (37, SndAct::Const(0x4000004f)), (38, SndAct::Const(0x4000004f))], snore: 0x4000004f, runaway: 0x29, debug: true },
-    // shaggy__1730c849
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (26, SndAct::Const(0x29)), (27, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (28, SndAct::Const(0x40000038)), (29, SndAct::Const(0x40000038))], snore: 0x0, runaway: 0x0, debug: false },
-    // shaggy__21f6ed7b
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (30, SndAct::Const(0x29)), (31, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (33, SndAct::Const(0x4000004d)), (34, SndAct::Const(0x4000004d))], snore: 0x4000004d, runaway: 0x29, debug: true },
-    // shaggy__26992d64
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (39, SndAct::Const(0x29)), (40, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (41, SndAct::Const(0x4000003f)), (42, SndAct::Const(0x4000003f))], snore: 0x4000003f, runaway: 0x29, debug: true },
-    // shaggy__2ac8998c
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (32, SndAct::Const(0x29)), (33, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (35, SndAct::Const(0x40000035)), (36, SndAct::Const(0x40000035))], snore: 0x40000035, runaway: 0x29, debug: true },
-    // shaggy__35390b5f
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (28, SndAct::Const(0x29)), (29, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (30, SndAct::Const(0x40000045)), (31, SndAct::Const(0x40000045))], snore: 0x40000045, runaway: 0x29, debug: true },
-    // shaggy__4fb89b85
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (31, SndAct::Const(0x29)), (32, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (34, SndAct::Const(0x40000057)), (35, SndAct::Const(0x40000057))], snore: 0x40000057, runaway: 0x29, debug: true },
-    // shaggy__52d91ddd
-    ValideCurrentSound { cases: &[(12, SndAct::Field(0xbc)), (13, SndAct::Const(0x29)), (15, SndAct::Const(0x29)), (19, SndAct::Const(0x29)), (14, SndAct::Field(0x9c)), (36, SndAct::Const(0x40000025)), (37, SndAct::Const(0x40000025))], snore: 0x40000025, runaway: 0x29, debug: true },
-    // shaggy__53df9ee8
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (39, SndAct::Const(0x29)), (40, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (41, SndAct::Const(0x40000042)), (42, SndAct::Const(0x40000042))], snore: 0x40000042, runaway: 0x29, debug: true },
-    // shaggy__562b9dae
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (26, SndAct::Const(0x29)), (27, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (29, SndAct::Const(0x40000056)), (30, SndAct::Const(0x40000056))], snore: 0x40000056, runaway: 0x29, debug: true },
-    // shaggy__61655a9e
-    ValideCurrentSound { cases: &[(24, SndAct::Const(0x4000005c)), (27, SndAct::Const(0x4000005c)), (35, SndAct::Const(0x29)), (37, SndAct::Const(0x29)), (41, SndAct::Const(0x29)), (36, SndAct::Field(0x9c)), (43, SndAct::Field(0xbc))], snore: 0x4000005c, runaway: 0x29, debug: true },
-    // shaggy__6dafd227
-    ValideCurrentSound { cases: &[(15, SndAct::Field(0xbc)), (17, SndAct::Const(0x29)), (19, SndAct::Const(0x29)), (23, SndAct::Const(0x29)), (18, SndAct::Field(0x9c)), (43, SndAct::Const(0x40000024)), (44, SndAct::Const(0x40000024))], snore: 0x40000024, runaway: 0x29, debug: true },
-    // shaggy__914156a5
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (28, SndAct::Const(0x29)), (29, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (31, SndAct::Const(0x40000045)), (32, SndAct::Const(0x40000045))], snore: 0x40000045, runaway: 0x29, debug: true },
-    // shaggy__97105e68
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (29, SndAct::Const(0x29)), (30, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (32, SndAct::Const(0x40000023)), (33, SndAct::Const(0x40000023))], snore: 0x0, runaway: 0x0, debug: false },
-    // shaggy__9e7ce829
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (25, SndAct::Const(0x29)), (26, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (28, SndAct::Const(0x4000003a)), (29, SndAct::Const(0x4000003a))], snore: 0x4000003a, runaway: 0x29, debug: true },
-    // shaggy__a37a6374
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (30, SndAct::Const(0x29)), (31, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (33, SndAct::Const(0x4000002d)), (34, SndAct::Const(0x4000002d))], snore: 0x4000002d, runaway: 0x29, debug: true },
-    // shaggy__b1427d0c
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (27, SndAct::Const(0x29)), (28, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (30, SndAct::Const(0x40000023)), (31, SndAct::Const(0x40000023))], snore: 0x0, runaway: 0x0, debug: false },
-    // shaggy__c2244c8b
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (36, SndAct::Const(0x29)), (37, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (38, SndAct::Const(0x40000046)), (39, SndAct::Const(0x40000046))], snore: 0x40000046, runaway: 0x29, debug: true },
-    // shaggy__c7b040f3
-    ValideCurrentSound { cases: &[(-46, SndAct::Const(0x4000003c)), (-45, SndAct::Const(0x4000003c)), (-43, SndAct::Const(0x29)), (-42, SndAct::Const(0x29)), (-2, SndAct::Const(0x29)), (-3, SndAct::Field(0x9c)), (-1, SndAct::Field(0xbc))], snore: 0x4000003c, runaway: 0x29, debug: true },
-    // shaggy__d05de456
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (26, SndAct::Const(0x29)), (27, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (29, SndAct::Const(0x4000003f)), (30, SndAct::Const(0x4000003f))], snore: 0x4000003f, runaway: 0x29, debug: true },
-    // shaggy__da5e187b
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (37, SndAct::Const(0x29)), (38, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (39, SndAct::Const(0x40000033)), (40, SndAct::Const(0x40000033))], snore: 0x40000033, runaway: 0x29, debug: true },
-    // shaggy__dca9fe48
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (39, SndAct::Const(0x29)), (40, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (41, SndAct::Const(0x4000003c)), (42, SndAct::Const(0x4000003c))], snore: 0x4000003c, runaway: 0x29, debug: true },
-    // shaggy__e92e5027
-    ValideCurrentSound { cases: &[(3, SndAct::Field(0xbc)), (4, SndAct::Const(0x29)), (6, SndAct::Const(0x29)), (10, SndAct::Const(0x29)), (5, SndAct::Field(0x9c)), (27, SndAct::Const(0x40000047)), (28, SndAct::Const(0x40000047))], snore: 0x40000047, runaway: 0x29, debug: true },
-    // shaggy__ee9dba7d
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (26, SndAct::Const(0x29)), (27, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (28, SndAct::Const(0x40000035)), (29, SndAct::Const(0x40000035))], snore: 0x40000035, runaway: 0x29, debug: true },
-    // shaggy__f26306af
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (31, SndAct::Const(0x29)), (32, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (34, SndAct::Const(0x40000023)), (35, SndAct::Const(0x40000023))], snore: 0x0, runaway: 0x0, debug: false },
-    // shaggy__f3014777
-    ValideCurrentSound { cases: &[(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (31, SndAct::Const(0x29)), (32, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (33, SndAct::Const(0x40000067)), (34, SndAct::Const(0x40000067))], snore: 0x40000067, runaway: 0x29, debug: true },
-];
+pub static VALIDE_CURRENT_SOUND: Table<ValideCurrentSound> = Table::new(&VALIDE_CURRENT_SOUND_K, valide_current_sound_row);
+const VALIDE_CURRENT_SOUND_G: [u8; 57] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 0, 14, 1, 15, 1, 16, 6, 8, 6, 17, 18, 19, 20, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 27, 32, 33, 34, 35, 36, 37, 26, 38, 39, 40, 32, 22, 27, 41, 42, 43, 44];
+fn valide_current_sound_row(k: &TRow) -> ValideCurrentSound {
+    match VALIDE_CURRENT_SOUND_G[k.1] {
+        0 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (22, SndAct::Const(0x2a)), (23, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (29, SndAct::Const(k.v(0))), (30, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        1 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (26, SndAct::Const(0x2a)), (27, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (33, SndAct::Const(k.v(0))), (34, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        2 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (21, SndAct::Const(0x2a)), (22, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (27, SndAct::Const(k.v(0))), (28, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        3 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (26, SndAct::Const(0x2a)), (27, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (32, SndAct::Const(k.v(0))), (33, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        4 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (27, SndAct::Const(0x2a)), (28, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (33, SndAct::Const(k.v(0))), (34, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        5 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (3, SndAct::Field(0x9c)), (24, SndAct::Const(k.v(0))), (25, SndAct::Const(k.v(0))), (k.v(1), SndAct::Const(0x2a)), (k.v(2), SndAct::Const(0x2a)), (2, SndAct::Const(0x2a))]), snore: 0x0, runaway: 0x0, debug: false },
+        6 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (21, SndAct::Const(0x2a)), (22, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (27, SndAct::Const(k.v(0))), (28, SndAct::Const(k.v(0)))]), snore: 0x0, runaway: 0x0, debug: false },
+        7 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (28, SndAct::Const(0x2a)), (29, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (35, SndAct::Const(k.v(0))), (36, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        8 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (33, SndAct::Const(0x2a)), (34, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (39, SndAct::Const(k.v(0))), (40, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        9 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (32, SndAct::Const(0x2a)), (33, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (38, SndAct::Const(k.v(0))), (39, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        10 => ValideCurrentSound { cases: lk(vec![(12, SndAct::Field(0xbc)), (13, SndAct::Const(0x2a)), (16, SndAct::Const(0x2a)), (20, SndAct::Const(0x2a)), (14, SndAct::Field(0x9c)), (36, SndAct::Const(k.v(0))), (37, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        11 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (22, SndAct::Const(0x2a)), (23, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (28, SndAct::Const(k.v(0))), (29, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        12 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (33, SndAct::Const(0x2a)), (34, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (39, SndAct::Const(k.v(0))), (40, SndAct::Const(k.v(0)))]), snore: 0x0, runaway: 0x0, debug: false },
+        13 => ValideCurrentSound { cases: lk(vec![(5, SndAct::Field(0xbc)), (6, SndAct::Const(0x2a)), (9, SndAct::Const(0x2a)), (13, SndAct::Const(0x2a)), (7, SndAct::Field(0x9c)), (40, SndAct::Const(k.v(0))), (43, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        14 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (30, SndAct::Const(0x2a)), (31, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (36, SndAct::Const(k.v(0))), (37, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        15 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (29, SndAct::Const(0x2a)), (30, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (35, SndAct::Const(k.v(0))), (36, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        16 => ValideCurrentSound { cases: lk(vec![(3, SndAct::Field(0xbc)), (4, SndAct::Const(0x2a)), (7, SndAct::Const(0x2a)), (11, SndAct::Const(0x2a)), (5, SndAct::Field(0x9c)), (27, SndAct::Const(k.v(0))), (28, SndAct::Const(k.v(0)))]), snore: 0x0, runaway: 0x0, debug: false },
+        17 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (21, SndAct::Const(0x2a)), (22, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (28, SndAct::Const(k.v(0))), (29, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        18 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (34, SndAct::Const(0x2a)), (35, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (40, SndAct::Const(k.v(0))), (41, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        19 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (3, SndAct::Field(0x9c)), (20, SndAct::Const(k.v(0))), (21, SndAct::Const(k.v(0))), (k.v(3), SndAct::Const(0x2a)), (k.v(4), SndAct::Const(0x2a)), (2, SndAct::Const(0x2a))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        20 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x2a)), (24, SndAct::Const(0x2a)), (25, SndAct::Const(0x2a)), (3, SndAct::Field(0x9c)), (30, SndAct::Const(k.v(0))), (31, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        21 => ValideCurrentSound { cases: lk(vec![(13, SndAct::Field(0xbc)), (15, SndAct::Const(0x2a)), (18, SndAct::Const(0x2a)), (22, SndAct::Const(0x2a)), (16, SndAct::Field(0x9c)), (41, SndAct::Const(k.v(0))), (42, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x2a, debug: true },
+        22 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (37, SndAct::Const(0x29)), (38, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (39, SndAct::Const(k.v(0))), (40, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        23 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (30, SndAct::Const(0x29)), (31, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (32, SndAct::Const(k.v(0))), (33, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        24 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (35, SndAct::Const(0x29)), (36, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (37, SndAct::Const(k.v(0))), (38, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        25 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (26, SndAct::Const(0x29)), (27, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (28, SndAct::Const(k.v(0))), (29, SndAct::Const(k.v(0)))]), snore: 0x0, runaway: 0x0, debug: false },
+        26 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (30, SndAct::Const(0x29)), (31, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (33, SndAct::Const(k.v(0))), (34, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        27 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (39, SndAct::Const(0x29)), (40, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (41, SndAct::Const(k.v(0))), (42, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        28 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (32, SndAct::Const(0x29)), (33, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (35, SndAct::Const(k.v(0))), (36, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        29 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (28, SndAct::Const(0x29)), (29, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (30, SndAct::Const(k.v(0))), (31, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        30 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (31, SndAct::Const(0x29)), (32, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (34, SndAct::Const(k.v(0))), (35, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        31 => ValideCurrentSound { cases: lk(vec![(12, SndAct::Field(0xbc)), (13, SndAct::Const(0x29)), (15, SndAct::Const(0x29)), (19, SndAct::Const(0x29)), (14, SndAct::Field(0x9c)), (36, SndAct::Const(k.v(0))), (37, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        32 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (26, SndAct::Const(0x29)), (27, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (29, SndAct::Const(k.v(0))), (30, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        33 => ValideCurrentSound { cases: lk(vec![(24, SndAct::Const(k.v(0))), (27, SndAct::Const(k.v(0))), (35, SndAct::Const(0x29)), (37, SndAct::Const(0x29)), (41, SndAct::Const(0x29)), (36, SndAct::Field(0x9c)), (43, SndAct::Field(0xbc))]), snore: k.v(0), runaway: 0x29, debug: true },
+        34 => ValideCurrentSound { cases: lk(vec![(15, SndAct::Field(0xbc)), (17, SndAct::Const(0x29)), (19, SndAct::Const(0x29)), (23, SndAct::Const(0x29)), (18, SndAct::Field(0x9c)), (43, SndAct::Const(k.v(0))), (44, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        35 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (28, SndAct::Const(0x29)), (29, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (31, SndAct::Const(k.v(0))), (32, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        36 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (29, SndAct::Const(0x29)), (30, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (32, SndAct::Const(k.v(0))), (33, SndAct::Const(k.v(0)))]), snore: 0x0, runaway: 0x0, debug: false },
+        37 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (25, SndAct::Const(0x29)), (26, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (28, SndAct::Const(k.v(0))), (29, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        38 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (27, SndAct::Const(0x29)), (28, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (30, SndAct::Const(k.v(0))), (31, SndAct::Const(k.v(0)))]), snore: 0x0, runaway: 0x0, debug: false },
+        39 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (36, SndAct::Const(0x29)), (37, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (38, SndAct::Const(k.v(0))), (39, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        40 => ValideCurrentSound { cases: lk(vec![(k.v(5), SndAct::Const(k.v(0))), (k.v(6), SndAct::Const(k.v(0))), (k.v(7), SndAct::Const(0x29)), (k.v(8), SndAct::Const(0x29)), (k.v(9), SndAct::Const(0x29)), (k.v(10), SndAct::Field(0x9c)), (k.v(11), SndAct::Field(0xbc))]), snore: k.v(0), runaway: 0x29, debug: true },
+        41 => ValideCurrentSound { cases: lk(vec![(3, SndAct::Field(0xbc)), (4, SndAct::Const(0x29)), (6, SndAct::Const(0x29)), (10, SndAct::Const(0x29)), (5, SndAct::Field(0x9c)), (27, SndAct::Const(k.v(0))), (28, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        42 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (26, SndAct::Const(0x29)), (27, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (28, SndAct::Const(k.v(0))), (29, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        43 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (31, SndAct::Const(0x29)), (32, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (34, SndAct::Const(k.v(0))), (35, SndAct::Const(k.v(0)))]), snore: 0x0, runaway: 0x0, debug: false },
+        44 => ValideCurrentSound { cases: lk(vec![(1, SndAct::Field(0xbc)), (2, SndAct::Const(0x29)), (31, SndAct::Const(0x29)), (32, SndAct::Const(0x29)), (3, SndAct::Field(0x9c)), (33, SndAct::Const(k.v(0))), (34, SndAct::Const(k.v(0)))]), snore: k.v(0), runaway: 0x29, debug: true },
+        _ => unreachable!(),
+    }
+}
+static VALIDE_CURRENT_SOUND_K: TSpec = TSpec {
+    builds: &["11adae8e", "11df665e", "128635c3", "242c6a48", "2a9862df", "2b32b17e", "2b9d74e4", "3de43fe2", "402420b4", "415322c3", "5257b080", "52d75aa5", "5f68ee0e", "625480d1", "6e3372f0", "74367063", "79185eb3", "7e698dff", "83265b14", "aae74b1e", "bc7f3c1a", "c33ca2c4", "c55e6477", "cbbf384c", "d8a08bbd", "df8bf53b", "f28bcd0e", "f5ff9d42", "ffd170d9", "0117f115", "11ffbd5f", "160eeb3e", "1730c849", "21f6ed7b", "26992d64", "2ac8998c", "35390b5f", "4fb89b85", "52d91ddd", "53df9ee8", "562b9dae", "61655a9e", "6dafd227", "914156a5", "97105e68", "9e7ce829", "a37a6374", "b1427d0c", "c2244c8b", "c7b040f3", "d05de456", "da5e187b", "dca9fe48", "e92e5027", "ee9dba7d", "f26306af", "f3014777"],
+    fns: &["heroFUNC_ValideCurrentSound", "heroFUNC_PlaySound", "heroInit_Panic", "IsInTeamMode", "heroFUNC_Init_Idle", "heroCB_ANIM", "heroCB_CUTSCENE"],
+    entries: &[
+        L(0, 3, 30, 1), L(1, 6, 93, 0), L(2, 0, 54, 0), L(1, 6, 94, 0), L(3, 7, 0, 0), L(4, 6, 89, 0), L(5, 7, 53, 0), L(5, 6, 53, 0),
+        L(1, 7, 73, 0), L(0, 7, 50, 0), L(6, 7, 61, 0), L(0, 0, 50, 0),
+    ],
+};
 
 /// The name the build prints in its debug output ("Scoobydoo" or "Shaggy")
 pub static CHAR_NAME: &[&str] = &["Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Scoobydoo", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy", "Shaggy"];
@@ -151,6 +96,7 @@ pub static DEBUG_BUILD: &[bool] = &[true, true, true, true, true, false, false, 
 /// them (first set bit wins; 0x100000 = `bit && I am the slave`, 0x10000 = `bit && heroValidPowerUp()`),
 /// the objects the ENTER_DOOR (bit 4) handler talks to, and whether that handler only tells the partner
 /// (0x60/4) when game buffer 0 +0x34 bit 0 is clear.
+#[derive(Debug)]
 pub struct CheckActionEvents {
     pub chain: &'static [u32],
     pub door_5d: u32,
@@ -159,180 +105,68 @@ pub struct CheckActionEvents {
     pub door_gate_34: bool,
 }
 
-pub static CHECK_ACTION_EVENTS: &[CheckActionEvents] = &[
-    // scooby__11adae8e
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x400, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000044, door_97: 0x2a000026, tome: 0x2a000041, door_gate_34: false },
-    // scooby__11df665e
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a0000af, door_97: 0x2a0000b3, tome: 0x2a0000ac, door_gate_34: false },
-    // scooby__128635c3
-    CheckActionEvents { chain: &[1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00007f, door_97: 0x2a00005c, tome: 0x2a00007c, door_gate_34: false },
-    // scooby__242c6a48
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x400, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000050, door_97: 0x2a000037, tome: 0x2a00004d, door_gate_34: false },
-    // scooby__2a9862df
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x400, 0x800, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00004f, door_97: 0x2a000027, tome: 0x2a00004e, door_gate_34: false },
-    // scooby__2b32b17e
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000081, door_97: 0x2a00005c, tome: 0x2a00007e, door_gate_34: false },
-    // scooby__2b9d74e4
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000012, door_97: 0x2a000004, tome: 0x2a00000f, door_gate_34: false },
-    // scooby__3de43fe2
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00000d, door_97: 0x2a000004, tome: 0x2a00000a, door_gate_34: false },
-    // scooby__402420b4
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x400, 0x800, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000096, door_97: 0x2a00008f, tome: 0x2a000093, door_gate_34: false },
-    // scooby__415322c3
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x400, 0x800, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000037, door_97: 0x2a000025, tome: 0x2a000034, door_gate_34: false },
-    // scooby__5257b080
-    CheckActionEvents { chain: &[1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00006b, door_97: 0x2a000045, tome: 0x2a000066, door_gate_34: false },
-    // scooby__52d75aa5
-    CheckActionEvents { chain: &[1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000015, door_97: 0x2a00000c, tome: 0x2a000012, door_gate_34: false },
-    // scooby__5f68ee0e
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x400, 0x800, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000087, door_97: 0x2a000020, tome: 0x2a000082, door_gate_34: false },
-    // scooby__625480d1
-    CheckActionEvents { chain: &[1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00000d, door_97: 0x2a000006, tome: 0x2a000008, door_gate_34: false },
-    // scooby__6e3372f0
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x400, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000017, door_97: 0x2a000004, tome: 0x2a000014, door_gate_34: false },
-    // scooby__74367063
-    CheckActionEvents { chain: &[1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x800, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a0000e8, door_97: 0x2a0000dd, tome: 0x2a0000e5, door_gate_34: false },
-    // scooby__79185eb3
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x400, 0x4000, 0x2000, 0x8000, 0x10000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00001f, door_97: 0x2a000012, tome: 0x2a00001c, door_gate_34: true },
-    // scooby__7e698dff
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x400, 0x4000, 0x2000, 0x8000, 0x10000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000028, door_97: 0x2a00000e, tome: 0x2a000025, door_gate_34: false },
-    // scooby__83265b14
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x400, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00002a, door_97: 0x2a000004, tome: 0x2a000027, door_gate_34: false },
-    // scooby__aae74b1e
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a0000ed, door_97: 0x2a00004a, tome: 0x2a0000ee, door_gate_34: false },
-    // scooby__bc7f3c1a
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00000c, door_97: 0x2a000004, tome: 0x2a000009, door_gate_34: false },
-    // scooby__c33ca2c4
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x8000, 0x10000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000031, door_97: 0x2a000017, tome: 0x2a00002e, door_gate_34: false },
-    // scooby__c55e6477
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00005a, door_97: 0x2a000052, tome: 0x2a000057, door_gate_34: false },
-    // scooby__cbbf384c
-    CheckActionEvents { chain: &[1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00000e, door_97: 0x2a000006, tome: 0x2a00000b, door_gate_34: false },
-    // scooby__d8a08bbd
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x400, 0x800, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000030, door_97: 0x2a00001e, tome: 0x2a00002d, door_gate_34: false },
-    // scooby__df8bf53b
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x8000, 0x10000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000048, door_97: 0x2a00000f, tome: 0x2a000045, door_gate_34: false },
-    // scooby__f28bcd0e
-    CheckActionEvents { chain: &[1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x400, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00003a, door_97: 0x2a00001f, tome: 0x2a000037, door_gate_34: false },
-    // scooby__f5ff9d42
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x400, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000046, door_97: 0x2a000027, tome: 0x2a000043, door_gate_34: false },
-    // scooby__ffd170d9
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000032, door_97: 0x2a000027, tome: 0x2a00002d, door_gate_34: false },
-    // shaggy__0117f115
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000031, door_97: 0x2a000017, tome: 0x2a00002e, door_gate_34: false },
-    // shaggy__11ffbd5f
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000050, door_97: 0x2a000037, tome: 0x2a00004d, door_gate_34: false },
-    // shaggy__160eeb3e
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000028, door_97: 0x2a00000e, tome: 0x2a000025, door_gate_34: false },
-    // shaggy__1730c849
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000012, door_97: 0x2a000004, tome: 0x2a00000f, door_gate_34: false },
-    // shaggy__21f6ed7b
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00002a, door_97: 0x2a000004, tome: 0x2a000027, door_gate_34: false },
-    // shaggy__26992d64
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x800, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000037, door_97: 0x2a000025, tome: 0x2a000034, door_gate_34: false },
-    // shaggy__2ac8998c
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00000d, door_97: 0x2a000004, tome: 0x2a00000a, door_gate_34: false },
-    // shaggy__35390b5f
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000046, door_97: 0x2a000027, tome: 0x2a000043, door_gate_34: false },
-    // shaggy__4fb89b85
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a0000af, door_97: 0x2a0000b3, tome: 0x2a0000ac, door_gate_34: false },
-    // shaggy__52d91ddd
-    CheckActionEvents { chain: &[1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00006b, door_97: 0x2a000045, tome: 0x2a000066, door_gate_34: false },
-    // shaggy__53df9ee8
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x800, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000087, door_97: 0x2a000020, tome: 0x2a000082, door_gate_34: false },
-    // shaggy__562b9dae
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000044, door_97: 0x2a000026, tome: 0x2a000041, door_gate_34: false },
-    // shaggy__61655a9e
-    CheckActionEvents { chain: &[1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00000d, door_97: 0x2a000006, tome: 0x2a000008, door_gate_34: false },
-    // shaggy__6dafd227
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000032, door_97: 0x2a000027, tome: 0x2a00002d, door_gate_34: false },
-    // shaggy__914156a5
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000017, door_97: 0x2a000004, tome: 0x2a000014, door_gate_34: false },
-    // shaggy__97105e68
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000081, door_97: 0x2a00005c, tome: 0x2a00007e, door_gate_34: false },
-    // shaggy__9e7ce829
-    CheckActionEvents { chain: &[1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00000e, door_97: 0x2a000006, tome: 0x2a00000b, door_gate_34: false },
-    // shaggy__a37a6374
-    CheckActionEvents { chain: &[1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00003a, door_97: 0x2a00001f, tome: 0x2a000037, door_gate_34: false },
-    // shaggy__b1427d0c
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00000c, door_97: 0x2a000004, tome: 0x2a000009, door_gate_34: false },
-    // shaggy__c2244c8b
-    CheckActionEvents { chain: &[1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x800, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a0000e8, door_97: 0x2a0000dd, tome: 0x2a0000e5, door_gate_34: false },
-    // shaggy__c7b040f3
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00001f, door_97: 0x2a000012, tome: 0x2a00001c, door_gate_34: true },
-    // shaggy__d05de456
-    CheckActionEvents { chain: &[1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00007f, door_97: 0x2a00005c, tome: 0x2a00007c, door_gate_34: false },
-    // shaggy__da5e187b
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x800, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000096, door_97: 0x2a00008f, tome: 0x2a000093, door_gate_34: false },
-    // shaggy__dca9fe48
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x800, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000030, door_97: 0x2a00001e, tome: 0x2a00002d, door_gate_34: false },
-    // shaggy__e92e5027
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x4000, 0x2000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a0000ed, door_97: 0x2a00004a, tome: 0x2a0000ee, door_gate_34: false },
-    // shaggy__ee9dba7d
-    CheckActionEvents { chain: &[1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a000015, door_97: 0x2a00000c, tome: 0x2a000012, door_gate_34: false },
-    // shaggy__f26306af
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00005a, door_97: 0x2a000052, tome: 0x2a000057, door_gate_34: false },
-    // shaggy__f3014777
-    CheckActionEvents { chain: &[0x4000000, 0x8000000, 1, 2, 8, 4, 0x10, 0x20, 0x40, 0x100000, 0x200, 0x100, 0x80, 0x800, 0x4000, 0x2000, 0x1000, 0x40000, 0x80000, 0x1000000, 0x2000000, 0x20000], door_5d: 0x2a00004f, door_97: 0x2a000027, tome: 0x2a00004e, door_gate_34: false },
-];
+pub static CHECK_ACTION_EVENTS: Table<CheckActionEvents> = Table::new(&CHECK_ACTION_EVENTS_K, check_action_events_row);
+const CHECK_ACTION_EVENTS_G: [u8; 57] = [0, 1, 2, 0, 3, 4, 5, 6, 3, 3, 7, 8, 3, 7, 9, 10, 11, 12, 1, 6, 4, 0, 4, 2, 3, 0, 13, 0, 5, 6, 1, 1, 5, 6, 0, 6, 1, 1, 7, 0, 1, 7, 5, 4, 4, 2, 14, 4, 10, 15, 2, 0, 0, 6, 8, 4, 0];
+fn check_action_events_row(k: &TRow) -> CheckActionEvents {
+    match CHECK_ACTION_EVENTS_G[k.1] {
+        0 => CheckActionEvents { chain: lk(vec![k.v(0), k.v(1), 1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(2), k.v(3), k.v(4), 0x80, k.v(5), k.v(6), k.v(7), k.v(8), k.v(9), k.v(10), k.v(11), k.v(12), k.v(13)]), door_5d: k.v(14), door_97: k.v(15), tome: k.v(16), door_gate_34: false },
+        1 => CheckActionEvents { chain: lk(vec![k.v(0), k.v(1), 1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(2), k.v(3), k.v(4), 0x80, k.v(17), k.v(18), k.v(19), k.v(20), k.v(10), k.v(21), k.v(22), k.v(23)]), door_5d: k.v(24), door_97: k.v(25), tome: k.v(16), door_gate_34: false },
+        2 => CheckActionEvents { chain: lk(vec![1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(26), k.v(27), k.v(28), k.v(29), k.v(10), k.v(30), k.v(31), k.v(32)]), door_5d: k.v(14), door_97: k.v(33), tome: k.v(16), door_gate_34: false },
+        3 => CheckActionEvents { chain: lk(vec![k.v(0), k.v(1), 1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(34), k.v(35), k.v(36), 0x80, k.v(37), k.v(38), k.v(39), k.v(40), k.v(41), k.v(42), k.v(43), k.v(44), k.v(45), k.v(46)]), door_5d: k.v(47), door_97: k.v(48), tome: k.v(16), door_gate_34: false },
+        4 => CheckActionEvents { chain: lk(vec![k.v(0), k.v(1), 1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(49), k.v(50), k.v(51), k.v(52), k.v(53), k.v(54), k.v(55), k.v(56), k.v(57)]), door_5d: k.v(58), door_97: k.v(59), tome: k.v(16), door_gate_34: false },
+        5 => CheckActionEvents { chain: lk(vec![k.v(0), k.v(1), 1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(49), k.v(60), k.v(61), k.v(62), k.v(54), k.v(63), k.v(64), k.v(65)]), door_5d: k.v(58), door_97: k.v(66), tome: k.v(16), door_gate_34: false },
+        6 => CheckActionEvents { chain: lk(vec![k.v(0), k.v(1), 1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(34), k.v(35), k.v(36), 0x80, k.v(39), k.v(67), k.v(68), k.v(43), k.v(69), k.v(70), k.v(71)]), door_5d: k.v(47), door_97: k.v(72), tome: k.v(16), door_gate_34: false },
+        7 => CheckActionEvents { chain: lk(vec![1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(2), k.v(35), k.v(73), 0x80, k.v(74), k.v(75), k.v(76), k.v(10), k.v(77), k.v(78), k.v(79)]), door_5d: k.v(14), door_97: k.v(33), tome: k.v(16), door_gate_34: false },
+        8 => CheckActionEvents { chain: lk(vec![1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(26), k.v(27), k.v(28), k.v(80), k.v(76), k.v(10), k.v(81), k.v(82), k.v(83)]), door_5d: k.v(14), door_97: k.v(33), tome: k.v(16), door_gate_34: false },
+        9 => CheckActionEvents { chain: lk(vec![k.v(0), k.v(1), 1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(26), k.v(84), k.v(74), k.v(85), k.v(86), k.v(87), k.v(10), k.v(88), k.v(89), k.v(90)]), door_5d: k.v(14), door_97: k.v(91), tome: k.v(16), door_gate_34: false },
+        10 => CheckActionEvents { chain: lk(vec![1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(26), k.v(92), k.v(93), k.v(94), k.v(95), k.v(76), k.v(10), k.v(96), k.v(97), k.v(83)]), door_5d: k.v(14), door_97: k.v(33), tome: k.v(16), door_gate_34: false },
+        11 => CheckActionEvents { chain: lk(vec![k.v(0), k.v(1), 1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(2), k.v(35), k.v(73), 0x80, k.v(98), k.v(74), k.v(75), k.v(99), k.v(100), k.v(87), k.v(10), k.v(101), k.v(102), k.v(90)]), door_5d: k.v(14), door_97: k.v(103), tome: k.v(16), door_gate_34: true },
+        12 => CheckActionEvents { chain: lk(vec![k.v(0), k.v(1), 1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(2), k.v(35), k.v(73), 0x80, k.v(98), k.v(74), k.v(75), k.v(99), k.v(100), k.v(86), k.v(87), k.v(10), k.v(104), k.v(105), k.v(90)]), door_5d: k.v(14), door_97: k.v(91), tome: k.v(16), door_gate_34: false },
+        13 => CheckActionEvents { chain: lk(vec![1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(2), k.v(35), k.v(73), 0x80, k.v(98), k.v(74), k.v(75), k.v(86), k.v(76), k.v(10), k.v(106), k.v(107), k.v(90)]), door_5d: k.v(14), door_97: k.v(33), tome: k.v(16), door_gate_34: false },
+        14 => CheckActionEvents { chain: lk(vec![1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(2), k.v(35), k.v(73), 0x80, k.v(74), k.v(75), k.v(86), k.v(87), k.v(10), k.v(108), k.v(109), k.v(90)]), door_5d: k.v(14), door_97: k.v(33), tome: k.v(16), door_gate_34: false },
+        15 => CheckActionEvents { chain: lk(vec![k.v(0), k.v(1), 1, 2, 8, 4, 0x10, 0x20, 0x40, k.v(2), k.v(35), k.v(73), 0x80, k.v(74), k.v(75), k.v(110), k.v(10), k.v(111), k.v(112), k.v(90)]), door_5d: k.v(14), door_97: k.v(103), tome: k.v(16), door_gate_34: true },
+        _ => unreachable!(),
+    }
+}
+static CHECK_ACTION_EVENTS_K: TSpec = TSpec {
+    builds: &["11adae8e", "11df665e", "128635c3", "242c6a48", "2a9862df", "2b32b17e", "2b9d74e4", "3de43fe2", "402420b4", "415322c3", "5257b080", "52d75aa5", "5f68ee0e", "625480d1", "6e3372f0", "74367063", "79185eb3", "7e698dff", "83265b14", "aae74b1e", "bc7f3c1a", "c33ca2c4", "c55e6477", "cbbf384c", "d8a08bbd", "df8bf53b", "f28bcd0e", "f5ff9d42", "ffd170d9", "0117f115", "11ffbd5f", "160eeb3e", "1730c849", "21f6ed7b", "26992d64", "2ac8998c", "35390b5f", "4fb89b85", "52d91ddd", "53df9ee8", "562b9dae", "61655a9e", "6dafd227", "914156a5", "97105e68", "9e7ce829", "a37a6374", "b1427d0c", "c2244c8b", "c7b040f3", "d05de456", "da5e187b", "dca9fe48", "e92e5027", "ee9dba7d", "f26306af", "f3014777"],
+    fns: &["heroCB_CUTSCENE", "heroCB_DMSTATECHANGE", "heroCB_ANIM", "heroCB_TIMER", "heroFUNC_CheckActionEvents", "heroDoTestForActionCrouch", "heroDoTestForBump", "heroExit_Panic", "heroCB_ANIM_LOCAL", "heroCB_EDGEDETECT", "heroDoTestForActionClimb", "heroDoTestForOnFloor", "goNextRoomInfo"],
+    entries: &[
+        L(0, 2, 27, 0), L(0, 2, 88, 0), L(1, 2, 401, 0), M(&[KLoc(2, 0xaeedcdab, 255, 0, 161, 0), KLoc(3, 0x1f211763, 255, 0, 51, 0)]), M(&[KLoc(2, 0xaeedcdab, 255, 0, 149, 0), KLoc(1, 0x59d0ee88, 255, 0, 285, 0)]), M(&[KLoc(4, 0xe5e03ec4, 255, 0, 704, 0), KLoc(4, 0xb0066965, 255, 0, 704, 0), KLoc(4, 0xb57515e9, 255, 0, 704, 0)]), M(&[KLoc(5, 0xa8d3cd53, 255, 0, 18, 0), KLoc(4, 0xb0066965, 255, 0, 771, 0), KLoc(4, 0xb57515e9, 255, 0, 717, 0)]), M(&[KLoc(4, 0xe5e03ec4, 255, 0, 792, 0), KLoc(4, 0xb0066965, 255, 1, 839, 0), KLoc(4, 0xb57515e9, 255, 0, 784, 0)]),
+        M(&[KLoc(2, 0x2321bd89, 255, 2, 86, 0), KLoc(4, 0xe5e03ec4, 255, 0, 860, 0), KLoc(4, 0xb0066965, 255, 2, 14, 0), KLoc(4, 0xb57515e9, 255, 0, 852, 0)]), M(&[KLoc(2, 0xaeedcdab, 255, 2, 137, 0), KLoc(2, 0x46d050e4, 255, 2, 135, 0), KLoc(2, 0x2321bd89, 255, 2, 138, 0), KLoc(2, 0x8810e723, 255, 2, 134, 0)]), L(6, 2, 67, 0), M(&[KLoc(4, 0xe5e03ec4, 255, 2, 909, 0), KLoc(4, 0xb0066965, 255, 2, 937, 0), KLoc(4, 0xb57515e9, 255, 2, 901, 0)]), M(&[KLoc(4, 0xe5e03ec4, 255, 2, 957, 0), KLoc(4, 0xb0066965, 255, 2, 985, 0), KLoc(4, 0xb57515e9, 255, 2, 949, 0)]), M(&[KLoc(2, 0xaeedcdab, 255, 2, 29, 0), KLoc(2, 0x46d050e4, 255, 2, 29, 0), KLoc(2, 0x2321bd89, 255, 2, 29, 0), KLoc(2, 0x8810e723, 255, 2, 29, 0)]), L(7, 3, 86, 1), M(&[KLoc(4, 0xe5e03ec4, 255, 3, 290, 34), KLoc(4, 0xb0066965, 255, 3, 290, 34), KLoc(4, 0xb57515e9, 255, 3, 290, 34)]),
+        L(0, 3, 67, 1), M(&[KLoc(4, 0x2318f0b7, 255, 0, 704, 0), KLoc(4, 0x5a1de963, 255, 0, 704, 0)]), M(&[KLoc(5, 0xa8d3cd53, 255, 0, 18, 0), KLoc(4, 0x2318f0b7, 255, 0, 771, 0)]), M(&[KLoc(4, 0x2318f0b7, 255, 0, 839, 0), KLoc(4, 0x5a1de963, 255, 0, 792, 0)]), M(&[KLoc(2, 0x8810e723, 255, 2, 134, 0), KLoc(2, 0x46d050e4, 255, 2, 135, 0), KLoc(2, 0xaeedcdab, 255, 2, 137, 0)]), M(&[KLoc(4, 0x2318f0b7, 255, 2, 888, 0), KLoc(4, 0x5a1de963, 255, 2, 888, 0)]), M(&[KLoc(4, 0x2318f0b7, 255, 2, 936, 0), KLoc(4, 0x5a1de963, 255, 2, 936, 0)]), M(&[KLoc(2, 0x8810e723, 255, 2, 29, 0), KLoc(2, 0x46d050e4, 255, 2, 29, 0), KLoc(2, 0xaeedcdab, 255, 2, 29, 0)]),
+        M(&[KLoc(8, 0x99ef2429, 255, 3, 28, 1), KLoc(7, 0x96e940ee, 255, 3, 86, 1)]), M(&[KLoc(8, 0x99ef2429, 255, 3, 28, 12), KLoc(4, 0x2318f0b7, 255, 3, 290, 34), KLoc(4, 0x5a1de963, 255, 3, 290, 34)]), L(1, 2, 337, 0), L(4, 0, 527, 0), L(4, 0, 594, 0), M(&[KLoc(2, 0x46d050e4, 255, 2, 135, 0), KLoc(2, 0x8810e723, 255, 2, 134, 0)]), L(4, 2, 690, 0), L(4, 2, 738, 0),
+        L(4, 2, 384, 0), L(4, 3, 253, 34), M(&[KLoc(1, 0x59d0ee88, 255, 2, 401, 0), KLoc(1, 0xe879a120, 255, 2, 280, 0)]), L(3, 0, 51, 0), M(&[KLoc(1, 0x59d0ee88, 255, 0, 285, 0), KLoc(1, 0xe879a120, 255, 0, 194, 0)]), M(&[KLoc(1, 0x59d0ee88, 255, 0, 329, 0), KLoc(1, 0xe879a120, 255, 0, 221, 0)]), M(&[KLoc(1, 0x59d0ee88, 255, 0, 207, 0), KLoc(1, 0xe879a120, 255, 0, 129, 0)]), M(&[KLoc(9, 0x28681b47, 255, 0, 332, 0), KLoc(9, 0xfd617d24, 255, 0, 317, 0)]),
+        M(&[KLoc(10, 0x5c3c4dd, 255, 0, 154, 0), KLoc(10, 0x180f4772, 255, 0, 154, 0)]), M(&[KLoc(9, 0x28681b47, 255, 0, 117, 0), KLoc(9, 0xfd617d24, 255, 0, 102, 0)]), M(&[KLoc(2, 0x8810e723, 255, 2, 134, 0), KLoc(2, 0x46d050e4, 255, 2, 135, 0), KLoc(2, 0xe0e04ed4, 255, 2, 121, 0)]), M(&[KLoc(6, 0xbded61e6, 255, 2, 67, 0), KLoc(6, 0xc2332ae9, 255, 2, 67, 0)]), M(&[KLoc(4, 0xba18aec2, 255, 2, 922, 0), KLoc(4, 0xf285cd39, 255, 2, 909, 0)]), M(&[KLoc(4, 0xba18aec2, 255, 2, 970, 0), KLoc(4, 0xf285cd39, 255, 2, 957, 0)]), M(&[KLoc(2, 0x8810e723, 255, 2, 29, 0), KLoc(2, 0x46d050e4, 255, 2, 29, 0), KLoc(2, 0xe0e04ed4, 255, 2, 29, 0)]), M(&[KLoc(7, 0x96e940ee, 255, 3, 86, 1), KLoc(7, 0x572e2d3a, 255, 3, 73, 1)]),
+        M(&[KLoc(4, 0xba18aec2, 255, 3, 290, 34), KLoc(4, 0xf285cd39, 255, 3, 290, 34)]), M(&[KLoc(1, 0x9961cdfe, 255, 2, 242, 0), KLoc(1, 0x92793796, 255, 2, 337, 0)]), M(&[KLoc(4, 0x5e3b5bb1, 255, 0, 551, 0), KLoc(4, 0x34429e3a, 255, 0, 564, 0)]), M(&[KLoc(4, 0x5e3b5bb1, 255, 0, 618, 0), KLoc(4, 0x34429e3a, 255, 0, 631, 0)]), M(&[KLoc(4, 0x5e3b5bb1, 255, 0, 686, 0), KLoc(4, 0x34429e3a, 255, 0, 699, 0)]), M(&[KLoc(2, 0xa09093db, 255, 2, 122, 0), KLoc(2, 0x8810e723, 255, 2, 134, 0), KLoc(2, 0xe0e04ed4, 255, 2, 121, 0)]), M(&[KLoc(6, 0xc2332ae9, 255, 2, 67, 0), KLoc(6, 0xbded61e6, 255, 2, 67, 0)]), M(&[KLoc(4, 0x5e3b5bb1, 255, 2, 735, 0), KLoc(4, 0x34429e3a, 255, 2, 748, 0)]),
+        M(&[KLoc(4, 0x5e3b5bb1, 255, 2, 783, 0), KLoc(4, 0x34429e3a, 255, 2, 796, 0)]), M(&[KLoc(4, 0x5e3b5bb1, 255, 2, 408, 0), KLoc(4, 0x34429e3a, 255, 2, 97, 0)]), M(&[KLoc(7, 0x572e2d3a, 255, 3, 73, 1), KLoc(7, 0x96e940ee, 255, 3, 86, 1)]), M(&[KLoc(4, 0x5e3b5bb1, 255, 3, 290, 34), KLoc(4, 0x34429e3a, 255, 3, 290, 34)]), M(&[KLoc(4, 0x444a7996, 255, 0, 551, 0), KLoc(4, 0xdb025ab5, 255, 0, 564, 0)]), M(&[KLoc(4, 0x444a7996, 255, 0, 618, 0), KLoc(4, 0xdb025ab5, 255, 0, 631, 0)]), M(&[KLoc(2, 0xa09093db, 255, 2, 122, 0), KLoc(2, 0x1172d3b4, 255, 2, 133, 0)]), M(&[KLoc(4, 0x444a7996, 255, 2, 714, 0), KLoc(4, 0xdb025ab5, 255, 2, 727, 0)]),
+        M(&[KLoc(4, 0x444a7996, 255, 2, 762, 0), KLoc(4, 0xdb025ab5, 255, 2, 775, 0)]), M(&[KLoc(4, 0x444a7996, 255, 2, 408, 0), KLoc(4, 0xdb025ab5, 255, 2, 421, 0)]), M(&[KLoc(4, 0x444a7996, 255, 3, 290, 34), KLoc(4, 0xdb025ab5, 255, 3, 290, 34)]), M(&[KLoc(10, 0x5c3c4dd, 255, 0, 154, 0), KLoc(10, 0xad1240aa, 255, 0, 154, 0), KLoc(10, 0x1640598d, 255, 0, 154, 0)]), M(&[KLoc(2, 0x8810e723, 255, 2, 134, 0), KLoc(2, 0xa09093db, 255, 2, 122, 0), KLoc(2, 0x46d050e4, 255, 2, 135, 0), KLoc(2, 0x6086cc94, 255, 2, 138, 0)]), M(&[KLoc(4, 0x4f1397d8, 255, 2, 867, 0), KLoc(4, 0x4ea8ee43, 255, 2, 854, 0)]), M(&[KLoc(4, 0x4f1397d8, 255, 2, 915, 0), KLoc(4, 0x4ea8ee43, 255, 2, 902, 0)]), M(&[KLoc(10, 0x5c3c4dd, 255, 2, 128, 0), KLoc(10, 0xad1240aa, 255, 2, 128, 0), KLoc(10, 0x1640598d, 255, 2, 128, 0)]),
+        M(&[KLoc(4, 0x4f1397d8, 255, 3, 290, 34), KLoc(4, 0x4ea8ee43, 255, 3, 290, 34)]), L(1, 0, 285, 0), L(9, 0, 332, 0), L(10, 0, 154, 0), L(2, 2, 135, 0), L(4, 2, 830, 0), L(4, 2, 878, 0), L(10, 2, 128, 0),
+        L(4, 0, 662, 0), L(4, 2, 711, 0), L(4, 2, 759, 0), L(11, 2, 37, 0), L(1, 0, 265, 0), L(4, 0, 652, 0), L(9, 0, 117, 0), L(2, 2, 134, 0),
+        L(4, 2, 769, 0), L(4, 2, 817, 0), L(2, 2, 29, 0), L(4, 3, 290, 34), L(1, 0, 172, 0), L(4, 0, 540, 0), L(4, 0, 607, 0), L(4, 0, 675, 0),
+        L(4, 2, 724, 0), L(4, 2, 772, 0), L(1, 0, 329, 0), L(5, 1, 262, 0), L(12, 9, 0, 0), L(4, 2, 965, 0), L(4, 2, 1013, 0), L(4, 3, 330, 1),
+        L(4, 2, 979, 0), L(4, 2, 1027, 0), L(4, 2, 872, 0), L(4, 2, 920, 0), L(4, 2, 851, 0), L(4, 2, 899, 0), L(2, 2, 139, 0), L(4, 2, 874, 0),
+        L(4, 2, 922, 0),
+    ],
+};
 
 /// heroFUNC_Constructor: the object stored at local+0x260 when game buffer 0 +0x88 == 1 (0: none)
-pub static LEVEL_ITEM_260: &[u32] = &[
-    0, // scooby__11adae8e
-    0, // scooby__11df665e
-    0, // scooby__128635c3
-    0, // scooby__242c6a48
-    0x2a000133, // scooby__2a9862df
-    0, // scooby__2b32b17e
-    0, // scooby__2b9d74e4
-    0, // scooby__3de43fe2
-    0, // scooby__402420b4
-    0x2a000123, // scooby__415322c3
-    0, // scooby__5257b080
-    0, // scooby__52d75aa5
-    0, // scooby__5f68ee0e
-    0, // scooby__625480d1
-    0x2a0000d9, // scooby__6e3372f0
-    0x2a000008, // scooby__74367063
-    0, // scooby__79185eb3
-    0, // scooby__7e698dff
-    0, // scooby__83265b14
-    0, // scooby__aae74b1e
-    0, // scooby__bc7f3c1a
-    0, // scooby__c33ca2c4
-    0, // scooby__c55e6477
-    0, // scooby__cbbf384c
-    0x2a00011f, // scooby__d8a08bbd
-    0x2a000009, // scooby__df8bf53b
-    0, // scooby__f28bcd0e
-    0, // scooby__f5ff9d42
-    0, // scooby__ffd170d9
-    0, // shaggy__0117f115
-    0, // shaggy__11ffbd5f
-    0, // shaggy__160eeb3e
-    0, // shaggy__1730c849
-    0, // shaggy__21f6ed7b
-    0x2a000123, // shaggy__26992d64
-    0, // shaggy__2ac8998c
-    0, // shaggy__35390b5f
-    0, // shaggy__4fb89b85
-    0, // shaggy__52d91ddd
-    0, // shaggy__53df9ee8
-    0, // shaggy__562b9dae
-    0, // shaggy__61655a9e
-    0, // shaggy__6dafd227
-    0x2a0000d9, // shaggy__914156a5
-    0, // shaggy__97105e68
-    0, // shaggy__9e7ce829
-    0, // shaggy__a37a6374
-    0, // shaggy__b1427d0c
-    0x2a000008, // shaggy__c2244c8b
-    0, // shaggy__c7b040f3
-    0, // shaggy__d05de456
-    0, // shaggy__da5e187b
-    0x2a00011f, // shaggy__dca9fe48
-    0, // shaggy__e92e5027
-    0, // shaggy__ee9dba7d
-    0, // shaggy__f26306af
-    0x2a000133, // shaggy__f3014777
-];
+pub static LEVEL_ITEM_260: Table<u32> = Table::new(&LEVEL_ITEM_260_K, level_item_260_row);
+const LEVEL_ITEM_260_G: [u8; 57] = [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1];
+fn level_item_260_row(k: &TRow) -> u32 {
+    match LEVEL_ITEM_260_G[k.1] {
+        0 => 0,
+        1 => k.v(0),
+        _ => unreachable!(),
+    }
+}
+static LEVEL_ITEM_260_K: TSpec = TSpec {
+    builds: &["11adae8e", "11df665e", "128635c3", "242c6a48", "2a9862df", "2b32b17e", "2b9d74e4", "3de43fe2", "402420b4", "415322c3", "5257b080", "52d75aa5", "5f68ee0e", "625480d1", "6e3372f0", "74367063", "79185eb3", "7e698dff", "83265b14", "aae74b1e", "bc7f3c1a", "c33ca2c4", "c55e6477", "cbbf384c", "d8a08bbd", "df8bf53b", "f28bcd0e", "f5ff9d42", "ffd170d9", "0117f115", "11ffbd5f", "160eeb3e", "1730c849", "21f6ed7b", "26992d64", "2ac8998c", "35390b5f", "4fb89b85", "52d91ddd", "53df9ee8", "562b9dae", "61655a9e", "6dafd227", "914156a5", "97105e68", "9e7ce829", "a37a6374", "b1427d0c", "c2244c8b", "c7b040f3", "d05de456", "da5e187b", "dca9fe48", "e92e5027", "ee9dba7d", "f26306af", "f3014777"],
+    fns: &["heroFUNC_Constructor"],
+    entries: &[
+        M(&[KLoc(0, 0x6a0bab30, 255, 3, 373, 1), KLoc(0, 0x50e52b01, 255, 3, 366, 1)]),
+    ],
+};
+
+#[allow(unused_imports)]
+use crate::engine::gamedata::{KLoc, TRow, TSpec, Table, TE::{L, M, X}, lk, lks};

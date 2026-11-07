@@ -14,8 +14,8 @@ pub static MODULE: ModuleDef = ModuleDef {
     ctor: fakezombieConstructor,
     dtor: fakezombieDestructor,
     register: None,
-    init: &[(iFakeZombieJoints, &[9, 5, 7, 3])],
-    build_init: None,
+    init: &[],
+    build_init: Some(|m, d, _| crate::engine::gamedata::init_syms(m, d, "73613d65", &["iFakeZombieJoints"])),
 };
 pub static MODULE_B: ModuleDef = ModuleDef {
     name: "fakezombieb",
@@ -23,8 +23,8 @@ pub static MODULE_B: ModuleDef = ModuleDef {
     ctor: fakezombiebConstructor,
     dtor: fakezombieDestructor,
     register: None,
-    init: &[(iFakeZombieJoints, &[9, 5, 7, 3])],
-    build_init: None,
+    init: &[],
+    build_init: Some(|m, d, _| crate::engine::gamedata::init_syms(m, d, "071a440f", &["iFakeZombieBJoints"])),
 };
 
 pub const iFakeZombieJoints: u32 = 0x10000;

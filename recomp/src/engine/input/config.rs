@@ -439,6 +439,16 @@ impl EFInputMgr {
     }
     /// EFInputMgr::Update (0x00205170): the first 5 updates are skipped.
     pub fn Update(&mut self, devices: &[EFPlayerDevice], out: &mut Vec<InputNotify>) {
+        // debug (P20 R137): P17_INLOG=<action id hex> dumps every active config holding that action, each frame
+        if let Some(id) = std::env::var("P17_INLOG").ok().and_then(|v| i32::from_str_radix(&v, 16).ok()) {
+            for c in self.configs.iter() {
+                for a in c.actions.iter().filter(|a| a.id == id) {
+                    if c.active & 1 != 0 {
+                        eprintln!("INLOG cfg {:#x} active {:#x} state {:#x} act {:#x} flags {:#x} devs {:?} ctx {:?}", c.id, c.active, c.state, a.id, a.state.flags, a.devices, a.contexts);
+                    }
+                }
+            }
+        }
         if self.enabled {
             if self.skip_first_frame < 5 {
                 self.skip_first_frame += 1;

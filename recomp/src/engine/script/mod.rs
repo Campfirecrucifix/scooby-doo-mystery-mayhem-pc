@@ -43,9 +43,16 @@ impl CutSceneHost for RuntimeCutSceneHost<'_> {
     fn GameObjectExists(&mut self, uid: u32) -> bool {
         self.e.rt.map.get(uid).is_some()
     }
-    fn GetObjectPosData(&mut self, _uid: u32) -> u32 {
-        // Pos-data relocation (PlugNPlay) only reaches type-7 anim nodes, see AnimNodeSetPosData.
-        0
+    /// EFWorld::GetObjectPosData (0x0026f280): the EFPosData of a camera instance (0x10) or a game
+    /// object; here its uid (0 = none)
+    fn GetObjectPosData(&mut self, uid: u32) -> u32 {
+        let g = self.rt.particles.lock().unwrap();
+        let exists = if uid >> 24 == 0x10 {
+            self.rt.gfx.cameras.cameras.iter().chain(g.sub.cameras.cameras.iter()).flatten().any(|c| c.uid == uid)
+        } else {
+            g.world.frames.contains_key(&uid)
+        };
+        if exists { uid } else { 0 }
     }
     fn AnimPlay(&mut self, obj: u32, anim: u32, flags: u32, time: f32) {
         J2(&self.rt.particles).anim_play(obj, anim, flags, time);
@@ -53,8 +60,9 @@ impl CutSceneHost for RuntimeCutSceneHost<'_> {
     fn AnimStop(&mut self, obj: u32, anim: u32) {
         J2(&self.rt.particles).anim_stop(obj, anim);
     }
-    fn AnimNodeSetPosData(&mut self, _obj: u32, _anim: u32, _pos: u32) {
-        // unported: node type 7 vfunc +0x28 (pos-data anim node); EP1L01 never plugs a pos object
+    /// EFCutScenePlayer::Play: node type 7 (EFCameraAnimNode) -> vtable +0x28 Connect(pos data)
+    fn AnimNodeSetPosData(&mut self, obj: u32, anim: u32, pos: u32) {
+        J2(&self.rt.particles).anim_node_connect(obj, anim, pos);
     }
     fn AnimNodeSetTime(&mut self, obj: u32, anim: u32, t: f32) {
         J2(&self.rt.particles).anim_set_time(obj, anim, t);
@@ -65,8 +73,12 @@ impl CutSceneHost for RuntimeCutSceneHost<'_> {
         self.e.mem.w32(p, a);
         self.e.mem.w32(p + 4, b);
         // the host resolves SELF through the logic stack (as EngineRuntime::StepParticles does)
-        self.rt.particles.lock().unwrap().logic = Some(&self.e.rt as *const _);
+        // P32 R70: restore afterwards (was left set: a raw pointer to this Engine's logic outliving
+        // the call, dangling once the Engine moves/drops, e.g. returned from load_carried)
+        // P32 R75: now a flag (the runtime is lent per API call, crate::logic::LogicBind)
+        let prev = std::mem::replace(&mut self.rt.particles.lock().unwrap().logic, true);
         self.e.NotifyAll(ty, p);
+        self.rt.particles.lock().unwrap().logic = prev;
         self.e.mem.free(p);
         self.notified.push((ty, a, b));
     }

@@ -21,6 +21,34 @@ fn gb_and(e: &mut Engine, off: u32, v: u32) {
 }
 /// (anim, camera object) of the build: group 1 is 5f68ee0e.
 fn rel(e: &Engine, gi: usize, anim0: u32) -> (u32, u32) {
+    // WP-P20 R19: the crouch anim ids / camera id are per-build literals (each scooby build's
+    // hero_crouch.c: heroInit_CrouchIn StartAnim id, SendMessageTo camera; CrouchOut = In - 1, 2a9862df In + 1). A wrong id
+    // makes StartAnim fail (L+0x218 = -1), no anim end sets L+0x168 bit 1 and the hero stays in
+    // heroST_CrouchIn_Loop forever (EP2/L01A crawl under the beam at 257.8,282.1)
+    let tab: Option<(u32, u32)> = match crate::modules::hero::builds::BUILDS[e.rt.cur_build()].sha8 {
+        "11adae8e" => Some((0x27, 0x2a00_0026)),
+        "242c6a48" => Some((0x2c, 0x2a00_0037)),
+        "2a9862df" => Some((0x2a, 0x2a00_0027)), // Out = 0x2b here (In + 1), see below
+        "402420b4" => Some((0x33, 0x2a00_008f)),
+        "415322c3" => Some((0x32, 0x2a00_0025)),
+        "5f68ee0e" => Some((0x2f, 0x2a00_0020)),
+        "6e3372f0" => Some((0x27, 0x2a00_0004)),
+        "79185eb3" => Some((0x2b, 0x2a00_0012)),
+        "7e698dff" => Some((0x2f, 0x2a00_000e)),
+        "83265b14" => Some((0x2b, 0x2a00_0004)),
+        "96c92057" => Some((0x26, 0x2a00_0030)),
+        "d8a08bbd" => Some((0x34, 0x2a00_001e)),
+        "f28bcd0e" => Some((0x2a, 0x2a00_001f)),
+        "f5ff9d42" => Some((0x2a, 0x2a00_0027)),
+        _ => None,
+    };
+    if let Some((a_in, cam)) = tab {
+        // anim0 = the group-0 In (0x33) / Out (0x32) id: Out = In - 1 in every build
+        // CrouchOut = In - 1 in every build except 2a9862df (EP2/L01A: In 0x2a, Out 0x2b); a wrong Out anim
+        // starts the stand-up from another pose and PrimMove (prim 103 pinned) snaps the hero back 0.88 m
+        let out = if crate::modules::hero::builds::BUILDS[e.rt.cur_build()].sha8 == "2a9862df" { a_in + 1 } else { a_in - 1 };
+        return (if anim0 == 0x33 { a_in } else { out }, cam);
+    }
     if g(e, gi) == 1 { (anim0 - 4, 0x2a00_0020) } else { (anim0, 0x2a00_008f) }
 }
 /// Rumble every 0.25 s (local+0x378 = next time).

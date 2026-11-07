@@ -72,6 +72,7 @@ pub fn foodCB_NOTIFY_COLLIDE_OBJ(e: &mut Engine, ep1: u32) -> LResult<u64> {
                 pc = 5;
             }
             5 => {
+                if std::env::var_os("GAME_FOODLOG").is_some() { eprintln!("food: {:#x} eaten by {:#x}", uVar1, e.r32((((param_1).wrapping_add(8i32)) as u32))); }
                 let _ = APInewSound::Play(e, 0x2a000000u32, 0x40000007u32, 0u32);
                 let _ = foodFUNC_ShowHideGlow(e, 0i32)?;
                 let _ = APIgameobj::UnregisterNotify(e, 0x2a000000u32, 0xffffffffu32, 3u32);
